@@ -3,7 +3,7 @@ id: UC-03
 titulo: "Publicar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-02]
 ---

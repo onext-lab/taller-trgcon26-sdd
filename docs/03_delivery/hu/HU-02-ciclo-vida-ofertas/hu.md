@@ -108,4 +108,4 @@ Flujos de esos UC que **no** cubre esta HU:
 - [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [x] Implementación + integración — `/implementar-hu`
 - [x] Review (`review/REVIEW.md`) — `/reviewer`
-- [ ] Sync de módulos + merge local a `main` — `/module-sync`
+- [x] Sync de módulos + merge local a `main` — `/module-sync`

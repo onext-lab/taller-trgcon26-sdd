@@ -3,7 +3,7 @@ id: UC-02
 titulo: "Editar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-01, HU-02]
 ---

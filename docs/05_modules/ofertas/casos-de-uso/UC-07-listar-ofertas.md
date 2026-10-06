@@ -3,7 +3,7 @@ id: UC-07
 titulo: "Listar y buscar ofertas"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-01, HU-02]
 ---

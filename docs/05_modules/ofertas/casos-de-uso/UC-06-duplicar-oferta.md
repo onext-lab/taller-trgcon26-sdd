@@ -3,7 +3,7 @@ id: UC-06
 titulo: "Duplicar una oferta como borrador"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-02]
 ---

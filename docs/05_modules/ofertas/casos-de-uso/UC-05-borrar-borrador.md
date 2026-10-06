@@ -3,7 +3,7 @@ id: UC-05
 titulo: "Borrar un borrador"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-01, HU-02]
 ---
