@@ -49,7 +49,11 @@ origen, religión, afiliación…). Un PRD que quiera añadir un dato nuevo tien
 | Acceso (art. 15) | El reclutador puede exportar la ficha completa del candidato con sus inscripciones e historial |
 | Rectificación (art. 16) | Edición de la ficha |
 | **Supresión (art. 17)** | **Anonimización a petición** (ver §5) |
-| Oposición y retirada del consentimiento (arts. 7.3 y 21) | Se retira el consentimiento y se recalcula la retención |
+| Retirada del consentimiento (art. 7.3) | Se retira el consentimiento y se recalcula la retención |
+
+El derecho de oposición (art. 21) no aparece en la tabla porque solo cabe frente a tratamientos basados en interés
+público o interés legítimo (art. 6.1.e y 6.1.f), y este ejemplo usa medidas precontractuales (6.1.b) y consentimiento
+(6.1.a). Si una feature introdujera un tratamiento por interés legítimo, habría que añadirlo.
 
 ## 5. Supresión mediante anonimización
 
@@ -64,8 +68,9 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
 
 ## 6. Reglas técnicas que vigila el auditor
 
-1. **Nada de datos personales en logs, mensajes de error ni respuestas que no los necesitan** (los logs de Fastify no
-   registran cuerpos de petición).
+1. **Nada de datos personales en logs, mensajes de error ni respuestas que no los necesitan.** Los logs de Fastify no
+   registran cuerpos de petición, y el serializador de `apps/api/src/logger.ts` quita la query de la URL (`?q=` puede
+   llevar un nombre o un email) y la IP de origen; lo comprueba `apps/api/test/logger.test.ts`.
 2. **Minimización** en las respuestas: un listado devuelve lo justo para la lista, no la ficha entera.
 3. **Seeds, fixtures y tests con datos inventados**; nunca CVs ni personas reales.
 4. **Toda feature que toque datos de candidatos** declara en su PRD qué datos, para qué y cuánto tiempo.

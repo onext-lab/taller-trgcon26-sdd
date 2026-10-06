@@ -67,9 +67,11 @@ Crea `docs/01_roadmap/sprints/sprint-{NN}.md` desde `docs/_templates/SPRINT.temp
 - Cada HU es una sección `### HU-{NN} · {título} · estado: pendiente`, con `Origen: FEAT-NN`, `Depende de:`, la rama `hu/HU-{NN}-slug` y las subtareas del flujo como checkboxes, una por línea: `/prd-writer`, `/tech-design`, `/task-planner`, `/implementar-hu`, `/reviewer`, merge a `main`, `/module-sync`.
 - Cada task sin HU es una sección `### T-{NN} · {título} · estado: pendiente`.
 
-### Paso 6 — Confirmar
+### Paso 6 — Commit en `main` y confirmar
 
-Muestra la ruta creada, el número, las fechas y los `HU-NN` y `T-NN` asignados. Sugiere: *«Cada HU arranca su flujo con `/prd-writer HU-NN` en su rama `hu/HU-NN-slug`.»*
+`git add -- docs/01_roadmap/sprints/sprint-{NN}.md` y `git commit -m "docs(sprint-{NN}): open sprint"`. Sin push.
+
+Muestra la ruta creada, el número, las fechas y los `HU-NN` y `T-NN` asignados. Sugiere: *«Cada HU arranca su flujo con `/prd-writer HU-NN`, que crea su rama `hu/HU-NN-slug` desde `main`.»*
 
 ## Reglas duras
 

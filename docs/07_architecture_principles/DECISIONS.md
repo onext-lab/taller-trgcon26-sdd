@@ -71,7 +71,9 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   - `@vitejs/plugin-react`: plugin de React para Vite (plugin imprescindible).
 
   Y se fija **TypeScript 6.0.3**: `typescript-eslint` 8.71 exige `typescript < 6.1`, así que la 7.x todavía no es
-  compatible con el lint.
+  compatible con el lint. Fuente: el `package.json` publicado de `typescript-eslint@8.71.1` declara
+  `peerDependencies.typescript: ">=4.8.4 <6.1.0"` (`npm view typescript-eslint@8.71.1 peerDependencies`, consultado
+  el 2026-10-06, cuando la última de TypeScript era la 7.0.2).
 - **Alternativas.** TypeScript 7.x sin lint de tipos (perdemos `typescript-eslint`); ESLint sin plugin de hooks (deja
   pasar errores de React que la review tendría que cazar a mano).
 - **Consecuencias.** Las versiones van fijadas (sin `^`) en los `package.json`. Subir TypeScript a 7.x queda pendiente

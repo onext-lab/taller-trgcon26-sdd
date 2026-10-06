@@ -21,6 +21,7 @@ Paso 2 del delivery de una HU (ver `docs/WORKFLOW.md`). **Orquesta, no diseña:*
 1. Existe `docs/03_delivery/hu/HU-NN-slug/specs/PRD.md`. Si no: «Ejecuta `/prd-writer HU-NN` primero.» STOP.
 2. **Sin Open Questions:** si alguna OQ tiene `Decisión: PENDIENTE`: «El PRD tiene OQ abiertas; resuélvelas con `/prd-writer HU-NN`.» STOP.
 3. PRD en `Ready`. Si está en `Draft`, avisa y pregunta si se sigue igualmente.
+4. Estás en la rama `hu/HU-NN-slug` (la creó `/prd-writer`) con el árbol limpio. Si no: `git switch hu/HU-NN-slug`.
 
 ## Workflow
 
@@ -89,7 +90,10 @@ Resume: docs generados (rutas), decisiones de diseño (`DD-NN`), ficheros y mód
 
 **STOP.** Ajustes → al arquitecto correspondiente, con el texto literal del usuario y la instrucción de no reescribir lo que no se menciona; después, repite el gate.
 
-### Paso 7 — Cierre
+### Paso 7 — Commit en la rama y cierre
+
+En `hu/HU-NN-slug`: `git add -- docs/03_delivery/hu/HU-NN-slug/plans/` y
+`git commit -m "docs(HU-NN): technical design"`. Sin push.
 
 Resumen (docs, decisiones, riesgos) y siguiente paso: «Ejecuta `/task-planner HU-NN`.»
 

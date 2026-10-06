@@ -59,7 +59,13 @@ Del título: minúsculas, kebab-case, **sin tildes ni eñes** (á→a, ñ→n), 
 
 **Justo antes de escribir**, vuelve a ejecutar `node scripts/next-id.mjs idea`. Si ya no devuelve el mismo número (alguien lo tomó entre medias), **vuelve al Paso 1** con el nuevo valor. Comprueba también que no existe ningún `{NNN}-*.md` en `ideas/` ni en sus subcarpetas. **Nunca sobrescribas ni reutilices un número.**
 
-### Paso 5 — Confirmar
+### Paso 5 — Commit en `main`
+
+Discovery se versiona en `main` (no hay rama por idea), nombrando el fichero:
+`git add -- docs/02_discovery/ideas/{NNN}-{slug}.md` y `git commit -m "docs(discovery): add IDEA-{NNN} {slug}"`.
+Así el árbol queda limpio para el siguiente paso del flujo. Sin push.
+
+### Paso 6 — Confirmar
 
 Muestra la ruta creada y el `id: IDEA-{NNN}`. Sugiere el siguiente paso: *«Cuando la idea cualifique, `/feature-shaping {NNN}` la convierte en feature.»*
 

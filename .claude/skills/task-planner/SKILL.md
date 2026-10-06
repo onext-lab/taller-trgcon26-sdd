@@ -23,6 +23,7 @@ Sin `scope`, parte todos los TECHNICAL_DOC de la HU.
 1. `specs/PRD.md` en `Ready` y sin Open Questions. Si no: «Ejecuta `/prd-writer HU-NN`.» STOP.
 2. Existe el TECHNICAL_DOC del scope en `docs/03_delivery/hu/HU-NN-slug/plans/`. Si no: «Ejecuta `/tech-design HU-NN`.» STOP.
 3. El TECHNICAL_DOC no tiene Open Decisions pendientes. Si las tiene: «Resuélvelas con `/tech-design HU-NN`.» STOP.
+4. Estás en la rama `hu/HU-NN-slug` con el árbol limpio. Si no: `git switch hu/HU-NN-slug`.
 
 ## Workflow
 
@@ -89,7 +90,10 @@ Resume: tareas por scope con su reparto S/M/L, camino crítico y riesgos. Y preg
 
 **STOP.** Los ajustes los aplicas tú (son tus ficheros) y repites el gate.
 
-### Paso 8 — Cierre
+### Paso 8 — Commit en la rama y cierre
+
+En `hu/HU-NN-slug`: `git add -- docs/03_delivery/hu/HU-NN-slug/tasks/` y
+`git commit -m "docs(HU-NN): tasks and roadmap"`. Sin push.
 
 Siguiente paso: «Ejecuta `/implementar-hu HU-NN`: una tarea cada vez, con brief, builder, integración y commit.»
 
