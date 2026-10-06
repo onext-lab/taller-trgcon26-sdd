@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-04) · Should (RF-08) · RNF-01, RNF-02, RNF-04
 - **Complejidad:** L (2–4 h; estimada 3,5 h: listado 2 h + seed y rendimiento 1,5 h)
 

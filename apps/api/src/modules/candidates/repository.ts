@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { registerTextSearch } from '../../db/text-search.ts';
-import type { Candidate } from './schemas.ts';
+import type { Candidate, CandidateListItem } from './schemas.ts';
 
 /** Fila de `candidates` tal como la devuelve SQLite (los CHECK de la migración 002 garantizan los dominios). */
 interface CandidateRow {
@@ -68,6 +68,32 @@ const INSERT_SQL = `INSERT INTO candidates
   (full_name, email, phone, summary, skills, created_at, consent_given_at, consent_version)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
+/** Filtros del listado, en Y. `q` ya viene plegado con `foldSearchText` y `skill` en minúsculas; `null` = sin filtro. */
+export interface CandidateListFilter {
+  q: string | null;
+  skill: string | null;
+}
+
+interface CandidateListRow {
+  id: number;
+  full_name: string;
+  email: string;
+  skills: string;
+}
+
+// DD-02: `instr` es literal (`%`, `_` y `\` no son comodines). El email ya se guarda en minúsculas y en ASCII, así
+// que no necesita `fold_search`. La skill se busca exacta en el JSON de `skills`.
+const FILTER_SQL = `WHERE (:q IS NULL OR instr(fold_search(full_name), :q) > 0 OR instr(email, :q) > 0)
+    AND (:skill IS NULL OR EXISTS (SELECT 1 FROM json_each(candidates.skills) WHERE value = :skill))`;
+
+const LIST_PAGE_SQL = `SELECT id, full_name, email, skills
+  FROM candidates
+  ${FILTER_SQL}
+  ORDER BY created_at DESC, id DESC
+  LIMIT :limit OFFSET :offset`;
+
+const COUNT_SQL = `SELECT COUNT(*) AS total FROM candidates ${FILTER_SQL}`;
+
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
 
 /** Acceso a `candidates` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
@@ -82,6 +108,23 @@ export function createCandidatesRepository(db: DatabaseSync) {
     findIdByEmail(email: string): number | undefined {
       const row = db.prepare('SELECT id FROM candidates WHERE email = ?').get(email);
       return row ? Number(row.id) : undefined;
+    },
+    /** Una página del listado: solo `id, full_name, email, skills` (RNF-04). Orden `created_at DESC, id DESC`. */
+    listPage(filter: CandidateListFilter, limit: number, offset: number): CandidateListItem[] {
+      const rows = db
+        .prepare(LIST_PAGE_SQL)
+        .all({ q: filter.q, skill: filter.skill, limit, offset }) as unknown as CandidateListRow[];
+      return rows.map((row) => ({
+        id: row.id,
+        fullName: row.full_name,
+        email: row.email,
+        skills: JSON.parse(row.skills) as string[],
+      }));
+    },
+    /** Total del resultado filtrado (mismo `WHERE` que `listPage`). */
+    count(filter: CandidateListFilter): number {
+      const row = db.prepare(COUNT_SQL).get({ q: filter.q, skill: filter.skill });
+      return Number(row?.total ?? 0);
     },
     /** Inserta con retención `NULL` y devuelve el ID. El choque con `candidates_email_uq` lo lanza SQLite. */
     insert(fields: CandidateFields, createdAt: string, consent: InitialConsent | null): number {

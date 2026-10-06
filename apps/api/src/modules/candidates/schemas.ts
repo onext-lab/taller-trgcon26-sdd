@@ -147,3 +147,60 @@ export const candidateSchema = {
     retentionEndsAt: { type: ['string', 'null'] },
   },
 } as const;
+
+/** Elemento del listado: solo estos 4 campos (RNF-04, RGPD §6.2); el esquema de respuesta filtra cualquier otro. */
+export const candidateListItemSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'fullName', 'email', 'skills'],
+  properties: {
+    id: { type: 'integer' },
+    fullName: { type: 'string' },
+    email: { type: 'string' },
+    skills: { type: 'array', items: { type: 'string' } },
+  },
+} as const;
+
+/** Página del listado (DEC-10): `total` es el del resultado filtrado. */
+export const candidatePageSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['items', 'total', 'page', 'pageSize'],
+  properties: {
+    items: { type: 'array', items: candidateListItemSchema },
+    total: { type: 'integer' },
+    page: { type: 'integer' },
+    pageSize: { type: 'integer' },
+  },
+} as const;
+
+/** Parámetros del listado ya validados y convertidos (`q` y `skill` sin recortar a vacío: `undefined` = sin filtro). */
+export interface CandidateListQuery {
+  q?: string;
+  skill?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Querystring tal como llega: sin coerción (DEC-11.2) todo es texto; la ruta lo convierte. */
+export interface CandidateListQuerystring {
+  q?: string;
+  skill?: string;
+  page?: string;
+  pageSize?: string;
+}
+
+/**
+ * Querystring de `GET /api/candidates` (DD-02): `page` y `pageSize` como texto con `pattern` (`pageSize` de 1 a 100);
+ * `q` y `skill` se recortan antes de validar. Cualquier otro parámetro da 400 «Hay campos no permitidos.».
+ */
+export const listQuerySchema = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    q: { type: 'string', maxLength: 100, pattern: NO_CONTROL_CHARS },
+    skill: { type: 'string', maxLength: 40, pattern: NO_CONTROL_CHARS },
+    page: { type: 'string', pattern: '^[1-9][0-9]{0,8}$' },
+    pageSize: { type: 'string', pattern: '^(?:[1-9][0-9]?|100)$' },
+  },
+} as const;

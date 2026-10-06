@@ -1,11 +1,22 @@
 import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
-import { idParamsSchema, rejectBody, type IdParams } from '../../http/validation.ts';
+import {
+  idParamsSchema,
+  rejectBody,
+  trimTextFields,
+  type IdParams,
+} from '../../http/validation.ts';
 import { normalizeCandidateBody } from './normalize.ts';
 import {
+  candidatePageSchema,
   candidateSchema,
   createCandidateBodySchema,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
+  listQuerySchema,
   updateCandidateBodySchema,
   type CandidateInput,
+  type CandidateListQuery,
+  type CandidateListQuerystring,
   type CandidatePatch,
 } from './schemas.ts';
 import type { CandidatesService } from './service.ts';
@@ -19,11 +30,36 @@ const normalizeBody: preValidationHookHandler = (request, _reply, done) => {
   done();
 };
 
+/** Recorte de `q` y `skill` antes de validar (DD-02): un tabulador o salto de línea en el borde se recorta; dentro, 400. */
+const trimSearchText: preValidationHookHandler = (request, _reply, done) => {
+  trimTextFields(request.query, { trim: ['q', 'skill'], emptyToNull: [] });
+  done();
+};
+
+/** `page` y `pageSize` llegan como texto validado por `pattern`; `q` o `skill` vacíos = sin filtro. */
+function toListQuery({ q, skill, page, pageSize }: CandidateListQuerystring): CandidateListQuery {
+  return {
+    q: q || undefined,
+    skill: skill || undefined,
+    page: page === undefined ? DEFAULT_PAGE : Number(page),
+    pageSize: pageSize === undefined ? DEFAULT_PAGE_SIZE : Number(pageSize),
+  };
+}
+
 /** Plugin del módulo candidates: recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
 export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }> = async (
   app,
   { service },
 ) => {
+  app.get<{ Querystring: CandidateListQuerystring }>(
+    '/',
+    {
+      preValidation: trimSearchText,
+      schema: { querystring: listQuerySchema, response: { 200: candidatePageSchema } },
+    },
+    (request) => service.list(toListQuery(request.query)),
+  );
+
   app.post<{ Body: CandidateInput }>(
     '/',
     {

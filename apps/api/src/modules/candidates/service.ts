@@ -1,4 +1,5 @@
 import type { Clock } from '../../clock.ts';
+import { foldSearchText } from '../../db/text-search.ts';
 import { duplicate, notFound } from '../../errors.ts';
 import type { CandidateProcessesPort } from './processes-port.ts';
 import type { CandidateFields, CandidatesRepository } from './repository.ts';
@@ -7,14 +8,18 @@ import {
   CONSENT_TEXT_VERSION,
   type Candidate,
   type CandidateInput,
+  type CandidateListQuery,
+  type CandidatePage,
   type CandidatePatch,
 } from './schemas.ts';
 
 /**
  * Casos de uso de los candidatos (TECHNICAL_DOC-backend § Firmas internas). No conoce `request` ni `reply`: los
- * errores salen como `AppError`. `list` llega en TASK-05.
+ * errores salen como `AppError`.
  */
 export interface CandidatesService {
+  /** Filtros en Y (texto plegado en nombre o email, skill exacta), orden `created_at DESC, id DESC` y `total` filtrado (DEC-10). */
+  list(query: CandidateListQuery): CandidatePage;
   /** Alta con retención calculada, en una transacción. `DUPLICATE` (409) si el email ya existe. */
   create(input: CandidateInput): Candidate;
   /** `NOT_FOUND` si no existe. */
@@ -148,6 +153,11 @@ export function createCandidatesService({
   }
 
   return {
+    list({ q, skill, page, pageSize }) {
+      const filter = { q: q ? foldSearchText(q) : null, skill: skill ? skill.toLowerCase() : null };
+      const items = repository.listPage(filter, pageSize, (page - 1) * pageSize);
+      return { items, total: repository.count(filter), page, pageSize };
+    },
     create(input) {
       // Insert con retención `NULL` + recálculo (DD-05): un fallo del puerto deshace también el alta.
       return transaction(() => recalculateRetention(insertCandidate(input)));
