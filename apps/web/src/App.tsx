@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactElement, type RefObject } from 'react';
 import { ApiHealth } from './components/ApiHealth.tsx';
 import { Link, matchPath, navigate, usePath } from './components/router.tsx';
+import { CandidateDetailScreen } from './features/candidates/CandidateDetailScreen.tsx';
 import { CandidateFormScreen } from './features/candidates/CandidateFormScreen.tsx';
 import { candidatePaths } from './features/candidates/paths.ts';
 import { JobDetailScreen } from './features/jobs/JobDetailScreen.tsx';
@@ -45,6 +46,9 @@ function resolveScreen(path: string): Screen | null {
   }
   if (matchPath('/candidates/:id/edit', path)) {
     return { title: 'Editar candidato', element: <CandidateFormScreen mode="edit" /> };
+  }
+  if (matchPath('/candidates/:id', path)) {
+    return { title: 'Ficha de candidato', element: <CandidateDetailScreen /> };
   }
   return { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
 }
