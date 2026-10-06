@@ -93,3 +93,36 @@ INTEGRACION rc=0
 - **Resultado:** en verde. Los tests de `apps/web/test/features/jobs/` no se han tocado y pasan; los e2e de ofertas también (23). Fuera de la tabla, `apps/web/test/features/candidates/consent.test.ts` (nuevo, para el criterio de `CONSENT_TEXT` y `v1`); `isValidId` se exporta de `http.ts` para reutilizarlo.
 - **Commit:** el de esta tarea (`[HU-03 TASK-09]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** Gate de QUALITY-GATES (≤ 300 líneas por fichero): `apps/web/test/features/candidates/api.test.ts` tiene 327. Pasa los casos de respuestas mal formadas o de error a un hermano `apps/web/test/features/candidates/api.errors.test.ts` sin quitar ninguno. Además, DP-01: cambia el email `a@b.es` (líneas 238, 248-250 y 309) por uno `@example.com`, y corrige la etiqueta «CA-24» de la línea 245, que prueba una respuesta mal formada (`CLIENT_BAD_RESPONSE`), no la ficha caída.
+- **Ficheros:** `apps/web/test/features/candidates/api.test.ts`, `apps/web/test/features/candidates/api.errors.test.ts` (crear)
+- **Verificación que debes pegar:** Los dos ficheros ≤ 300 líneas tras el formateo; el mismo número total de tests que antes (20 + los que hubiera); `npm test -w @ats/web -- candidates/api` en verde; ningún `a@b.es` en `apps/web`; eslint de los dos a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- candidates/api CandidateFormScreen candidate-form-model CandidateDetailScreen
+ Test Files  9 passed (9)
+      Tests  161 passed (161)
+exit=0
+$ npm run typecheck 
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/test/features/candidates/api.test.ts apps/web/test/features/candidates/api.errors.test.ts apps/web/src/features/candidates/CandidateForm.tsx apps/web/src/features/candidates/CandidateFormScreen.tsx apps/web/src/features/candidates/ConsentSection.tsx apps/web/src/features/candidates/use-consent-actions.ts apps/web/src/features/candidates/use-consent-focus.ts apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx
+exit=0
+$ wc -l (ficheros tocados)
+     148 apps/web/test/features/candidates/api.errors.test.ts
+     174 apps/web/src/features/candidates/CandidateForm.tsx
+     197 apps/web/src/features/candidates/CandidateFormScreen.tsx
+     226 apps/web/test/features/candidates/api.test.ts
+     279 apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx
+    1277 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** en verde (integración conjunta con las reaperturas de TASK-11 y 12): `api.test.ts` queda en 226 líneas y `api.errors.test.ts` (nuevo) en 148; 20 tests, los mismos que antes; sin `a@b.es`.
+

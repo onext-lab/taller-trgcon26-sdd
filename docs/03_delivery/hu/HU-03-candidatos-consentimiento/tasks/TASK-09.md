@@ -114,3 +114,12 @@ va al principio de TASK-10, sin crear tarea nueva (riesgo del TD-frontend).
   traen `id`, `fullName`, `email` y `skills` (S3).
 - `parseRouteId`: entero positivo seguro, solo dígitos (misma regla que `parseJobId`).
 - El orden importa: primero mover y dejar `jobs` en verde; después crear `candidates/`.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Gate de QUALITY-GATES (≤ 300 líneas por fichero): `apps/web/test/features/candidates/api.test.ts` tiene 327. Pasa los casos de respuestas mal formadas o de error a un hermano `apps/web/test/features/candidates/api.errors.test.ts` sin quitar ninguno. Además, DP-01: cambia el email `a@b.es` (líneas 238, 248-250 y 309) por uno `@example.com`, y corrige la etiqueta «CA-24» de la línea 245, que prueba una respuesta mal formada (`CLIENT_BAD_RESPONSE`), no la ficha caída.
+- **Ficheros:** `apps/web/test/features/candidates/api.test.ts`, `apps/web/test/features/candidates/api.errors.test.ts` (crear)
+- **Criterios de done:** Los dos ficheros ≤ 300 líneas tras el formateo; el mismo número total de tests que antes (20 + los que hubiera); `npm test -w @ats/web -- candidates/api` en verde; ningún `a@b.es` en `apps/web`; eslint de los dos a 0.
+
+## Nota · review ronda 1 (2026-10-06)
+Se añadió fuera de la tabla `apps/web/test/features/candidates/consent.test.ts` (criterio de `CONSENT_TEXT` y `v1`), y `apps/web/src/components/http.ts` exporta además `isValidId`, que reutiliza `apps/web/src/features/candidates/api.ts` (drift DD-07 de la review).
