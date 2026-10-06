@@ -168,3 +168,9 @@ publishedAt)` → `markClosed(id, closedAt)` según el caso. Fechas fijas, en UT
 
 **Aviso:** el seed nuevo puede mover los borradores en el listado sin filtros de `e2e/jobs.spec.ts`; los e2e no se
 exigen hasta TASK-14, que los ajusta (DD-09 frontend).
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** SEC-01 (enmienda de DEC-12, ya escrita en `docs/07_architecture_principles/DECISIONS.md`): invierte el guard de `apps/api/src/http/cross-site.ts`. Se rechaza con 403 `CROSS_SITE_REQUEST` toda petición cuyo método NO sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` (en minúsculas y recortado) no vale `same-origin` ni `none`; si la cabecera falta, pasa. Tests en `apps/api/test/http/cross-site.test.ts` (o un hermano si pasa de 300): `same-site` → 403 en POST, PATCH y DELETE; un método no listado (`PUT` contra una ruta existente o inexistente) con `cross-site` → 403 antes del 404; `Same-Origin` con mayúsculas y espacios → pasa; `same-origin`, `none` y sin cabecera → 2xx; GET con `cross-site` → 200. Ajusta los tests existentes que hoy esperan que `same-site` pase.
+- **Ficheros:** `apps/api/src/http/cross-site.ts`, `apps/api/test/http/cross-site.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- cross-site` en verde; `npm test -w @ats/api` completo; `npm run typecheck -w @ats/api`; `npx eslint` de los ficheros tocados.

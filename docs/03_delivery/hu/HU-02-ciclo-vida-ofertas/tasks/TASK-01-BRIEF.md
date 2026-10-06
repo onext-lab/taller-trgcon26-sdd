@@ -95,3 +95,36 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera; typecheck del workspace tocado (@ats/api): el de la raíz caía en ese momento por apps/web, a medio editar por TASK-07 (R2: workspace tocado). Builder: general-purpose con las instrucciones de api-builder.md (respaldo)
 - **Commit:** el de esta tarea (`[HU-02 TASK-01]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** SEC-01 (enmienda de DEC-12, ya escrita en `docs/07_architecture_principles/DECISIONS.md`): invierte el guard de `apps/api/src/http/cross-site.ts`. Se rechaza con 403 `CROSS_SITE_REQUEST` toda petición cuyo método NO sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` (en minúsculas y recortado) no vale `same-origin` ni `none`; si la cabecera falta, pasa. Tests en `apps/api/test/http/cross-site.test.ts` (o un hermano si pasa de 300): `same-site` → 403 en POST, PATCH y DELETE; un método no listado (`PUT` contra una ruta existente o inexistente) con `cross-site` → 403 antes del 404; `Same-Origin` con mayúsculas y espacios → pasa; `same-origin`, `none` y sin cabecera → 2xx; GET con `cross-site` → 200. Ajusta los tests existentes que hoy esperan que `same-site` pase.
+- **Ficheros:** `apps/api/src/http/cross-site.ts`, `apps/api/test/http/cross-site.test.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/api -- cross-site` en verde; `npm test -w @ats/api` completo; `npm run typecheck -w @ats/api`; `npx eslint` de los ficheros tocados.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- cross-site
+ Test Files  1 passed (1)
+      Tests  47 passed (47)
+exit=0
+$ npm test -w apps/api   (suite completa del workspace)
+ Test Files  24 passed (24)
+      Tests  310 passed (310)
+exit=0
+$ npm run typecheck -w @ats/api
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/src/http/cross-site.ts apps/api/test/http/cross-site.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+      28 apps/api/src/http/cross-site.ts
+     181 apps/api/test/http/cross-site.test.ts
+     209 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; guard por lista de métodos seguros (GET, HEAD, OPTIONS) y same-site rechazado (DEC-12 enmendada); 47 tests de cross-site
+

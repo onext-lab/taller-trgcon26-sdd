@@ -83,25 +83,35 @@ const WRITES: WriteCase[] = [
   },
 ];
 
+const BLOCKED_VALUES = ['cross-site', 'same-site'];
+
 describe('DEC-12 — escrituras entre sitios', () => {
-  it.each(WRITES)('EC-49 $name con cross-site → 403 y nada cambia', async (write) => {
-    const rowsBefore = countJobs();
-    const jobsBefore = readJobs();
+  for (const blocked of BLOCKED_VALUES) {
+    it.each(WRITES)(`EC-49 $name con ${blocked} → 403 y nada cambia`, async (write) => {
+      const rowsBefore = countJobs();
+      const jobsBefore = readJobs();
 
-    const response = await app.inject({
-      method: write.method,
-      url: write.url(),
-      payload: write.payload,
-      headers: { 'sec-fetch-site': 'cross-site' },
+      const response = await app.inject({
+        method: write.method,
+        url: write.url(),
+        payload: write.payload,
+        headers: { 'sec-fetch-site': blocked },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json()).toEqual(FORBIDDEN);
+      expect(countJobs()).toBe(rowsBefore);
+      expect(readJobs()).toEqual(jobsBefore);
     });
+  }
 
-    expect(response.statusCode).toBe(403);
-    expect(response.json()).toEqual(FORBIDDEN);
-    expect(countJobs()).toBe(rowsBefore);
-    expect(readJobs()).toEqual(jobsBefore);
-  });
-
-  const SAFE_VALUES: (string | undefined)[] = ['same-origin', 'same-site', 'none', undefined];
+  const SAFE_VALUES: (string | undefined)[] = [
+    'same-origin',
+    'none',
+    undefined,
+    '  Same-Origin ',
+    'NONE',
+  ];
 
   for (const write of WRITES) {
     it.each(SAFE_VALUES)(`EC-49 ${write.name} con sec-fetch-site=%s → 2xx`, async (value) => {
@@ -115,6 +125,37 @@ describe('DEC-12 — escrituras entre sitios', () => {
       expect(response.statusCode).toBe(write.ok);
     });
   }
+
+  it.each(['PUT', 'PUT_MISSING'])(
+    'EC-49 %s con cross-site → 403 antes del 404 (método no listado)',
+    async (kind) => {
+      const url = kind === 'PUT' ? `/api/jobs/${job.id}` : '/api/no-existe';
+      const jobsBefore = readJobs();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url,
+        payload: { title: 'Otro' },
+        headers: { 'sec-fetch-site': 'cross-site' },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json()).toEqual(FORBIDDEN);
+      expect(readJobs()).toEqual(jobsBefore);
+    },
+  );
+
+  it('EC-49 PUT sin cabecera o same-origin sigue su camino normal (404/405, no 403)', async () => {
+    const plain = await app.inject({ method: 'PUT', url: '/api/no-existe' });
+    const same = await app.inject({
+      method: 'PUT',
+      url: '/api/no-existe',
+      headers: { 'sec-fetch-site': 'same-origin' },
+    });
+
+    expect(plain.statusCode).toBe(404);
+    expect(same.statusCode).toBe(404);
+  });
 
   it('EC-49 GET cross-site → 200 (solo se protegen las escrituras)', async () => {
     const headers = { 'sec-fetch-site': 'cross-site' };
