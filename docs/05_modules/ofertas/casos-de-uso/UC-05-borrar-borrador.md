@@ -52,8 +52,8 @@ Ninguno. Un borrador no tiene inscripciones, porque solo se inscribe en ofertas 
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-01 | | |
+| P | HU-01 | CA-13 | |
 | E1 | HU-02 | | |
-| E2 | HU-01 | | |
+| E2 | HU-01 | CA-14 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

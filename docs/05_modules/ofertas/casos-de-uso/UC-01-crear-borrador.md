@@ -65,12 +65,12 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-01 | | |
-| E1 | HU-01 | | |
-| E2 | HU-01 | | |
-| E3 | HU-01 | | |
-| E4 | HU-01 | | |
-| E5 | HU-01 | | |
-| E6 | HU-01 | | |
+| P | HU-01 | CA-01, CA-02 | |
+| E1 | HU-01 | CA-03 | |
+| E2 | HU-01 | CA-04 | |
+| E3 | HU-01 | CA-05 | |
+| E4 | HU-01 | CA-06 | |
+| E5 | HU-01 | CA-07 | |
+| E6 | HU-01 | CA-08 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

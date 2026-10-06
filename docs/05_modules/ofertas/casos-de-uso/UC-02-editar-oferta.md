@@ -63,10 +63,10 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-01 | | |
-| A1 | HU-01 | | |
+| P | HU-01 | CA-09, CA-10 | |
+| A1 | HU-01 | CA-11 | |
 | E1 | HU-02 | | |
-| E2 | HU-01 | | |
+| E2 | HU-01 | CA-12 | |
 | E3 | HU-02 | | |
 | E4 | HU-02 | | |
 

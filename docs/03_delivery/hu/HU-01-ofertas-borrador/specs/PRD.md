@@ -5,7 +5,7 @@
 - **Scope:** fullstack
 - **Módulos:** `ofertas` (código `jobs`)
 - **Fecha:** 2026-10-06
-- **Estado:** Draft
+- **Estado:** Ready
 
 ## Contexto
 
@@ -66,10 +66,10 @@ Ficheros de los UC: `docs/05_modules/ofertas/casos-de-uso/UC-01-crear-borrador.m
 | RF-01 | **Crear un borrador.** Formulario «Nueva oferta» y alta en la API: título obligatorio; descripción, ubicación, modalidad y extremos de la banda salarial opcionales. Se recortan los espacios de los textos antes de validar y un texto opcional que queda vacío se guarda sin valor (S-03). Se guarda en `draft` con la fecha de creación en UTC que pone el sistema (reloj inyectado, DEC-09); la respuesta es 201 con la oferta completa y la web abre su ficha (UC-01 · P). | Must | backend + frontend | - [ ] CA-01 a CA-08 |
 | RF-02 | **Validar los campos de una oferta** (alta y edición, misma regla): título 3-120; descripción ≤ 5 000; ubicación 2-120; modalidad exactamente `presencial`, `híbrida` o `remota`; cada extremo de la banda, entero > 0, y mínimo ≤ máximo si vienen los dos (RN-03, RN-04, S-08). Esquema estricto: un campo desconocido o de solo lectura (estado, fechas, ID) da 400 (S-03, DEC-07). El error es 400 `VALIDATION_ERROR` con los campos en `details`, y la web lo muestra junto a cada campo con el `message` de la API (diseño §4). La web valida también en el cliente con las mismas reglas, solo para la experiencia. | Must | backend + frontend | - [ ] CA-03 a CA-08 y CA-12 |
 | RF-03 | **Editar un borrador.** Desde la ficha, «Editar» abre el formulario con los valores actuales; al guardar se aplican los campos enviados con las reglas de RF-02, sin cambiar el estado ni la fecha de creación; un campo opcional vaciado queda sin valor; gana la última escritura (S-02, DEC-08). Respuesta 200 con la oferta y la web vuelve a la ficha (UC-02 · P, A1, E2). | Must | backend + frontend | - [ ] CA-09 a CA-12 |
-| RF-04 | **Borrar un borrador.** «Borrar» en la ficha, con confirmación previa (ver OQ-02); borrado físico (S-12); respuesta 204 y la web vuelve al listado. Si la oferta ya no existe, 404 `NOT_FOUND` (UC-05 · P, E2). | Must | backend + frontend | - [ ] CA-13, CA-14 |
+| RF-04 | **Borrar un borrador.** «Borrar» en la ficha, con un diálogo de confirmación accesible (`<dialog>` con el foco inicial en «Cancelar») que nombra la oferta y avisa de que no se puede deshacer (DT-02); borrado físico (S-12); respuesta 204 y la web vuelve al listado. Si la oferta ya no existe, 404 `NOT_FOUND` (UC-05 · P, E2). | Must | backend + frontend | - [ ] CA-13, CA-14 |
 | RF-05 | **Listar ofertas.** Primera página de 20 ofertas, de todos los estados, ordenadas por fecha de referencia (publicación o, si no hay, creación) de la más reciente a la más antigua, con desempate por ID descendente (RN-11, S-04). Respuesta con la forma de DEC-10 (`items`, `total`, `page`, `pageSize`) y solo los campos de la lista: ID, título, estado y fecha de referencia. La web muestra cada oferta con su título (enlace a la ficha), su estado y su fecha en `dd/mm/aaaa` en Europe/Madrid, más los estados *cargando*, *vacío* y *error* (diseño §3). Filtros, cambio de página y de tamaño: HU-02. | Must | backend + frontend | - [ ] CA-15 a CA-18 |
 | RF-06 | **Consultar una oferta.** La ficha muestra título, descripción, ubicación, modalidad, banda salarial, estado y fecha de creación en `dd/mm/aaaa` (Europe/Madrid), con el título y la descripción como texto (sin HTML interpretado), y las acciones que existen en esta HU para un borrador: «Editar» y «Borrar». Un ID inexistente da 404 `NOT_FOUND` y la pantalla muestra un mensaje sin datos (UC-08 · P, E1). | Must | backend + frontend | - [ ] CA-19, CA-20 |
-| RF-07 | **Migración y seed.** Una migración nueva crea la tabla de ofertas con los campos de §Modelo de datos y las restricciones de RN-01 a RN-04; `npm run db:reset` carga los borradores inventados que fija OQ-01, todos con los campos de RN-02 informados y válidos (RV-26). | Should | backend | - [ ] tras `npm run db:reset`, `GET /api/jobs` devuelve los borradores del seed y todos cumplen RN-02 a RN-04 |
+| RF-07 | **Migración y seed.** Una migración nueva crea la tabla de ofertas con los campos de §Modelo de datos y las restricciones de RN-01 a RN-04; `npm run db:reset` carga **4 borradores** inventados con fechas de creación escalonadas (DT-01), todos con los campos de RN-02 informados y válidos (RV-26). | Should | backend | - [ ] tras `npm run db:reset`, `GET /api/jobs` devuelve los 4 borradores del seed, dos de ellos con banda salarial, y todos cumplen RN-02 a RN-04 |
 
 ## Requisitos no funcionales
 
@@ -137,10 +137,10 @@ Las 7 categorías de `QUALITY-GATES.md` §3, evaluadas por cada RF Must. RF-07 (
 | EC-03 | RF-01 | 2 Boundary | Título «  Técnica/o de selección  » con espacios alrededor | Se guarda recortado: «Técnica/o de selección» |
 | EC-04 | RF-01 | 2 Boundary | Título con tildes, eñes y emoji («Diseñador/a UX 🎨»), 3 y 120 caracteres | Se acepta y se devuelve igual; la longitud cuenta caracteres, no bytes |
 | EC-05 | RF-01 | 3 Fallo de dependencia | La escritura en SQLite falla | 500 en el envelope (`INTERNAL_ERROR`), sin *stack trace*; no queda ninguna oferta a medias; la web muestra el error sin salir del formulario |
-| EC-06 | RF-01 | 4 Concurrencia | Doble clic en «Guardar» del alta | La web deshabilita «Guardar» mientras la petición está en curso, así que solo sale una petición; dos peticiones que lleguen a la API crean dos borradores (el alta no es idempotente por diseño: no hay clave natural) |
+| EC-06 | RF-01 | 4 Concurrencia | Doble clic en «Guardar» del alta | La web deshabilita «Guardar» mientras la petición está en curso, así que solo sale una petición; dos peticiones que lleguen a la API crean dos borradores (DT-03: sin clave natural no hay idempotencia) |
 | EC-07 | RF-01 | 5 Datos corruptos | — | N/A — el módulo nace con esta HU: no hay filas anteriores a la migración |
 | EC-08 | RF-01 | 6 Seguridad | Título `'); DROP TABLE …; --` | Se guarda como texto literal con sentencias preparadas; la tabla sigue intacta |
-| EC-09 | RF-01 | 7 Idempotencia | Reintento del alta tras un error de red | Puede crear un segundo borrador; el reclutador lo borra (RF-04). Aceptado por S-12 y por la ausencia de clave natural (ver EC-06) |
+| EC-09 | RF-01 | 7 Idempotencia | Reintento del alta tras un error de red | Puede crear un segundo borrador; el reclutador lo borra (RF-04). Aceptado: sin clave natural no hay idempotencia (DT-03) |
 | EC-10 | RF-02 | 1 Input inválido | Modalidad «teletrabajo», «Híbrida» o «hibrida» | 400 `VALIDATION_ERROR` en `workMode` (o el nombre que fije el diseño); solo valen los tres literales exactos |
 | EC-11 | RF-02 | 1 Input inválido | Salario `"40000"` (cadena), `40000.5`, `0` o `-1` | 400 `VALIDATION_ERROR` en ese extremo |
 | EC-12 | RF-02 | 2 Boundary | Título de 2/3/120/121, descripción de 5 000/5 001, ubicación de 1/2/120/121 caracteres tras recortar | Se aceptan 3, 120, 5 000, 2 y 120; el resto, 400 |
@@ -204,22 +204,22 @@ Las 7 categorías de `QUALITY-GATES.md` §3, evaluadas por cada RF Must. RF-07 (
 - Editar o borrar ofertas `published` o `closed` y sus errores (HU-02: UC-02 · E1, E3, E4 y UC-05 · E1).
 - Filtros por estado y por título, cambio de página y de tamaño y sus validaciones (HU-02: UC-07 · A1, A3, E1-E3).
 - Ficha de una oferta cerrada (HU-02: UC-08 · A1).
-- Ofertas `published` y `closed` del seed (HU-02, ver OQ-01).
+- Las 6 ofertas restantes del seed, 4 `published` y 2 `closed` (HU-02, DT-01).
 - Cualquier relación con candidatos o inscripciones (FEAT-02, FEAT-03).
 - Número de vacantes (RV-07), portales externos y login (DEC-04).
 
 ## Open Questions
 
-| ID | Pregunta | Contexto | Recomendación | Decisión | Estado |
-|----|----------|----------|---------------|----------|--------|
-| OQ-01 | ¿Qué parte del seed de unas 10 ofertas (RV-26) carga esta HU? | `hu.md` (Notas) deja al PRD de HU-01 y al de HU-02 fijar el reparto; el seed solo contiene ofertas que cumplen RN-02 a RN-04 | HU-01 carga **4 borradores** inventados y completos (título, descripción, ubicación, modalidad y, en dos de ellos, banda salarial), con fechas de creación escalonadas; HU-02 añade 6 (4 `published` y 2 `closed`) hasta 10 | PENDIENTE | Abierta |
-| OQ-02 | ¿Cómo se presenta en la web el borrado físico e irreversible de un borrador? | FEAT-01 (Riesgos) deja al PRD decidirlo; el CA de `hu.md` dice «cuando pulso Borrar, deja de existir» | Un diálogo de confirmación accesible (`<dialog>` con foco en «Cancelar») que nombra la oferta y avisa de que no se puede deshacer; «Borrar» confirma | PENDIENTE | Abierta |
+No hay preguntas abiertas.
 
 ## Decisiones tomadas
 
 | ID | Decisión | Razón | Impacto en el PRD | Fecha |
 |----|----------|-------|-------------------|-------|
-| — | — | — | — | — |
+| DT-01 | (OQ-01) El seed de HU-01 carga 4 borradores inventados y completos (título, descripción, ubicación y modalidad; dos con banda salarial), con fechas de creación escalonadas. HU-02 añade los 6 restantes (4 `published` y 2 `closed`) hasta las 10 de RV-26 | `hu.md` delega el reparto en los PRD de HU-01 y HU-02; el seed solo trae ofertas que cumplen RN-02 a RN-04 | RF-07; Fuera de scope | 2026-10-06 |
+| DT-02 | (OQ-02) El borrado se confirma en un `<dialog>` accesible, con el foco inicial en «Cancelar», que nombra la oferta y avisa de que no se puede deshacer | FEAT-01 (Riesgos) deja al PRD cómo presentar un borrado físico e irreversible (S-12) | RF-04; CA-13 | 2026-10-06 |
+| DT-03 | **Sin clave natural no hay idempotencia.** Una oferta no tiene ningún campo único (dos ofertas pueden llamarse igual), así que la API no puede distinguir un reintento del alta de un alta nueva: dos `POST` crean dos borradores. La defensa es de la web (deshabilita «Guardar» mientras envía) y el remedio, borrar el sobrante (RF-04). Contrasta con candidatos (email único, RV-10) e inscripciones (pareja única, RV-18), donde la base sí lo impide (DEC-08) | Decisión de ingeniería, coherente con DEC-08 (la unicidad la garantiza un índice cuando existe una clave natural) | EC-06, EC-09 | 2026-10-06 |
+| DT-04 | Decisiones de ingeniería coherentes con S-03, DEC-07 y DEC-10: desempate del listado por ID descendente; ID no entero → 400 `VALIDATION_ERROR`; `PATCH` con `{}` → 400 y un opcional vaciado queda sin valor; fallo de la base → 500 `INTERNAL_ERROR` en el envelope; `GET /api/jobs` sin parámetros en esta HU (llegan con HU-02); las columnas de publicación y cierre se crean ya en la migración de esta HU | Sin fuente literal en RV ni S; aceptadas al aprobar el PRD | RF-03, RF-05; EC-19, EC-27, EC-34, EC-37, EC-43; Modelo de datos | 2026-10-06 |
 
 ## Criterios de aceptación
 
