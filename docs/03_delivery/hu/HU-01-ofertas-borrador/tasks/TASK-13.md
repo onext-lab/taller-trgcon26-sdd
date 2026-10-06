@@ -92,3 +92,6 @@ respuesta 200 con la oferta completa; `status` y `createdAt` no cambian.
 - `JobFormScreen.test.tsx` (errores del servidor, en el alta): 400 con `details` de `status` y de `body` → `role="alert"`
   (EC-01, EC-02); 413 → `role="alert"` con su `message` (EC-17); red caída → exactamente 1 llamada a `fetch` y lo
   escrito se conserva (EC-09).
+
+## Nota · review ronda 1 (2026-10-06)
+Los tests de edición viven en `apps/web/test/features/jobs/JobFormScreen.edit.test.tsx` (umbral de 300 líneas), no en `JobFormScreen.test.tsx`. El patrón `JobFormScreen` recoge los dos ficheros (y `JobFormScreen.adversarial.test.tsx` de TASK-14).

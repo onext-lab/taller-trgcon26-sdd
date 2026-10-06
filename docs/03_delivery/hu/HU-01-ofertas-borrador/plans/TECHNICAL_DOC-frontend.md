@@ -43,7 +43,7 @@ futura necesita rutas anidadas o *loaders*, se reabre con su `DEC-NN`.
 | Vaciar un opcional | `null` en `POST` y `PATCH` (en `POST` también vale omitirlo). `title` no admite `null`. En `PATCH`, un campo omitido no cambia. La web omite los opcionales vacíos en el alta y, en la edición, envía `null` para vaciarlos (nunca `""`) |
 | Otros errores | 404 `NOT_FOUND` («La oferta no existe.»), 500 `INTERNAL_ERROR`, 413 `PAYLOAD_TOO_LARGE` y 415 `UNSUPPORTED_MEDIA_TYPE`, todos en el envelope |
 | Cabeceras | `GET` y `DELETE` van **sin cuerpo y sin `Content-Type`**: con `application/json` y el cuerpo vacío, Fastify responde 400. `requestJson` solo pone `Content-Type: application/json` cuando hay `body` |
-| IDs de ruta | enteros positivos sin ceros a la izquierda (`abc`, `1.5`, `0` → 400 en `id`). `parseJobId` usa la misma regla (`/^[1-9]\d{0,15}$/`) |
+| IDs de ruta | enteros positivos sin ceros a la izquierda (`abc`, `1.5`, `0` → 400 en `id`). `parseJobId` usa la misma regla (`/^[1-9]\d{0,14}$/`) |
 | Longitudes | cuentan caracteres Unicode (`[...s].length`), no unidades UTF-16; por eso la web no usa `maxLength` |
 
 ## Módulos y ficheros afectados
@@ -59,7 +59,7 @@ futura necesita rutas anidadas o *loaders*, se reabre con su `DEC-NN`.
 | transversal | `apps/web/src/components/format.ts` | nuevo: `formatDate`, `formatInteger` |
 | transversal | `apps/web/src/components/StatusMessages.tsx` | nuevo: `LoadingMessage`, `ErrorMessage` (con «Reintentar»), `Notice` |
 | transversal | `apps/web/src/components/FormField.tsx` | nuevo: `label` + control + ayuda + error con `aria-describedby` |
-| transversal | `apps/web/src/components/ConfirmDialog.tsx` | nuevo: `<dialog>` modal de confirmación |
+| transversal | `apps/web/src/components/ConfirmDialog.tsx` | nuevo: `<dialog>` modal de confirmación; el hook interno `useModalDialog` lleva `showModal`/`close`, el foco y `cancel` |
 | transversal | `apps/web/src/components/ApiHealth.tsx` | nuevo: lo que hoy hace `App.tsx` con `/api/health`, movido al pie |
 | jobs | `apps/web/src/features/jobs/types.ts` | nuevo: `Job`, `JobListItem`, `JobPage`, `JobStatus`, `WorkMode`, `JobInput`, `JobPatch` |
 | jobs | `apps/web/src/features/jobs/api.ts` | nuevo: `listJobs`, `getJob`, `createJob`, `updateJob`, `deleteJob` |
@@ -68,7 +68,7 @@ futura necesita rutas anidadas o *loaders*, se reabre con su `DEC-NN`.
 | jobs | `apps/web/src/features/jobs/job-form-model.ts` | nuevo: valores, validación en cliente, `toCreateInput`, `toPatch` |
 | jobs | `apps/web/src/features/jobs/JobListScreen.tsx` · `JobTable.tsx` | nuevo: contenedor y tabla del listado |
 | jobs | `apps/web/src/features/jobs/JobDetailScreen.tsx` · `JobDetails.tsx` | nuevo: contenedor y ficha |
-| jobs | `apps/web/src/features/jobs/DeleteJobAction.tsx` | nuevo: botón «Borrar» + diálogo + `DELETE` |
+| jobs | `apps/web/src/features/jobs/DeleteJobAction.tsx` | nuevo: botón «Borrar» + diálogo; el hook interno `useDeleteJob` lleva el `DELETE`, su estado y la navegación |
 | jobs | `apps/web/src/features/jobs/JobFormScreen.tsx` · `JobForm.tsx` | nuevo: contenedor (alta y edición) y formulario |
 | tests | `apps/web/test/App.test.tsx` | modificar: rutas, redirección y página no encontrada; el estado de la API se mantiene |
 | tests | `apps/web/test/helpers/fetch.ts` · `apps/web/test/helpers/dialog.ts` | nuevo: `fetch` simulado por ruta y *polyfill* de `showModal`/`close` (jsdom no los implementa) |
@@ -246,7 +246,7 @@ sequenceDiagram
 | EC-03 | Cliente + API | validar sobre el valor recortado; la API recorta y guarda | Se envía recortado; la ficha muestra lo que devuelve la API | `job-form-model.test.ts`, `e2e/jobs.spec.ts` (CA-02) |
 | EC-04 | Cliente | contar con `Array.from()`; sin `maxLength` nativo | «Diseñador/a UX 🎨» y 120 caracteres con emoji pasan la validación del cliente y se muestran igual | `job-form-model.test.ts` |
 | EC-05 | `requestJson` (500) | mostrar y conservar | `role="alert"` con el `message` del envelope («Error interno. Inténtalo de nuevo.»); sigue en el formulario con lo escrito; «Guardar» se reactiva | `JobFormScreen.test.tsx` |
-| EC-06 | Contenedor | `disabled` + guarda con `useRef` mientras envía | Un doble clic produce **una** llamada a `fetch` | `JobFormScreen.test.tsx` `[adversarial]` |
+| EC-06 | Contenedor | `disabled` + guarda con `useRef` mientras envía | Un doble clic produce **una** llamada a `fetch` | `JobFormScreen.adversarial.test.tsx` `[adversarial]` |
 | EC-07 | — | N/A — el módulo nace con esta HU (sin filas previas) | — | — |
 | EC-08 | API | API: ver TECHNICAL_DOC-backend | La web lo trata como texto: se muestra literal | `e2e/jobs.spec.ts` (título con `'); DROP TABLE`) |
 | EC-09 | — | aceptado (DT-03) | Tras un error de red no se reintenta solo: el reclutador decide; si se crea un duplicado, lo borra | `JobFormScreen.test.tsx` (red: una sola llamada) |
@@ -259,18 +259,18 @@ sequenceDiagram
 | EC-16 | API/BD | API: ver TECHNICAL_DOC-backend | Sin reacción en la web | — |
 | EC-17 | Cliente + API | el cliente corta a 5 000 antes de enviar; un 413 se muestra con su `message` | «La descripción no puede pasar de 5 000 caracteres.» sin petición | `job-form-model.test.ts`, `JobFormScreen.test.tsx` (413) |
 | EC-18 | — | N/A — validar no tiene efectos | — | — |
-| EC-19 | Contenedor | `toPatch` sin cambios → no se llama a la API | Vuelve a la ficha sin petición (nunca envía `{}`) | `JobFormScreen.test.tsx` `[adversarial]` |
-| EC-20 | Cliente + API | título obligatorio también al editar | «Escribe un título.» junto al título; ningún `PATCH` | `JobFormScreen.test.tsx` |
+| EC-19 | Contenedor | `toPatch` sin cambios → no se llama a la API | Vuelve a la ficha sin petición (nunca envía `{}`) | `JobFormScreen.adversarial.test.tsx` `[adversarial]` |
+| EC-20 | Cliente + API | título obligatorio también al editar | «Escribe un título.» junto al título; ningún `PATCH` | `JobFormScreen.edit.test.tsx` |
 | EC-21 | `toPatch` | opcional vaciado → `null` | Ficha con «Sin indicar» | `job-form-model.test.ts`, `e2e/jobs.spec.ts` (CA-10) |
-| EC-22 | `requestJson` (500) | como EC-05 | `role="alert"` en la edición; lo escrito se conserva | `JobFormScreen.test.tsx` |
+| EC-22 | `requestJson` (500) | como EC-05 | `role="alert"` en la edición; lo escrito se conserva | `JobFormScreen.edit.test.tsx` |
 | EC-23 | API | última escritura; la web envía solo lo cambiado | Dos pestañas: queda lo de la última | `e2e/jobs.spec.ts` (CA-11) |
-| EC-24 | `ApiError` 404 en `PATCH` | mensaje + salida | `role="alert"` «Esta oferta ya no existe.» + enlace «Volver a las ofertas» | `JobFormScreen.test.tsx` `[adversarial]` |
+| EC-24 | `ApiError` 404 en `PATCH` | mensaje + salida | `role="alert"` «Esta oferta ya no existe.» + enlace «Volver a las ofertas» | `JobFormScreen.adversarial.test.tsx` `[adversarial]` |
 | EC-25 | API | API: ver TECHNICAL_DOC-backend | `toPatch` solo emite campos editables | `job-form-model.test.ts` |
 | EC-26 | API | API: ver TECHNICAL_DOC-backend | Sin reacción específica | — |
 | EC-27 | `parseJobId` | no se construye una URL con un ID no entero | `/jobs/abc` → «Oferta no encontrada», sin «Borrar» ni petición | `JobDetailScreen.test.tsx` |
 | EC-28 | Listado | estado vacío tras el borrado | Vuelve a `/jobs` y ve «Todavía no hay ofertas.» | `JobListScreen.test.tsx` (vacío) |
 | EC-29 | `requestJson` (500) | mostrar sin cerrar | `role="alert"` en el diálogo; la oferta sigue en la ficha | `DeleteJobAction.test.tsx` |
-| EC-30 | API | como EC-24 | Ver EC-24 | `JobFormScreen.test.tsx` |
+| EC-30 | API | como EC-24 | Ver EC-24 | `JobFormScreen.adversarial.test.tsx` |
 | EC-31 | — | N/A — un borrador no tiene inscripciones y el módulo nace con esta HU | — | — |
 | EC-32 | — | API: ver TECHNICAL_DOC-backend (DEC-04) | La URL solo lleva el ID de la oferta, que no es dato personal | — |
 | EC-33 | Contenedor + API | botones `disabled` mientras borra; un 404 se muestra | Doble clic → una sola llamada; si llega un 404, «Esta oferta ya no existe.» | `DeleteJobAction.test.tsx` `[adversarial]` |
@@ -286,10 +286,11 @@ sequenceDiagram
 | EC-43 | `parseJobId` + `ApiError` 400 | mismo mensaje que 404 | «Oferta no encontrada» para `/jobs/abc`, `/jobs/1.5` y 400 de la API | `JobDetailScreen.test.tsx` |
 | EC-44 | `JobDetails` | `null` → «Sin indicar» | Ningún «null», «undefined» ni `<dd>` vacío | `JobDetailScreen.test.tsx` |
 | EC-45 | `requestJson` | estado «error» | `role="alert"` + «Reintentar», sin datos | `JobDetailScreen.test.tsx` |
-| EC-46 | Acción siguiente | 404 en `PATCH` o `DELETE` | Ver EC-24 y EC-33 | `JobFormScreen.test.tsx`, `DeleteJobAction.test.tsx` |
+| EC-46 | Acción siguiente | 404 en `PATCH` o `DELETE` | Ver EC-24 y EC-33 | `JobFormScreen.adversarial.test.tsx`, `DeleteJobAction.test.tsx` |
 | EC-47 | — | N/A — el módulo nace con esta HU | — | — |
 | EC-48 | React (escapado) | texto literal, `pre-wrap` | `<script>` y `<b>` se ven como texto; 0 `b`/`script` dentro de la ficha | `JobDetailScreen.test.tsx` `[adversarial]` |
 | EC-49 | — | N/A — `GET` sin efectos | — | — |
+| EC-50 | API (DT-05) | API: ver TECHNICAL_DOC-backend; sin validación en el cliente | Como cualquier 400: el `message` de `details` aparece junto a su campo (título, descripción o ubicación), con `aria-invalid` y foco en él; lo escrito se conserva | `JobFormScreen.edit.test.tsx` (400 junto al campo, mismo camino) |
 
 Errores del cliente HTTP (`userMessage`): sin red, *timeout* o 5xx sin envelope → «No se ha podido conectar con el
 servidor. Vuelve a intentarlo en unos segundos.»; respuesta 2xx con forma inesperada → «La respuesta del servidor no
@@ -302,7 +303,7 @@ es válida. Vuelve a intentarlo.»; cualquier error con envelope (incluidos `INT
 |---|---|---|---|
 | Suplantación | — | N/A — sin login, rol único, API en `127.0.0.1` (DEC-04) | Ninguno nuevo |
 | Manipulación | XSS con el título o la descripción (EC-41, EC-48) | Solo interpolación JSX (escapada); prohibido `dangerouslySetInnerHTML`, `innerHTML` y `href` con datos de la API; tests `[adversarial]` | Bajo: depende de la review (no hay regla de ESLint que lo bloquee) |
-| Manipulación | ID manipulado en la URL (`/jobs/..%2Fhealth`, `/jobs/1.5`) | `parseJobId` (`/^[1-9]\d{0,15}$/`) antes de construir `/api/jobs/{id}` | Ninguno |
+| Manipulación | ID manipulado en la URL (`/jobs/..%2Fhealth`, `/jobs/1.5`) | `parseJobId` (`/^[1-9]\d{0,14}$/`) antes de construir `/api/jobs/{id}` | Ninguno |
 | Repudio | — | N/A — sin usuarios (DEC-04) | — |
 | Exposición de información | Detalles internos en pantalla o consola | Solo se muestra `error.message` del envelope o un texto fijo; nunca el cuerpo crudo ni `stack`; sin `console.log` de respuestas | Ninguno |
 | Denegación de servicio | Envío de textos enormes; listas muy largas | Validación de longitudes en cliente antes de enviar; el listado nunca pinta más de lo que devuelve la API (20) | Bajo |
@@ -442,9 +443,9 @@ reales.
 
 | RF | Vitest (fichero → qué) | Playwright (`e2e/jobs.spec.ts`) |
 |---|---|---|
-| RF-01 | `JobFormScreen.test.tsx` → alta con solo título navega a la ficha (CA-01); cuerpo enviado recortado y sin opcionales vacíos (CA-02); 500 y red conservan lo escrito (EC-05); `[adversarial]` doble clic = 1 `fetch` (EC-06) | CA-01: alta solo con título → ficha → aparece en el listado. CA-02: alta completa con espacios, híbrida, Valencia, 32 000-40 000 |
+| RF-01 | `JobFormScreen.test.tsx` → alta con solo título navega a la ficha (CA-01); cuerpo enviado recortado y sin opcionales vacíos (CA-02); 500 y red conservan lo escrito (EC-05); `JobFormScreen.adversarial.test.tsx` → `[adversarial]` doble clic = 1 `fetch` en alta y en edición (EC-06) | CA-01: alta solo con título → ficha → aparece en el listado. CA-02: alta completa con espacios, híbrida, Valencia, 32 000-40 000 |
 | RF-02 | `job-form-model.test.ts` → fronteras 2/3/120/121, 5 000/5 001, 1/2/120/121, emoji, salarios `0`, `-1`, `40000.5`, `40.000`, min > max, min = max, solo uno (CA-03 a CA-07, EC-04, EC-11 a EC-13); `JobFormScreen.test.tsx` → 400 con `details` de título y modalidad junto al campo con `aria-describedby` y foco en el primero (CA-03, CA-05, CA-12) | CA-03 en la UI: título de 2 caracteres → error junto al campo y sigue en el formulario |
-| RF-03 | `JobFormScreen.test.tsx` (edición) → precarga, `PATCH` solo con cambios, vaciado → `null` (CA-09, CA-10), sin cambios no llama (EC-19), `[adversarial]` 404 al guardar (EC-24) | CA-09 y CA-10: editar descripción y ubicación, luego vaciar la descripción → «Sin indicar». CA-11: dos páginas editan el mismo borrador; queda la última |
+| RF-03 | `JobFormScreen.edit.test.tsx` → precarga, `PATCH` solo con cambios, vaciado → `null` (CA-09, CA-10, EC-21), título vacío sin `PATCH` (EC-20), 400 junto al campo (CA-12), 500 (EC-22); `JobFormScreen.adversarial.test.tsx` → `[adversarial]` sin cambios no llama (EC-19) y 404 al guardar (EC-24, EC-30) | CA-09 y CA-10: editar descripción y ubicación, luego vaciar la descripción → «Sin indicar». CA-11: dos páginas editan el mismo borrador; queda la última |
 | RF-04 | `DeleteJobAction.test.tsx` → diálogo con nombre de la oferta y foco en «Cancelar» (DT-02), cancelar no llama, confirmar → `DELETE` y listado (CA-13), `[adversarial]` doble clic = 1 llamada y 404 mostrado (EC-33, CA-14), 500 (EC-29); `ConfirmDialog.test.tsx` → evento `cancel` cierra y devuelve el foco | CA-13: «Borrar» → `Escape` (sigue) → «Borrar» → «Borrar oferta» → listado sin la oferta; foco inicial en «Cancelar» |
 | RF-05 | `JobListScreen.test.tsx` → cargando, vacío (CA-17), error + «Reintentar» (CA-18, EC-38), 20/21 elementos (CA-15, EC-35), fecha 07/10/2026 (CA-16), orden recibido (EC-37), `[adversarial]` título con `<img>` como texto (EC-41); `api.test.ts` → URL sin parámetros (EC-34), `[adversarial]` forma inesperada → error (EC-40); `format.test.ts` → EC-36 | Listado del seed: los 4 borradores en orden, con «Borrador» y fecha `dd/mm/aaaa` (RF-05, RF-07). CA-18: `page.route('**/api/jobs', r => r.abort())` → «error» con `role="alert"` |
 | RF-06 | `JobDetailScreen.test.tsx` → ficha completa con «Editar» y «Borrar» y ninguna otra acción (CA-19), «Sin indicar» (EC-44), 404, 400 y `/jobs/abc` → «Oferta no encontrada» sin datos (CA-20, EC-43, EC-27), error + reintento (EC-45), `[adversarial]` `<b>`/`<script>` como texto (EC-48) | CA-19: título `Oferta <b>X</b>` se ve literal. CA-20: `/jobs/999999999` → «Oferta no encontrada» |
@@ -452,7 +453,7 @@ reales.
 
 **Criterio → test** (CA de API pura en el backend): CA-01, CA-02 → e2e + `JobFormScreen.test.tsx`; CA-03 a CA-07 →
 `job-form-model.test.ts` + `JobFormScreen.test.tsx`; CA-08, CA-14 (envelope) → backend; CA-09, CA-10, CA-12 →
-`JobFormScreen.test.tsx` + e2e; CA-11 → e2e; CA-13 → `DeleteJobAction.test.tsx` + e2e; CA-15 a CA-17 →
+`JobFormScreen.edit.test.tsx` + e2e; CA-11 → e2e; CA-13 → `DeleteJobAction.test.tsx` + e2e; CA-15 a CA-17 →
 `JobListScreen.test.tsx`; CA-18 → `JobListScreen.test.tsx` + e2e; CA-19, CA-20 → `JobDetailScreen.test.tsx` + e2e.
 
 **E2E deterministas sobre `data/e2e.db` (DD-08):** cada `npm run e2e` arranca con la base regenerada (esquema,

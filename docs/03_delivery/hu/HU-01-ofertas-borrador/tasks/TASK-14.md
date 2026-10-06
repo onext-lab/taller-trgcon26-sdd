@@ -86,3 +86,6 @@ el test. Si el fallo es del diseño, se para y se escala.
   título `Oferta <b>X</b>` → se ven literales; 0 elementos `b` y `script` dentro de la ficha.
 
 Recuerda: prohibido `dangerouslySetInnerHTML`, `innerHTML` y `href` con datos de la API (salvo el ID validado).
+
+## Nota · review ronda 1 (2026-10-06)
+Los tests adversariales del formulario (EC-06, EC-19, EC-24/EC-30) viven en `apps/web/test/features/jobs/JobFormScreen.adversarial.test.tsx` (umbral de 300 líneas). El patrón de la verificación recoge 7 ficheros, no 5, porque `JobFormScreen` casa también con `.edit` y `.adversarial`.

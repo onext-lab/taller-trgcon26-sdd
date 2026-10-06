@@ -47,7 +47,8 @@ por ruta») y obliga a construir `details` en cada servicio.
 | jobs | `apps/api/src/modules/jobs/routes.ts` | nuevo: `jobsRoutes` (plugin `FastifyPluginAsync<{ service: JobsService }>`) (~90) |
 | tests | `apps/api/test/helpers/test-app.ts` | nuevo: `createTestApp`, `createTestClock`, `failWrites`, `createJob` |
 | tests | `apps/api/test/http/error-handler.test.ts`, `apps/api/test/db/transaction.test.ts` | nuevos |
-| tests | `apps/api/test/jobs/{create,update,delete,get,list,migration,seed,performance}.test.ts` | nuevos |
+| tests | `apps/api/test/jobs/{create,create-adversarial,control-chars,enumeration,update,delete,get,list,migration,seed,performance}.test.ts` | nuevos (`create-adversarial`: EC-01, EC-02, EC-05, EC-08, EC-11 y EC-17; `control-chars`: EC-50; `enumeration`: EC-32) |
+| transversal | `apps/api/src/listen-options.ts` | nuevo: `listenOptions` extraído de `server.ts` para probar EC-32 |
 | tests | `apps/api/test/health.test.ts`, `apps/api/test/logger.test.ts` | sin cambios (la firma de `buildApp` sigue siendo compatible) |
 
 Todos los ficheros nuevos quedan por debajo de 300 líneas; ninguna función pasa de 50.
@@ -387,23 +388,23 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 
 | Edge case (PRD) | Dónde se detecta | Estrategia | Respuesta o efecto observable | Test |
 |---|---|---|---|---|
-| EC-01 | Parser JSON de Fastify / JSON Schema (`type: object`) | rechazar | 400 `VALIDATION_ERROR` (`field: "body"`); 0 filas | `create.test.ts` › «EC-01 cuerpo no JSON, [] o "x" → 400 sin filas» |
-| EC-02 | JSON Schema (`additionalProperties: false`, `removeAdditional: false`) | rechazar | 400 con `status`/`createdAt`/`id` en `details`; 0 filas | `create.test.ts` › «CA-08/EC-02 campos de solo lectura o desconocidos → 400» |
+| EC-01 | Parser JSON de Fastify / JSON Schema (`type: object`) | rechazar | 400 `VALIDATION_ERROR` (`field: "body"`); 0 filas | `create-adversarial.test.ts` › «EC-01 cuerpo no JSON, [] o "x" → 400 sin filas» |
+| EC-02 | JSON Schema (`additionalProperties: false`, `removeAdditional: false`) | rechazar | 400 con `status`/`createdAt`/`id` en `details`; 0 filas | `create-adversarial.test.ts` › «CA-08/EC-02 campos de solo lectura o desconocidos → 400» |
 | EC-03 | `preValidation` (`trimTextFields`) | normalizar | 201 con `title: "Técnica/o de selección"` | `create.test.ts` › «CA-02/EC-03 recorta y guarda todos los campos» |
 | EC-04 | Ajv (`unicode`) y `length()` de SQLite | aceptar por puntos de código | 201, devuelto igual; 120 emojis sí, 121 no | `create.test.ts` › «EC-04 tildes, eñes y emoji; cuenta caracteres, no bytes» |
-| EC-05 | `repository.insert` | propagar al manejador | 500 `INTERNAL_ERROR` sin *stack*; 0 filas · web: formulario se queda | `create.test.ts` › «EC-05 fallo de SQLite al insertar → 500 sin filas» |
+| EC-05 | `repository.insert` | propagar al manejador | 500 `INTERNAL_ERROR` sin *stack*; 0 filas · web: formulario se queda | `create-adversarial.test.ts` › «EC-05 fallo de SQLite al insertar → 500 sin filas» |
 | EC-06 | — (sin clave natural, DT-03) | aceptar | API: dos `POST` → dos borradores con IDs distintos · web: «Guardar» deshabilitado | `create.test.ts` › «EC-06/EC-09 dos POST iguales crean dos borradores» |
 | EC-07 | — | N/A — tabla nueva, sin filas anteriores | — | — |
-| EC-08 | `repository` (sentencias preparadas) | parametrizar | 201 con el texto literal; `job_openings` sigue existiendo | `create.test.ts` › «EC-08 inyección SQL se guarda literal» |
+| EC-08 | `repository` (sentencias preparadas) | parametrizar | 201 con el texto literal; `job_openings` sigue existiendo | `create-adversarial.test.ts` › «EC-08 inyección SQL se guarda literal» |
 | EC-09 | — (DT-03) | aceptar | Igual que EC-06 | `create.test.ts` › «EC-06/EC-09 …» |
 | EC-10 | JSON Schema (`enum`) | rechazar | 400 en `workMode` para «teletrabajo», «Híbrida», «hibrida» | `create.test.ts` › «CA-05/EC-10 modalidad fuera de los literales → 400» |
-| EC-11 | JSON Schema (`type: integer`, `exclusiveMinimum`) sin coerción | rechazar | 400 en el extremo para `"40000"`, `40000.5`, `0`, `-1` | `create.test.ts` › «CA-07/EC-11 banda inválida → 400» |
+| EC-11 | JSON Schema (`type: integer`, `exclusiveMinimum`) sin coerción | rechazar | 400 en el extremo para `"40000"`, `40000.5`, `0`, `-1` | `create-adversarial.test.ts` › «CA-07/EC-11 banda inválida → 400» |
 | EC-12 | JSON Schema tras el recorte | rechazar / aceptar | 3, 120, 5 000, 2 y 120 → 201; 2, 121, 5 001, 1 y 121 → 400 | `create.test.ts` › «CA-03/CA-04/CA-06 fronteras de longitud» |
 | EC-13 | Servicio (`assertSalaryRange`) | aceptar | 201 en los tres casos | `create.test.ts` › «CA-07/EC-13 solo mínimo, solo máximo o iguales → 201» |
 | EC-14 | — | N/A — validación pura, sin base | — | — |
 | EC-15 | — | N/A — sin estado compartido | — | — |
 | EC-16 | `CHECK` de `job_openings` | rechazar en la base | `INSERT` directo con mínimo > máximo lanza `CHECK constraint failed` | `migration.test.ts` › «EC-16 la base rechaza mínimo > máximo» |
-| EC-17 | JSON Schema (`maxLength`) / `bodyLimit` | rechazar | Descripción de 1 MB → 400 en `description`; cuerpo > 1 MiB → 413 `PAYLOAD_TOO_LARGE`; 0 filas | `create.test.ts` › «EC-17 descripción de 1 MB → 400; > 1 MiB → 413» |
+| EC-17 | JSON Schema (`maxLength`) / `bodyLimit` | rechazar | Descripción de 1 MB → 400 en `description`; cuerpo > 1 MiB → 413 `PAYLOAD_TOO_LARGE`; 0 filas | `create-adversarial.test.ts` › «EC-17 descripción de 1 MB → 400; > 1 MiB → 413» |
 | EC-18 | — | N/A — validar no tiene efectos | — | — |
 | EC-19 | JSON Schema (`minProperties: 1`) | rechazar | 400 (`field: "body"`, «Envía al menos un campo.») | `update.test.ts` › «EC-19 PATCH {} → 400» |
 | EC-20 | `trimTextFields` + `minLength` | rechazar | 400 en `title`; fila sin cambios | `update.test.ts` › «CA-12/EC-20 título vacío, de 2 o modalidad inválida → 400 sin cambios» |
@@ -418,7 +419,7 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 | EC-29 | `repository.deleteById` | propagar | 500 `INTERNAL_ERROR`; `GET /api/jobs/:id` sigue dando 200 | `delete.test.ts` › «EC-29 fallo de SQLite al borrar → 500 y sigue» |
 | EC-30 | Servicio | rechazar | `PATCH` tras `DELETE` → 404 | `update.test.ts` › «EC-24/EC-30 …» |
 | EC-31 | — | N/A — un borrador no tiene inscripciones (RV-17) y el módulo nace aquí | — | — |
-| EC-32 | — | aceptar (sin datos personales; `127.0.0.1`, DEC-04) | IDs secuenciales; la respuesta de una oferta ajena no expone nada personal | Cubierto por el *Threat modeling*; sin test propio |
+| EC-32 | `listenOptions` (`apps/api/src/listen-options.ts`) y esquema de `response` | aceptar (sin datos personales; `127.0.0.1`, DEC-04) | IDs secuenciales; la respuesta de una oferta ajena solo trae los campos de `Job` o 404 en el envelope; la API escucha en `127.0.0.1:3001` salvo `API_HOST`/`API_PORT` explícitos | `enumeration.test.ts` › «EC-32 sin variables de entorno → 127.0.0.1:3001» y «EC-32 GET /api/jobs/1..N → campos exactos de oferta o 404 en el envelope» |
 | EC-33 | `repository.deleteById` (`changes = 0`) | rechazar | 404 `NOT_FOUND` en el envelope; nada cambia | `delete.test.ts` › «CA-14/EC-33 segundo DELETE → 404» |
 | EC-34 | JSON Schema (`querystring`, `additionalProperties: false`) | rechazar | 400 `field: "page"` | `list.test.ts` › «EC-34 cualquier parámetro → 400» |
 | EC-35 | Repositorio (`LIMIT 20`, `COUNT(*)`) | — | 0 → `items: []`, `total: 0`; 20 → 20 y `total` 20; 21 → 20 y `total` 21 | `list.test.ts` › «CA-17/EC-35 0, 20 y 21 ofertas» |
@@ -436,6 +437,7 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 | EC-47 | — | N/A — el módulo nace con esta HU | — | — |
 | EC-48 | Respuesta JSON | devolver literal, sin sanear | `description` con `<script>` y `<b>` sale igual · web: texto literal | `get.test.ts` › «CA-19/EC-48 todos los campos y el HTML tal cual» |
 | EC-49 | — | N/A — `GET` sin efectos | — | — |
+| EC-50 | JSON Schema (`pattern` en `JobFields`: `NO_CONTROL_CHARS` en `title` y `location`; `NO_CONTROL_CHARS_EXCEPT_WHITESPACE` en `description`) | rechazar (DT-05, DEC-11.8) | Un carácter C0 (U+0000-U+001F) o DEL (U+007F) en título o ubicación, o en la descripción salvo `\n`, `\r` y `\t` → 400 `VALIDATION_ERROR` con el campo en `details` («Formato no válido.», sin repetir el valor); no se guarda nada, en alta y en edición | `control-chars.test.ts` › «EC-50 NUL … del título/de la ubicación/de la descripción», «EC-50 un NUL no provoca 500», «EC-50 tras los rechazos no hay filas nuevas ni cambios en la base» |
 
 ## Threat modeling
 
@@ -592,7 +594,9 @@ lleguen candidatos (HU-03):
   un elemento por campo, con mensajes en castellano por *keyword* y sin repetir el valor recibido. (5) Códigos
   adicionales: `INTERNAL_ERROR` (500), `PAYLOAD_TOO_LARGE` (413), `UNSUPPORTED_MEDIA_TYPE` (415), `BAD_REQUEST` (otros
   4xx). (6) Reloj `Clock = () => Date` inyectado en `buildApp({ now })` (concreta DEC-09). (7) Transacciones con
-  `withTransaction(db, fn)`, que se une a una en curso (concreta DEC-06).
+  `withTransaction(db, fn)`, que se une a una en curso (concreta DEC-06). (8) Los textos rechazan con 400 los
+  caracteres de control C0 y DEL mediante `pattern` (`NO_CONTROL_CHARS`; en textos multilínea,
+  `NO_CONTROL_CHARS_EXCEPT_WHITESPACE`, que admite `\n`, `\r` y `\t`), añadido en la review ronda 1 (EC-50, DT-05).
 - **Razón:** el esquema estricto de DEC-07 no se cumple con la configuración por defecto de Ajv en Fastify, S-03 pide
   recortar antes de validar y la web muestra el `message` de la API junto al campo. Si no se escribe como DEC, cada HU
   lo volvería a decidir.
@@ -639,17 +643,17 @@ y el serializador. Datos: títulos y ciudades inventados (los del PRD). Las fron
 | RF-01 | CA-01 | `jobs/create.test.ts` › «CA-01 solo el título → 201 en draft con createdAt del reloj y aparece en el listado» | |
 | RF-01 | CA-02, EC-03 | `jobs/create.test.ts` › «CA-02/EC-03 recorta y guarda todos los campos» | |
 | RF-01 | — | `jobs/create.test.ts` › «RF-01 descripción y ubicación vacías o de espacios se guardan como null» | |
-| RF-01 | EC-01 | `jobs/create.test.ts` › «EC-01 cuerpo no JSON, [] o "x" → 400 sin filas» | sí |
-| RF-01 | CA-08, EC-02 | `jobs/create.test.ts` › «CA-08/EC-02 campos de solo lectura o desconocidos → 400 con el campo en details» | sí |
+| RF-01 | EC-01 | `jobs/create-adversarial.test.ts` › «EC-01 cuerpo no JSON, [] o "x" → 400 sin filas» | sí |
+| RF-01 | CA-08, EC-02 | `jobs/create-adversarial.test.ts` › «CA-08/EC-02 campos de solo lectura o desconocidos → 400 con el campo en details» | sí |
 | RF-01 | EC-04 | `jobs/create.test.ts` › «EC-04 tildes, eñes y emoji; cuenta caracteres, no bytes» | |
-| RF-01 | EC-05 | `jobs/create.test.ts` › «EC-05 fallo de SQLite al insertar → 500 sin stack y sin filas» | sí |
+| RF-01 | EC-05 | `jobs/create-adversarial.test.ts` › «EC-05 fallo de SQLite al insertar → 500 sin stack y sin filas» | sí |
 | RF-01 | EC-06, EC-09 | `jobs/create.test.ts` › «EC-06/EC-09 dos POST iguales crean dos borradores» | |
-| RF-01 | EC-08 | `jobs/create.test.ts` › «EC-08 inyección SQL se guarda literal y la tabla sigue» | sí |
+| RF-01 | EC-08 | `jobs/create-adversarial.test.ts` › «EC-08 inyección SQL se guarda literal y la tabla sigue» | sí |
 | RF-02 | CA-03, CA-04, CA-06, EC-12 | `jobs/create.test.ts` › «CA-03/CA-04/CA-06 fronteras de longitud» (`it.each`) | |
 | RF-02 | CA-05, EC-10 | `jobs/create.test.ts` › «CA-05/EC-10 modalidad fuera de los literales → 400; los tres se aceptan» | |
-| RF-02 | CA-07, EC-11, EC-13 | `jobs/create.test.ts` › «CA-07/EC-11 banda inválida → 400» y «CA-07/EC-13 solo mínimo, solo máximo o iguales → 201» | sí (EC-11) |
+| RF-02 | CA-07, EC-11, EC-13 | `jobs/create-adversarial.test.ts` › «CA-07/EC-11 banda inválida → 400» y `jobs/create.test.ts` › «CA-07/EC-13 solo mínimo, solo máximo o iguales → 201» | sí (EC-11) |
 | RF-02 | EC-16 | `jobs/migration.test.ts` › «EC-16 la base rechaza mínimo > máximo» y «la base rechaza estado, modalidad, salario, título y fecha fuera de dominio» | sí |
-| RF-02 | EC-17 | `jobs/create.test.ts` › «EC-17 descripción de 1 MB → 400; > 1 MiB → 413» | sí |
+| RF-02 | EC-17 | `jobs/create-adversarial.test.ts` › «EC-17 descripción de 1 MB → 400; > 1 MiB → 413» | sí |
 | RF-03 | CA-09 | `jobs/update.test.ts` › «CA-09 cambia descripción y ubicación; sigue en draft y createdAt igual» | |
 | RF-03 | CA-10, EC-21 | `jobs/update.test.ts` › «CA-10/EC-21 vaciar la descripción → null» | |
 | RF-03 | CA-11, EC-23 | `jobs/update.test.ts` › «CA-11/EC-23 gana la última escritura, campo a campo» | |
@@ -696,7 +700,7 @@ Los tests de rendimiento hacen una petición de calentamiento antes de medir con
 | Los `CHECK` adelantados (DD-08) no encajan con el diseño de HU-02 | 2 | 3 | Salen de INV-04 e INV-05 ya validadas; tests en `migration.test.ts` |
 | Hasta HU-02, `DELETE` y `PATCH` no comprueban el estado (no hay ofertas `published`) | 2 | 4 | Fuera de scope explícito; HU-02 añade el 409 en la misma transacción (UC-05 · E1, UC-02 · E1/E4) |
 | Tests de rendimiento inestables en portátiles lentos | 2 | 2 | Umbrales del PRD (holgados para `inject`), calentamiento previo |
-| `data/e2e.db` no se regenera entre ejecuciones (`server.ts` solo migra) y acumula ofertas | 3 | 2 | Los e2e crean sus propios datos y no cuentan filas; ver TECHNICAL_DOC-frontend |
+| ~~`data/e2e.db` no se regenera entre ejecuciones (`server.ts` solo migra) y acumula ofertas~~ **Resuelto** | — | — | Resuelto por DD-08 de `plans/TECHNICAL_DOC-frontend.md`: el comando del `webServer` de Playwright regenera la base antes de arrancar la API |
 
 ## Open Decisions
 
@@ -710,7 +714,6 @@ No hay decisiones abiertas. La antigua OD-01 (DEC-11) se aprobó el 2026-10-06 y
 - Las 6 ofertas restantes del seed (4 `published`, 2 `closed`): HU-02.
 - Puerto «estado de la oferta» para `inscripciones` (DEC-06): HU-04.
 - Idempotencia del alta (clave de idempotencia): descartada por DT-03.
-- Rechazo de caracteres de control en título o descripción: el PRD no lo pide para ofertas (solo para `q`, HU-02).
 - Normalización Unicode (NFC) de los textos: no la pide el PRD; `workMode` exige el literal exacto.
 - Cabecera `Location` en el 201, CORS y validación de `Host`.
 

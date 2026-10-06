@@ -94,3 +94,6 @@ original):
 - Orden de comprobación: `PATCH { title: "ab" }` a un ID inexistente → **400** (no 404).
 
 Recuerda: `GET` y `DELETE` sin `payload` ni `Content-Type`.
+
+## Nota · review ronda 1 (2026-10-06)
+Los tests adversariales del alta (EC-01, EC-02, EC-05, EC-08, EC-11, EC-17) viven en `apps/api/test/jobs/create-adversarial.test.ts` (creado en el ciclo de arreglo 1/2 por el umbral de 300 líneas); `create.test.ts` conserva los del camino feliz. Por eso `npm test -w apps/api -- create update` ejecuta 3 ficheros, no 2.
