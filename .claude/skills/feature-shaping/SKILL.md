@@ -51,7 +51,7 @@ Si necesitas saber qué existe ya (tablas, endpoints, pantallas), lanza **un sub
 
 Con el agente **`feature-analyst`**, enumera por dimensión qué se sabe (citando la fuente) y qué no (→ pregunta):
 1. **Actores y roles.** Hoy solo existe el «reclutador» (DEC-04). Si la idea pide otro rol, es una pregunta, no un supuesto.
-2. **Casos de uso (UC-NN):** actor, precondición, disparador, flujo principal, alternativos, postcondición.
+2. **Casos de uso (UC-NN):** actor, precondición, disparador, flujo principal (**P**), alternativos (**A1…**), excepciones (**E1…**) y postcondiciones. **Cada A y cada E sale de una pregunta respondida** («¿qué pasa si el email ya existe?»), nunca de un supuesto. Revisa también los UC ya existentes en `docs/05_modules/{módulo}/casos-de-uso/README.md`: si la feature cambia uno, se edita (no se duplica).
 3. **Reglas de negocio (RN-NN):** condición → comportamiento. Busca modales («debe», «solo si», «máximo», «siempre») y **pregunta los umbrales** (nunca los inventes: «¿cuántos meses de retención?», «¿tamaño máximo del CSV?»).
 4. **Invariantes:** lo que SIEMPRE se cumple (p. ej. «un candidato no se inscribe dos veces en la misma oferta»). Cruza con `DECISIONS.md`, `docs/RGPD.md` y los principios de diseño.
 5. **Casos límite:** recorre las **7 categorías** de `docs/07_architecture_principles/QUALITY-GATES.md` (input inválido, boundary, fallo de dependencia, concurrencia, datos corruptos, seguridad, idempotencia). Para cada una que aplique, el comportamiento esperado; si no está definido, pregunta.
@@ -74,9 +74,18 @@ El script recorre `features/` y todas sus subcarpetas (`completadas/`, `descarta
 
 ### Paso 6 — Escribir `docs/02_discovery/features/FEAT-{NN}-slug/feature.md`
 
-Desde `docs/_templates/FEATURE.template.md`. Rellena: Qué, Por qué (enlaza la idea), Alcance dentro/fuera, Actores, Casos de uso, Reglas de negocio, Invariantes, Datos clave, Casos límite, Módulos afectados, Dependencias y riesgos, Criterios de aceptación, Preguntas abiertas y Handoff. **Cita la fuente** de cada elemento (idea, respuesta del usuario, `DEC-NN`, `docs/RGPD.md`).
+Desde `docs/_templates/FEATURE.template.md`. Rellena: Qué, Por qué (enlaza la idea), Alcance dentro/fuera, Actores, Casos de uso (**tabla** UC | título | módulo | flujos | fichero, citando cada UC por su ID y su ruta desde la raíz en código, sin enlace relativo: la feature se moverá a `completadas/`), Reglas de negocio, Invariantes, Datos clave, Casos límite, Módulos afectados, Dependencias y riesgos, Criterios de aceptación, Preguntas abiertas y Handoff. **Cita la fuente** de cada elemento (idea, respuesta del usuario, `DEC-NN`, `docs/RGPD.md`).
 
 Si la feature trata datos personales, añade los invariantes de minimización, retención y supresión que salgan de `docs/RGPD.md`, y que lo revisará el agente `datos-personales-auditor` en `/reviewer`.
+
+### Paso 6b — Escribir los casos de uso en el catálogo del módulo
+
+Los UC son artefacto propio y viven en el módulo, no en la feature (la sobreviven). Por cada UC nuevo:
+1. `node scripts/next-id.mjs uc` → `UC-NN` (numeración global; vuelve a ejecutarlo justo antes de escribir).
+2. Crea `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` desde `docs/_templates/UC.template.md`: `estado: borrador`, `feature: FEAT-{NN}`, `hus: []`, flujos **P**, **A1…** y **E1…** con su paso de origen, reglas de negocio aplicables, postcondiciones y datos personales. Fichero y frontmatter con el mismo número.
+3. Añade su fila al índice `docs/05_modules/{módulo}/casos-de-uso/README.md` (UC | Título | Actor | Estado | Feature | HU).
+
+Si la feature modifica un UC existente, edítalo, actualiza `feature:` y dilo en el resumen del gate.
 
 ### Paso 7 — Cerrar el lazo con la idea
 
@@ -91,6 +100,12 @@ Resumen corto: FEAT-NN y título, número de UC / RN / invariantes, alcance en u
 
 STOP y espera. Aplica los ajustes y repite el gate si hace falta.
 
+### Paso 8b — Commit en `main`
+
+Tras la validación, un commit en `main` con todo lo que tocó el shaping, nombrando ficheros (`feature.md`, los
+`UC-NN-slug.md` creados o editados, los índices `casos-de-uso/README.md` y la idea actualizada):
+`git commit -m "docs(discovery): shape FEAT-NN {slug}"`. Nunca `git add -A`. Sin push.
+
 ### Paso 9 — Siguiente paso
 
 *«Cuando se priorice, el `product-owner` la parte en HU y `/crear-sprint` las mete en un sprint. Cada HU vive en `docs/03_delivery/hu/HU-NN-slug/` y arranca con `/prd-writer`.»*
@@ -98,7 +113,8 @@ STOP y espera. Aplica los ajustes y repite el gate si hace falta.
 ## Reglas duras
 
 - **Cero asunciones.** Toda laguna → pregunta. Nunca inventes reglas, umbrales, roles ni comportamientos de casos límite.
-- **El `FEAT-NN` sale de `scripts/next-id.mjs`** y se comprueba justo antes de escribir.
+- **El `FEAT-NN` y cada `UC-NN` salen de `scripts/next-id.mjs`** y se comprueban justo antes de escribir.
+- **Un fichero por UC en el catálogo del módulo**, con flujos P/A/E identificados: el PRD los convierte en criterios de aceptación y la revisión exige un test por flujo.
 - **Cierra todas las preguntas posibles**; solo quedan las que el usuario difiere.
 - **«Fuera de alcance» obligatorio.**
 - **Cada UC, RN e invariante con fuente**: trazabilidad idea → respuesta → feature.

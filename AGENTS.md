@@ -25,7 +25,9 @@ de una idea al código integrado, con especificaciones, gates comprobables y ver
 ## El flujo (detalle en `docs/WORKFLOW.md`)
 
 1. **Idea** → `/anadir-idea` → `docs/02_discovery/ideas/NNN-slug.md`
-2. **Feature** → `/feature-shaping IDEA-NNN` → `FEAT-NN-slug/feature.md`, sin asunciones: toda laguna es una pregunta
+2. **Feature** → `/feature-shaping IDEA-NNN` → `FEAT-NN-slug/feature.md`, sin asunciones: toda laguna es una pregunta.
+   Sus casos de uso van al catálogo del módulo (`docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md`, flujos P/A/E):
+   cada flujo cubierto por una HU es ≥1 criterio de aceptación del PRD y un test en la review
 3. **HU** → agente `product-owner` → `docs/03_delivery/hu/HU-NN-slug/hu.md`; **sprint** → `/crear-sprint`
 4. **Por HU** (rama `hu/HU-NN-slug`): `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu`
 5. **Cierre de HU**: `/reviewer` (`VERDICT:`) → merge local a `main` → `/module-sync`

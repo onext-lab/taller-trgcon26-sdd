@@ -1,6 +1,6 @@
 ---
 name: module-sync
-description: Actualiza docs/05_modules/{módulo}/functional.md y technical.md, y su fila de docs/MVP-STATUS.md, con lo que entregó una HU aprobada. Úsala tras /reviewer aprobado y el merge; si faltan, los crea.
+description: Actualiza functional.md, technical.md y los casos de uso del módulo, y su fila de MVP-STATUS.md, con lo que entregó una HU aprobada. Úsala tras /reviewer aprobado y el merge.
 ---
 
 # module-sync
@@ -8,6 +8,8 @@ description: Actualiza docs/05_modules/{módulo}/functional.md y technical.md, y
 > **Dos documentos por módulo, ni más ni menos:**
 > - **`docs/05_modules/{módulo}/functional.md`**: propósito, capacidades con estado (`✅/🚧/⬜`), alcance no implementado, actores, reglas de negocio con su estado real, dependencias entre módulos, cuestiones abiertas y **estado vivo del MVP** (% MVP, conteo, backlog e historial por HU).
 > - **`docs/05_modules/{módulo}/technical.md`**: foto técnica para los arquitectos: estructura de código real, tablas y migraciones, endpoints, componentes y pantallas, validación y errores, convenciones, gotchas, deuda técnica y requisitos no funcionales.
+>
+> Además, el **catálogo de casos de uso** del módulo (`docs/05_modules/{módulo}/casos-de-uso/`, un `UC-NN-slug.md` por caso y su índice `README.md`): los crea `/feature-shaping` y este skill mantiene su estado y su trazabilidad.
 >
 > La carpeta de docs de cada módulo y su código salen de la tabla de `docs/_modules.md` (`candidatos` ↔ `candidates`, `ofertas` ↔ `jobs`, `inscripciones` ↔ `applications`).
 
@@ -46,7 +48,7 @@ No copies una plantilla vacía: construye el documento con **evidencia real** y 
 3. **HU cerradas** que lo tocaron: `docs/03_delivery/hu/completadas/` y las activas en `docs/03_delivery/hu/` (`hu.md`, `specs/PRD.md`, `review/REVIEW.md`).
 4. **Fuentes transversales**: `docs/ARCHITECTURE.md`, `docs/07_architecture_principles/DECISIONS.md`, `docs/RGPD.md` (si trata datos personales) y `docs/_modules.md`.
 
-Presenta al usuario el **esquema y los hallazgos clave** (no el documento entero), aplica la verificación de rutas del Paso 4 y, con su OK, escribe los dos ficheros. Después, sustituye el `README.md` «pendiente» del módulo por un enlace a los dos documentos (o bórralo con `git rm`, con confirmación).
+Presenta al usuario el **esquema y los hallazgos clave** (no el documento entero), aplica la verificación de rutas del Paso 4 y, con su OK, escribe los dos ficheros. `functional.md` enlaza el catálogo `casos-de-uso/README.md` en su sección de capacidades. Después, sustituye el `README.md` «pendiente» del módulo por un enlace a los dos documentos (o bórralo con `git rm`, con confirmación).
 
 ## Workflow de sincronización
 
@@ -55,7 +57,8 @@ Presenta al usuario el **esquema y los hallazgos clave** (no el documento entero
 - `docs/03_delivery/hu/HU-NN-slug/specs/PRD.md`: qué se prometió.
 - `docs/03_delivery/hu/HU-NN-slug/plans/TECHNICAL_DOC*.md`: qué se diseñó (fullstack: `-backend` y `-frontend`).
 - `docs/03_delivery/hu/HU-NN-slug/CHANGELOG.md`: qué se entregó.
-- `docs/03_delivery/hu/HU-NN-slug/review/REVIEW.md`: qué se confirmó y qué quedó parcial.
+- `docs/03_delivery/hu/HU-NN-slug/review/REVIEW.md`: qué se confirmó y qué quedó parcial (incluida la columna UC de la tabla criterio → test).
+- `docs/03_delivery/hu/HU-NN-slug/hu.md` → `## Casos de uso`: qué UC y flujos cubre la HU.
 
 ### Paso 2 — Estado actual del módulo
 
@@ -66,6 +69,11 @@ Presenta al usuario el **esquema y los hallazgos clave** (no el documento entero
 **→ `technical.md`:** tablas y columnas (`add`/`update`/`remove`), endpoints, pantallas y componentes, estructura de código (solo carpetas nuevas o renombradas), convenciones del **módulo** (no de una HU), gotchas con evidencia (REVIEW) y deuda técnica (abierta o resuelta).
 
 **→ `functional.md`:** capacidades (`⬜ → 🚧 → ✅` según el REVIEW), estado de las reglas de negocio, dependencias que pasan de latentes a reales y el estado vivo del MVP: `% MVP = round((✅ + 0,5·🚧) / total · 100)`, conteo y **una** fila nueva de historial.
+
+**→ `casos-de-uso/`:** por cada UC que cubre la HU:
+- `estado`: **`implementado`** si todos sus flujos tienen test en verde según el REVIEW; si quedan flujos para otra HU, sigue **`aprobado`**; si la HU lo deja sin sentido, **`obsoleto`** (nunca se borra).
+- `hus:` incluye la HU; la tabla «Trazabilidad» queda completa (flujo · HU · CA · test).
+- La fila del índice `casos-de-uso/README.md` (estado y HU) coincide con el frontmatter.
 
 **→ `docs/MVP-STATUS.md`:** la fila del módulo (% + conteo + HU cerradas), con el enlace a `functional.md`.
 
@@ -90,6 +98,8 @@ functional.md · CAPACIDADES / ESTADO MVP
   % MVP: ~40% → ~60%   Conteo: 2✅/1🚧/2⬜ → 3✅/1🚧/1⬜
   · «Búsqueda de candidatos» ⬜ → ✅ (REVIEW: entregado)
   Historial: + | 2026-10-13 | HU-03 | Alta, edición y búsqueda | ~60% |
+casos-de-uso · UC-NN-alta-de-candidato
+  estado: aprobado → implementado   hus: [HU-NN]   Trazabilidad P, A1, E1 completa
 MVP-STATUS.md: fila de candidatos actualizada
 ═══════════════════════════════════════════════════════════════════════════════
 ```
@@ -108,7 +118,7 @@ Cambios por categoría, rutas tocadas y `% MVP` antes → después: *«`docs/05_
 
 ## Reglas duras
 
-- **Dos ficheros por módulo**: `functional.md` y `technical.md`.
+- **Dos ficheros por módulo**: `functional.md` y `technical.md`, más el catálogo `casos-de-uso/` (estado y trazabilidad de cada UC; nunca se borra un UC: pasa a `obsoleto`).
 - **Crear = análisis con evidencia**, nunca una plantilla vacía; marca lo latente.
 - **El estado de las capacidades lo dice el REVIEW**, no tu opinión: «Aprobado con observaciones» con un hueco → 🚧.
 - **Verificación de rutas obligatoria** (Paso 4).

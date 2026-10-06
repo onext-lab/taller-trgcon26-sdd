@@ -28,14 +28,14 @@ owner: "<persona que decide>"
 <Quién interactúa. En el ATS hay un único rol, «reclutador» (DEC-04); el candidato no usa la aplicación.>
 
 ## Casos de uso
+Cada caso de uso es un **fichero propio en el catálogo del módulo**, desde `docs/_templates/UC.template.md`
+(numeración global: `node scripts/next-id.mjs uc`), con flujo principal **P**, alternativos **A1…** y excepciones
+**E1…**. Aquí solo se listan, por ID y ruta desde la raíz (sin enlace relativo: la feature se mueve a `completadas/`).
+Si la feature cambia un UC existente, se edita ese fichero y se marca «modificado».
 
-### UC-01 — <título>
-- **Actor:** <rol>
-- **Precondición:** <estado previo necesario>
-- **Disparador:** <qué inicia el caso>
-- **Flujo principal:** 1) … 2) … 3) …
-- **Flujos alternativos y excepciones:** <ramas, errores>
-- **Postcondición:** <estado resultante observable>
+| UC | Título | Módulo | Flujos | Fichero | Nuevo / modificado |
+|---|---|---|---|---|---|
+| UC-NN | <verbo + objeto> | <módulo> | P, A1, E1 | `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` | Nuevo |
 
 ## Reglas de negocio
 - **RN-01:** <«Si …, entonces …»>  _(fuente)_

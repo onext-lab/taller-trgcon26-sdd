@@ -30,13 +30,15 @@ evidencia ejecutada, no hay `Aprobado`.
 <Rutas, módulos o comandos citados en PRD, diseño o docs que no existen o no coinciden con el código.>
 
 ## 5. Criterio → test
-Una fila por criterio de aceptación del `hu.md`, por criterio de cada RF y por edge case Must del PRD. Todas empiezan
-en `falla`; solo pasan a `pasa` con un test que cubre el criterio y sale en verde en la salida de §7. Un criterio de un
-RF Must en `falla` es crítico.
+Una fila por criterio de aceptación del `hu.md` y del PRD (CA-NN), por criterio de cada RF y por edge case Must del
+PRD. La columna **UC** dice de qué caso de uso y flujo viene (`UC-NN · A1`), o `—` si no viene de un UC. Todas
+empiezan en `falla`; solo pasan a `pasa` con un test que cubre el criterio y sale en verde en la salida de §7.
+Un criterio de un RF Must en `falla` es crítico. **Un UC, o un flujo de UC cubierto por la HU, sin ningún test es un
+hallazgo crítico.** Al cerrar, copia el test de cada flujo a la «Trazabilidad» del fichero del UC.
 
-| Origen | Criterio o edge case | Categoría | Test (`fichero:línea`) | Estado |
-|---|---|---|---|---|
-| `hu.md` / RF-01 (Must) / EC-01 | … | input inválido / … / — | `apps/api/test/…:NN` | falla |
+| Origen | UC | Criterio o edge case | Categoría | Test (`fichero:línea`) | Estado |
+|---|---|---|---|---|---|
+| `hu.md` / CA-01 / RF-01 (Must) / EC-01 | UC-NN · P / — | … | input inválido / … / — | `apps/api/test/…:NN` | falla |
 
 ## 6. Gates de QUALITY-GATES
 

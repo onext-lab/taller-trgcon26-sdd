@@ -35,6 +35,7 @@ Veredicto: `Aprobado`, `Aprobado con observaciones` o `Requiere cambios`. **Por 
 
 - `specs/PRD.md`, `plans/TECHNICAL_DOC*.md`, `hu.md`, todas las tareas y sus briefs (`tasks/TASK-NN-BRIEF.md`, con la integración que pegó `/implementar-hu`).
 - La doc del módulo (vía `docs/_modules.md`), `DECISIONS.md`, `QUALITY-GATES.md`, `docs/RGPD.md`.
+- Los UC que cubre la HU (`hu.md` → `## Casos de uso`): `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md`.
 - Plantilla: `docs/_templates/REVIEW.template.md`.
 - Ficheros tocados: `git diff --name-only main...hu/HU-NN-slug`.
 
@@ -58,12 +59,15 @@ Para cada `DEC-NN` que toque la HU (los que cita el PRD en «Decisiones aplicabl
 
 Para **cada criterio de aceptación** de `hu.md` y **cada edge case** del PRD, busca el test que lo ejercita (`apps/api/test/`, `apps/web/test/`, `e2e/`, por nombre de `describe`/`it` o por un comentario `// covers RF-NN`):
 
-| Origen | Criterio o edge case | Categoría | Test (`fichero:línea "nombre"`) | Estado |
-|---|---|---|---|---|
-| CA-1 | El reclutador crea una oferta en borrador | — | `<fichero>.test.ts:12 "crea en draft"` | Cubierto |
-| RF-02 Must | Doble clic en «Publicar» | 7 idempotencia | — | **Huérfano (crítico)** |
+| Origen | UC | Criterio o edge case | Categoría | Test (`fichero:línea "nombre"`) | Estado |
+|---|---|---|---|---|---|
+| CA-1 | UC-NN · P | El reclutador crea una oferta en borrador | — | `<fichero>.test.ts:12 "crea en draft"` | Cubierto |
+| CA-2 | UC-NN · E1 | Título vacío: 400 y no se crea nada | 1 input inválido | — | **Huérfano (crítico)** |
+| RF-02 Must | — | Doble clic en «Publicar» | 7 idempotencia | — | **Huérfano (crítico)** |
 
-Un criterio de aceptación o un edge case de RF Must **sin test** es crítico. Si es de RF Should o Could, es una observación.
+La columna **UC** sale de la tabla «Casos de uso» del PRD (`UC-NN · flujo`, o `—` si el criterio no viene de un UC). Comprueba además que **cada flujo que la HU declara cubrir** (`hu.md` → `## Casos de uso`) tiene fila y test.
+
+Un criterio de aceptación, **un UC o un flujo de UC cubierto (P, A o E)** o un edge case de RF Must **sin test** es crítico. Si es de RF Should o Could, es una observación. Con la tabla cerrada, rellena la columna **Test** de la «Trazabilidad» de cada UC cubierto (`docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md`).
 
 ### Paso 5 — Gates de QUALITY-GATES
 
@@ -108,7 +112,7 @@ VERDICT: Requiere cambios
 
 **`Requiere cambios`** si falla cualquier gate crítico:
 - Integración en rojo (typecheck, lint, tests, e2e o `check:harness`).
-- Un criterio de aceptación o un edge case de RF Must sin test.
+- Un criterio de aceptación, un UC o un flujo de UC cubierto, o un edge case de RF Must sin test.
 - Un hallazgo crítico o alto nuevo de `security-auditor` (inyección SQL, XSS, error con traza o SQL en la respuesta, secreto en el código).
 - Un hallazgo crítico o alto de `datos-personales-auditor` (dato personal en logs o errores, respuesta con más datos de los necesarios, supresión que deja datos recuperables, retención ignorada).
 - Una decisión `DEC-NN` incumplida o una dependencia nueva sin decisión.
@@ -125,7 +129,7 @@ Cada hallazgo lleva `fichero:línea`; sin ruta concreta no es accionable y se de
 
 1. **`Aprobado`** (o **`Aprobado con observaciones`** con las observaciones curadas o aceptadas de forma explícita por la persona), con la integración del paso 6 en verde:
    - Añade la entrada a `docs/03_delivery/hu/HU-NN-slug/CHANGELOG.md` desde `docs/_templates/CHANGELOG.template.md` (qué se implementó, endpoints y pantallas, migraciones, veredicto).
-   - Commit de la review: `git add -- docs/03_delivery/hu/HU-NN-slug/review docs/03_delivery/hu/HU-NN-slug/CHANGELOG.md` y `git commit -m "docs(review): HU-NN approved [HU-NN]"`.
+   - Commit de la review: `git add -- docs/03_delivery/hu/HU-NN-slug/review docs/03_delivery/hu/HU-NN-slug/CHANGELOG.md` más los UC cuya Trazabilidad rellenaste, y `git commit -m "docs(review): HU-NN approved [HU-NN]"`.
    - **Merge local a `main`** (sin push: no hay remoto):
      ```bash
      git switch main

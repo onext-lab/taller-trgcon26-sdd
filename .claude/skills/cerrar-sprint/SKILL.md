@@ -11,6 +11,8 @@ Cerrar un sprint **no es solo** poner `estado: completado` en su frontmatter. Es
 
 No escribe código ni cierra HU técnicamente (eso es el flujo de la HU: `/reviewer`, merge y `/module-sync`). Solo **comprueba el gate, archiva y actualiza estados** de lo que ya está hecho.
 
+Los **casos de uso no se mueven ni se archivan**: viven en el catálogo del módulo (`docs/05_modules/{módulo}/casos-de-uso/`), sobreviven a la feature y su estado lo mantiene `/module-sync`. Como las features y las HU citan los UC por ID y ruta desde la raíz (no con enlaces relativos), moverlas a `completadas/` no rompe nada.
+
 ## Idioma
 
 Castellano de España, sin voseo. Identificadores en inglés.

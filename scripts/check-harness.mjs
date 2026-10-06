@@ -5,10 +5,12 @@
 //   b) enlaces relativos resueltos en docs/, docs/_templates/, .claude/ y los .md de la raíz
 //   c) rutas de fichero citadas en .claude/, AGENTS.md y CLAUDE.md que existen
 //   d) fixtures de hooks (deniegan lo que deben) y ningún hook abre red
-//   e) numeración determinista de IDEA y sprint en un directorio temporal, sin colisión
+//   e) numeración determinista de IDEA, sprint, HU y UC en un directorio temporal, sin colisión
 //   f) contexto de arranque: AGENTS.md + CLAUDE.md + todas las description ≤ 15 000 caracteres
 //   g) límites de tamaño (AGENTS.md, WORKFLOW.md, skills, arquitectos, security-auditor)
 //   h) sin caracteres crudos invisibles (NUL, U+2028, U+2029) en los ficheros versionables
+//   i) catálogo de casos de uso: UC-NN-slug.md con frontmatter coherente, en el índice de su módulo,
+//      sin IDs repetidos, y cada `UC-<número>` citado en docs/ o .claude/ existe
 import { execFileSync, spawnSync } from 'node:child_process';
 import {
   existsSync,
@@ -56,6 +58,8 @@ function parseFrontmatter(text) {
       continue;
     }
     let value = kv[2].trim();
+    // Comentario YAML al final de un valor sin comillas (`estado: borrador   # borrador | …`).
+    if (!/^['"]/.test(value)) value = value.replace(/\s+#.*$/, '');
     if (/^[>|][-+]?$/.test(value) || value === '') {
       const block = [];
       while (i + 1 < lines.length && (/^\s/.test(lines[i + 1]) || lines[i + 1] === ''))
@@ -210,6 +214,10 @@ const HOOK_CASES = [
   ['no-externo', { tool_input: { command: 'npm publish' } }, 2],
   ['no-externo', { tool_input: { command: 'git commit -m "sin push"' } }, 0],
   ['no-externo', { tool_input: { command: 'npm install' } }, 0],
+  ['no-externo', { tool_input: { command: 'cat .env' } }, 2],
+  ['no-externo', { tool_input: { command: 'source apps/api/.env.local' } }, 2],
+  ['no-externo', { tool_input: { command: 'echo X=1 > .env.test' } }, 2],
+  ['no-externo', { tool_input: { command: 'cat .env.example' } }, 0],
   ['typecheck-precommit', { tool_input: { command: 'git status' } }, 0],
 ];
 for (const [hook, input, expected] of HOOK_CASES) {
@@ -259,16 +267,28 @@ try {
     fail('e', 'scripts/next-id.mjs', 'no continúa la numeración de sprints');
   if (nextId('hu') !== 'HU-02')
     fail('e', 'scripts/next-id.mjs', 'no continúa la numeración de HU de los sprints');
+  if (nextId('uc') !== 'UC-01') fail('e', 'scripts/next-id.mjs', 'en vacío no da UC-01');
+  for (const [module, file] of [
+    ['candidatos', 'UC-03-alta.md'],
+    ['ofertas', 'UC-01-crear.md'],
+  ]) {
+    mkdirSync(join(tmp, 'docs/05_modules', module, 'casos-de-uso'), { recursive: true });
+    writeFileSync(join(tmp, 'docs/05_modules', module, 'casos-de-uso', file), '');
+  }
+  if (nextId('uc') !== 'UC-04')
+    fail('e', 'scripts/next-id.mjs', 'la numeración de UC no es global entre módulos');
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
-for (const skill of ['anadir-idea', 'crear-sprint']) {
+for (const skill of ['anadir-idea', 'crear-sprint', 'feature-shaping']) {
   const file = join(ROOT, '.claude/skills', skill, 'SKILL.md');
   if (existsSync(file) && !read(file).includes('scripts/next-id.mjs')) {
     fail('e', rel(file), 'la skill no usa scripts/next-id.mjs para numerar');
   }
 }
-passed.push('e) numeración: IDEA-001 y sprint-01 en vacío, sin colisión con archivadas');
+passed.push(
+  'e) numeración: IDEA-001, sprint-01 y UC-01 en vacío, sin colisión con archivadas, UC global',
+);
 
 // ---------- f) contexto de arranque ----------
 const startup =
@@ -321,6 +341,57 @@ for (const file of versioned) {
     fail('h', file, 'contiene NUL, U+2028 o U+2029 crudos (usa la secuencia de escape)');
 }
 passed.push(`h) caracteres crudos: ${versioned.length} ficheros de texto`);
+
+// ---------- i) catálogo de casos de uso ----------
+const UC_STATES = new Set(['borrador', 'aprobado', 'implementado', 'obsoleto']);
+const modulesDir = join(ROOT, 'docs/05_modules');
+const ucById = new Map();
+const moduleNames = readdirSync(modulesDir, { withFileTypes: true })
+  .filter((d) => d.isDirectory())
+  .map((d) => d.name);
+for (const module of moduleNames) {
+  const catalog = join(modulesDir, module, 'casos-de-uso');
+  const index = join(catalog, 'README.md');
+  if (!existsSync(index)) {
+    fail('i', rel(catalog), 'falta el índice casos-de-uso/README.md');
+    continue;
+  }
+  const indexText = read(index);
+  for (const entry of readdirSync(catalog).filter((f) => f !== 'README.md' && f !== '.gitkeep')) {
+    const file = join(catalog, entry);
+    const byName = /^(UC-\d+)-[\w-]+\.md$/.exec(entry);
+    if (!byName) {
+      fail('i', rel(file), 'el nombre no sigue UC-NN-slug.md');
+      continue;
+    }
+    const id = byName[1];
+    if (ucById.has(id)) fail('i', rel(file), `${id} repetido (también en ${ucById.get(id)})`);
+    ucById.set(id, rel(file));
+    const { data, error } = parseFrontmatter(read(file)) ?? { error: 'sin frontmatter' };
+    if (error) {
+      fail('i', rel(file), `frontmatter no válido: ${error}`);
+      continue;
+    }
+    if (data.id !== id) fail('i', rel(file), `id «${data.id}» no coincide con el fichero (${id})`);
+    if (data.modulo !== module) fail('i', rel(file), `modulo «${data.modulo}» y está en ${module}`);
+    if (!UC_STATES.has(data.estado)) fail('i', rel(file), `estado «${data.estado}» no válido`);
+    if (!/^FEAT-\d+$/.test(data.feature ?? '')) fail('i', rel(file), 'falta feature: FEAT-NN');
+    if (!/^## Flujo principal/m.test(read(file)))
+      fail('i', rel(file), 'falta «## Flujo principal»');
+    if (!indexText.includes(id)) fail('i', rel(index), `no lista ${id}`);
+  }
+}
+let ucRefs = 0;
+for (const file of [...mdFiles, ...walk(join(ROOT, 'docs'), (p) => p.endsWith('.html'))]) {
+  for (const id of new Set(read(file).match(/\bUC-\d+\b/g) ?? [])) {
+    ucRefs++;
+    if (!ucById.has(id))
+      fail('i', rel(file), `cita ${id}, que no existe en ningún catálogo de módulo`);
+  }
+}
+passed.push(
+  `i) casos de uso: ${ucById.size} UC en ${moduleNames.length} catálogos; ${ucRefs} citas a UC concretos`,
+);
 
 // ---------- informe ----------
 for (const line of passed) console.log(`  ✔ ${line}`);

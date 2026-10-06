@@ -17,13 +17,13 @@ paso de integración de `/implementar-hu` y la review **son** el gate.
 
 | Artefacto | Gates bloqueantes | Lo comprueba |
 |---|---|---|
-| **FEATURE** | 6 dimensiones resueltas (actores, casos de uso, reglas, invariantes, casos límite, alcance dentro/fuera); **0 preguntas abiertas** (o aplazadas explícitamente por la persona) | `/feature-shaping` |
-| **HU** | Atómica, vertical y con valor; `FEAT-NN` citado; criterios de aceptación verificables; dependencias | `product-owner` |
-| **PRD** | Rutas citadas existen; cada RNF con métrica numérica o rango; **≥3 edge cases por RF Must** recorriendo las 7 categorías de §3 (`N/A — razón` permitido); sección *Decisiones aplicables* (`DEC-NN`); datos personales declarados (qué, para qué, cuánto tiempo); **0 Open Questions**; estado `Ready` | `/prd-writer` |
+| **FEATURE** | 6 dimensiones resueltas (actores, casos de uso, reglas, invariantes, casos límite, alcance dentro/fuera); **cada UC es un fichero del catálogo del módulo** con flujo principal (P), alternativos (A) y excepciones (E), y su fila en el índice; **0 preguntas abiertas** (o aplazadas explícitamente por la persona) | `/feature-shaping` |
+| **HU** | Atómica, vertical y con valor; `FEAT-NN` citado; **UC y flujos que cubre** (entre todas las HU de la feature, todos los flujos cubiertos o declarados fuera con motivo); criterios de aceptación verificables; dependencias | `product-owner` |
+| **PRD** | Rutas citadas existen; **cada flujo de UC cubierto (P, A y E) con ≥1 criterio de aceptación `CA-NN`**; cada RNF con métrica numérica o rango; **≥3 edge cases por RF Must** recorriendo las 7 categorías de §3 (`N/A — razón` permitido); sección *Decisiones aplicables* (`DEC-NN`); datos personales declarados (qué, para qué, cuánto tiempo); **0 Open Questions**; estado `Ready` | `/prd-writer` |
 | **TECHNICAL_DOC** | PRD `Ready`; secciones 🔒 presentes (o `N/A — razón`); cada RF cubierto; tabla *Error paths* con cada edge case del PRD; cada `DD-NN` con alternativas y tradeoff; **0 Open Decisions** | `/tech-design` |
 | **TASK** | ≤ 4 h por task (S < 1 h, M 1–2 h, L 2–4 h); ≤ 15 tasks por HU; ficheros concretos; criterios de Done verificables; ≥ 1 task `[adversarial]` por RF Must; tests explícitos | `/task-planner` |
 | **CODE** | Umbrales de §2; anti-patrones de §4; cada edge case Must con su test; typecheck, lint y tests en verde | `/implementar-hu` + `/reviewer` |
-| **REVIEW** | Auditores concluidos (o dimensión declarada no concluida); verificación **ejecutada** pegada; tabla criterio → test → resultado; cada hallazgo con `archivo:línea`; línea `VERDICT:` | `/reviewer` |
+| **REVIEW** | Auditores concluidos (o dimensión declarada no concluida); verificación **ejecutada** pegada; tabla criterio → test → resultado con columna UC (**un UC o un flujo cubierto sin test es crítico**); cada hallazgo con `archivo:línea`; línea `VERDICT:` | `/reviewer` |
 | **SPRINT** | Suite completa ejecutada y clasificada; 2 dimensiones (código; seguridad y datos personales) sobre el diff del sprint; **fail-closed** | `/audit-sprint` → `/cerrar-sprint` |
 
 ## 2. Umbrales
@@ -33,7 +33,7 @@ paso de integración de `/implementar-hu` y la review **son** el gate.
 | Líneas por fichero nuevo o modificado | ≤ 300 | Sobre el diff, con `archivo:línea`. |
 | Líneas por función | ≤ 50 | Ídem. |
 | Complejidad por función | ≤ 10 ramas | Estimación razonada en la review. |
-| Tests | 1 test por RF y por edge case Must | El repo no mide cobertura: se exige el mapeo criterio → test. |
+| Tests | 1 test por RF, por flujo de UC cubierto y por edge case Must | El repo no mide cobertura: se exige el mapeo criterio → test. |
 | Latencia local (`fastify.inject` o e2e) | lectura < 200 ms; acción < 500 ms | Solo si el PRD define RNF de rendimiento. |
 | Tasks por HU | ideal 6–10, **máximo 15** | Más de 15: dividir la HU. |
 | Horas por task | ≤ 4 | |

@@ -28,7 +28,7 @@ Respondes en **castellano de España** (tuteo, sin voseo). Identificadores de c�
 ## Las 6 dimensiones del análisis
 
 1. **Actores y roles**: quién dispara la capacidad. En el ATS hay un rol de aplicación, «reclutador»; el candidato es un interesado cuyos datos se tratan, pero no usa la aplicación. Si aparece otro actor (p. ej., un proceso programado), pregunta.
-2. **Casos de uso (UC-NN)**: actor, precondición, disparador, flujo principal, alternativos y postcondición. Si aparece un «y además…», probablemente es otro UC.
+2. **Casos de uso (UC-NN)**: actor, precondiciones, disparador, flujo principal (**P**), alternativos (**A1…**), excepciones (**E1…**) y postcondiciones, según `docs/_templates/UC.template.md`. **Cada A y cada E sale de una pregunta respondida**, nunca de un supuesto («¿qué pasa si la oferta ya está cerrada?»). Si aparece un «y además…», probablemente es otro UC. Antes, mira el catálogo del módulo (`docs/05_modules/{módulo}/casos-de-uso/README.md`): si el UC ya existe, se modifica, no se duplica.
 3. **Reglas de negocio (RN-NN)**: condición → comportamiento obligatorio («una inscripción solo se crea en una oferta publicada»). Pregunta los umbrales numéricos; nunca los inventes.
 4. **Invariantes**: lo que se cumple siempre («un candidato no se inscribe dos veces en la misma oferta», «un candidato anonimizado no vuelve a tener datos de contacto»). Cada invariante se puede probar con un test que intente violarlo.
 5. **Casos límite**: recorre las 7 categorías (input inválido, boundary, fallo de dependencia, concurrencia, datos corruptos, seguridad e idempotencia) y, por cada una que aplique, pregunta qué debe pasar.
@@ -42,7 +42,7 @@ Además: conceptos de datos a grano grueso (sin diseñar el esquema) y criterios
 2. **Primer pase**: por cada dimensión, separa lo que se sabe (con su cita) de lo que no (→ pregunta).
 3. **Preguntas en tandas temáticas y numeradas** (actores, UC, reglas, invariantes y casos límite, alcance). Cada pregunta lleva tu recomendación. Si te invoca un skill, devuélvele las preguntas para que las haga a la persona y **para** hasta tener respuestas; no sigas con huecos críticos.
 4. **Itera**: cada respuesta puede abrir preguntas nuevas.
-5. **Escribe el `feature.md`** desde la plantilla, con las 6 dimensiones y la cita de cada cosa (idea, respuesta de la persona, `DEC-NN`, `RGPD.md`). El número sale de **`node scripts/next-id.mjs feat`** justo antes de escribir; la carpeta es `docs/02_discovery/features/FEAT-NN-slug/` y su `id:` coincide. Si la carpeta ya existe, recalcula: los IDs no se reutilizan.
+5. **Escribe el `feature.md`** desde la plantilla, con las 6 dimensiones y la cita de cada cosa (idea, respuesta de la persona, `DEC-NN`, `RGPD.md`). El número sale de **`node scripts/next-id.mjs feat`** justo antes de escribir; la carpeta es `docs/02_discovery/features/FEAT-NN-slug/` y su `id:` coincide. Si la carpeta ya existe, recalcula: los IDs no se reutilizan. Cada UC va en **su propio fichero** del catálogo del módulo, `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` (número con **`node scripts/next-id.mjs uc`**, `estado: borrador`, `feature: FEAT-NN`), con su fila en el índice `README.md` del módulo; en `feature.md` solo queda la tabla de UC citados por ID y ruta.
 6. **Cierra el lazo con la idea**: `estado: aceptada` y `feature: FEAT-NN` (o `descartada`, con motivo).
 7. **Gate humano**: resume UC, RN, invariantes, alcance y preguntas diferidas, y pide validación antes de marcar la feature como shaped.
 
@@ -50,5 +50,6 @@ Además: conceptos de datos a grano grueso (sin diseñar el esquema) y criterios
 
 - ¿He preguntado en vez de asumir? ¿Queda algún supuesto disfrazado de hecho?
 - ¿Están las 6 dimensiones, y cada UC, RN e invariante es verificable y está citado?
+- ¿Cada UC tiene su fichero en el catálogo del módulo, con P y sus A/E identificados y en el índice?
 - ¿He contrastado los datos personales con `docs/RGPD.md`?
 - ¿El `FEAT-NN` salió de `scripts/next-id.mjs` y coinciden carpeta e `id:`? ¿La idea quedó `aceptada` con `feature: FEAT-NN`?

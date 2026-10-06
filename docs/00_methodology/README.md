@@ -9,7 +9,7 @@ contra ellas. El detalle está en [WORKFLOW.md](../WORKFLOW.md).
 | Discovery — ¿qué merece la pena construir? | Delivery — construirlo bien |
 |---|---|
 | `/anadir-idea` → `IDEA-NNN` | `/crear-sprint` → `sprint-NN` (2 días) |
-| `/feature-shaping` → `FEAT-NN` (sin asunciones: todo lo que falte es una pregunta) | Por cada HU: `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu` → `/reviewer` → `/module-sync` |
+| `/feature-shaping` → `FEAT-NN` (sin asunciones: todo lo que falte es una pregunta) + sus `UC-NN` en el catálogo del módulo | Por cada HU: `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu` → `/reviewer` → `/module-sync` |
 | `product-owner` → `HU-NN` (atómicas, verticales y con valor) | `/qa-e2e` (opcional) → `/audit-sprint` → `/cerrar-sprint` |
 
 ## Las cinco ideas que sostienen el flujo
@@ -21,6 +21,9 @@ contra ellas. El detalle está en [WORKFLOW.md](../WORKFLOW.md).
 4. **Ejecutar, no suponer.** Tests, typecheck y lint se ejecutan y su salida real se pega
    ([IMPLEMENTATION-RULE.md](../IMPLEMENTATION-RULE.md)).
 5. **Techos.** 2 ciclos de arreglo por task y 2 «Requiere cambios» por HU: después se para y decide una persona.
+
+**Hilo de trazabilidad:** caso de uso (`UC-NN`, con flujos P, A y E) → HU que lo cubre → criterio de aceptación del PRD
+por cada flujo (`CA-NN`) → test en la review. Un flujo sin test no se aprueba.
 
 ## Quién hace qué
 

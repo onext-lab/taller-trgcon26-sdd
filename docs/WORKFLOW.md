@@ -39,12 +39,18 @@ Convierte una idea en una **feature** con análisis funcional **sin asunciones**
 - Resuelve actores, casos de uso, reglas de negocio, invariantes, casos límite y alcance. **Toda laguna es una
   pregunta**, no una suposición. Una decisión técnica nueva abre su `DEC-NN` en
   [DECISIONS.md](07_architecture_principles/DECISIONS.md).
+- **Casos de uso:** cada uno es un fichero propio del catálogo del módulo,
+  `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` (plantilla `UC`, número con `node scripts/next-id.mjs uc`),
+  con flujo principal **P**, alternativos **A1…** y excepciones **E1…**, y su fila en el índice `README.md` del catálogo.
+  La feature solo los lista. Viven en el módulo: sobreviven a la feature y no se mueven al cerrar el sprint.
 
 ### Paso 3 — Crear las HU
 El agente `product-owner` trocea la feature según su *handoff*.
 - **Dónde:** `docs/03_delivery/hu/HU-NN-slug/hu.md` (plantilla `HU`); número con `node scripts/next-id.mjs hu`.
 - **Numeración global**: no se reinicia por feature ni por sprint, y los IDs no se reutilizan.
 - Cada HU es **atómica** (se entrega sola), **vertical** (toca las capas necesarias) y **con valor**.
+- Cada HU declara qué UC y qué flujos cubre (`UC-NN · P, A1, E1`); entre todas cubren todos los flujos de los UC de la
+  feature, o dejan constancia de los que quedan fuera y por qué.
 
 ### Paso 4 — Sprint (`/crear-sprint`)
 - **Dónde:** `docs/01_roadmap/sprints/sprint-NN.md` (plantilla `SPRINT`), con `### HU-NN · título` por HU.
@@ -64,7 +70,9 @@ El agente `product-owner` trocea la feature según su *handoff*.
 > **No se salta ninguna etapa**, ni en HU pequeñas: PRD, diseño y tareas cuestan minutos y ahorran horas de re-trabajo.
 
 ### Paso 5.bis — Auditoría de sprint (`/audit-sprint NN`)
-Con todas las HU del sprint hechas y su review aprobada: dos auditores (código; seguridad y datos personales) sobre el
+Con todas las HU del sprint hechas y su review aprobada: 2 dimensiones con 3 auditores (código:
+`doc-code-drift-checker` más la revisión de calidad de la skill; seguridad y datos personales: `security-auditor` y
+`datos-personales-auditor`) sobre el
 **diff consolidado del sprint**. Captura lo que la review por HU no ve: interacciones entre HU, seguridad acumulada y
 drift. **Fail-closed**: una dimensión no concluida nunca da `Aprobado`. Opcional antes: **`/qa-e2e NN`** en local.
 
@@ -80,6 +88,7 @@ Con la auditoría en `VERDICT` ≠ `Bloqueado` (o `audit-override: <razón ≥ 2
 ── DISCOVERY ──
 /anadir-idea ────────► docs/02_discovery/ideas/NNN-slug.md
 /feature-shaping ────► docs/02_discovery/features/FEAT-NN-slug/feature.md   (preguntas → persona; cero asunciones)
+                       + docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md (catálogo del módulo)
 product-owner ───────► docs/03_delivery/hu/HU-NN-slug/hu.md
 /crear-sprint ───────► docs/01_roadmap/sprints/sprint-NN.md
 ── DELIVERY · SDD POR HU (rama hu/HU-NN-slug) ──
@@ -100,10 +109,10 @@ merge local ─────────► hu/HU-NN-slug → main (review aproba
 
 | Paso | Skill | Agente(s) | Gate | Rastro |
 |---|---|---|---|---|
-| Idea | `/anadir-idea` | `product-owner` | id único (`next-id`) | `ideas/NNN-slug.md` |
+| Idea | `/anadir-idea` | — | id único (`next-id`) | `ideas/NNN-slug.md` |
 | Shaping | `/feature-shaping` | `feature-analyst` | 6 dimensiones; 0 preguntas abiertas; aprueba la persona | `features/FEAT-NN-slug/feature.md` |
 | HU | — | `product-owner` | atómica, vertical, con valor | `hu/HU-NN-slug/hu.md` |
-| Sprint | `/crear-sprint` | `product-owner` | — | `sprints/sprint-NN.md` |
+| Sprint | `/crear-sprint` | — | — | `sprints/sprint-NN.md` |
 | PRD | `/prd-writer` | — | RNF medibles; ≥3 edge cases por RF Must; 0 OQ | `specs/PRD.md` |
 | Diseño | `/tech-design` | architects | secciones 🔒; 0 OD; todos los RF cubiertos | `plans/TECHNICAL_DOC*.md` |
 | Tareas | `/task-planner` | — | ≤ 15 tasks de ≤ 4 h; ficheros concretos | `tasks/` |
@@ -111,8 +120,8 @@ merge local ─────────► hu/HU-NN-slug → main (review aproba
 | Review | `/reviewer` | 3 auditores | `VERDICT` ≠ Requiere cambios; ≤ 2 rondas | `review/REVIEW.md` |
 | Merge | — | — | review aprobada + integración en verde | `main` |
 | Sync | `/module-sync` | — | rutas citadas existen | `05_modules/**`, `MVP-STATUS.md` |
-| Auditoría | `/audit-sprint` | 2 auditores | fail-closed | `10_audits/sprints/` |
-| Cierre | `/cerrar-sprint` | `product-owner` | auditoría aprobada u override | `completadas/` |
+| Auditoría | `/audit-sprint` | 2 dimensiones, 3 auditores | fail-closed | `10_audits/sprints/` |
+| Cierre | `/cerrar-sprint` | — | auditoría aprobada u override | `completadas/` |
 
 ## 4. IDs y trazabilidad
 
@@ -126,27 +135,41 @@ merge local ─────────► hu/HU-NN-slug → main (review aproba
 | `TASK-NN` | Task implementable (numerada dentro de la HU) | `docs/03_delivery/hu/HU-NN-slug/tasks/` |
 | `SPIKE-NN` | Investigación con timebox | `docs/02_discovery/spikes/SPIKE-NN-slug.md` |
 | `DEC-NN` | Decisión de arquitectura | [DECISIONS.md](07_architecture_principles/DECISIONS.md) |
+| `UC-NN` | Caso de uso (flujos P, A1…, E1…) | `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` |
+| `CA-NN` | Criterio de aceptación (numerado dentro del PRD) | `specs/PRD.md` de la HU |
 
-Todos los números salen de `node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task>`, nunca a mano.
+Todos los números salen de `node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task|uc>`, nunca a mano.
 
-**Git.** Cada HU se trabaja en `hu/HU-NN-slug`, creada desde `main`; un commit por task, en inglés y con el ID
-(`feat(jobs): add publish endpoint [HU-02 TASK-03]`); merge **local** a `main` con review aprobada e integración en
-verde. **Sin remoto, sin push y sin despliegue**: todo corre en el portátil. Los artefactos de discovery se comitean en
-`main`. Cada HU cita su `FEAT-NN` y cada feature, su `IDEA-NNN`.
+**Trazabilidad de los casos de uso:** `UC-NN · flujo` → HU que lo cubre → **al menos un `CA-NN` en el PRD por flujo**
+(los alternativos y las excepciones son criterios de aceptación, no solo edge cases) → test en la tabla criterio → test
+de `REVIEW.md`, con columna UC. **Un UC o un flujo cubierto sin test es un hallazgo crítico.** `/module-sync` marca el UC
+`implementado` y completa su tabla de trazabilidad. Los UC se citan por ID y ruta desde la raíz, sin enlace relativo.
+
+**Git.** Cada skill deja el árbol limpio con su propio commit, nombrando ficheros (nunca `git add -A`):
+- **Discovery, en `main`:** `/anadir-idea` (la idea), `/feature-shaping` (feature, UC e índices), `product-owner` (las
+  `hu.md`) y `/crear-sprint` (el sprint).
+- **Especificación, en la rama de la HU:** `/prd-writer` crea `hu/HU-NN-slug` desde `main` y comitea el PRD;
+  `/tech-design` y `/task-planner` comitean en esa rama el diseño y las tareas.
+- **Código:** `/implementar-hu`, un commit por task, en inglés y con el ID (`feat(jobs): add publish endpoint
+  [HU-02 TASK-03]`); `/reviewer` comitea la review y, si aprueba con la integración en verde, merge **local** a `main`.
+- **Cierre, en `main`:** `/module-sync`, `/audit-sprint` y `/cerrar-sprint`.
+
+**Sin remoto, sin push y sin despliegue**: todo corre en el portátil. Cada HU cita su `FEAT-NN` y cada feature, su
+`IDEA-NNN`.
 
 ## 5. Definition of Done por etapa
 
 | Etapa | Definition of Done | Gate bloqueante |
 |---|---|---|
 | Idea | Frontmatter completo, problema u oportunidad, alcance a grano grueso | — |
-| Shaping | 6 dimensiones resueltas sin asunciones; preguntas cerradas | Aprobación de la persona |
-| HU | Atómica, vertical, con valor; `FEAT-NN` citado; criterios de aceptación | Descomposición acordada |
-| PRD | `Ready`; 0 Open Questions; rutas citadas existen; RNF medibles; ≥3 edge cases por RF Must | — |
+| Shaping | 6 dimensiones resueltas sin asunciones; UC en el catálogo con P, A y E; preguntas cerradas | Aprobación de la persona |
+| HU | Atómica, vertical, con valor; `FEAT-NN` citado; UC y flujos cubiertos; criterios de aceptación | Descomposición acordada |
+| PRD | `Ready`; 0 Open Questions; cada flujo de UC cubierto con ≥1 CA; RNF medibles; ≥3 edge cases por RF Must | — |
 | Diseño | Secciones 🔒 completas o `N/A — razón`; cobertura de todos los RF; 0 Open Decisions | Visto bueno de la persona |
 | Tareas | Ficheros concretos; ≤ 15 tasks de ≤ 4 h; task adversarial por RF Must | — |
 | Código | Tasks `Completada`; integración en verde con la salida real pegada | Tests + typecheck + lint |
-| Review | Auditores concluidos; criterio ↔ test; `VERDICT:`; merge local a `main` | `VERDICT` ≠ Requiere cambios |
-| Sync | Docs de módulo y `MVP-STATUS.md` al día con reemplazos, no *appends* | Rutas citadas existen |
+| Review | Auditores concluidos; criterio ↔ test con columna UC; `VERDICT:`; merge local a `main` | `VERDICT` ≠ Requiere cambios |
+| Sync | Docs de módulo, catálogo de UC y `MVP-STATUS.md` al día con reemplazos, no *appends* | Rutas citadas existen |
 | Auditoría | 2 dimensiones sobre el diff del sprint; fail-closed | `VERDICT` ≠ Bloqueado |
 | Cierre | 3 niveles en `completadas/` (HU tras el sync) | Auditoría aprobada u override |
 
@@ -156,7 +179,7 @@ Los agentes los lanzan las skills; se invocan a mano solo para consultas puntual
 
 | Agente | Lo lanza | Úsalo a mano para |
 |---|---|---|
-| `product-owner` | `/anadir-idea`, `/crear-sprint`, `/cerrar-sprint` | trocear una feature en HU o actualizar el estado del sprint |
+| `product-owner` | — (lo invoca la persona) | trocear una feature en HU, priorizar o actualizar el estado del sprint |
 | `feature-analyst` | `/feature-shaping` | — |
 | `backend-architect` · `frontend-architect` | `/tech-design` | dudas de diseño sobre una HU con PRD `Ready` |
 | `security-auditor` · `datos-personales-auditor` | `/reviewer`, `/audit-sprint` | revisar un cambio sensible antes de la review |

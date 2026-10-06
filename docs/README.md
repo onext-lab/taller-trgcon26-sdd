@@ -14,7 +14,7 @@ Todo lo que el flujo SDD escribe o consulta vive aquí. Empieza por [WORKFLOW.md
 | [MVP-STATUS.md](MVP-STATUS.md) | Estado por módulo |
 | [RGPD.md](RGPD.md) | Ejemplo didáctico de tratamiento de datos de candidatos (base de la feature A) |
 | [_modules.md](_modules.md) | Mapa módulo docs ↔ código que usan skills y agentes |
-| [_templates/](_templates/) | Las 14 plantillas de los artefactos del flujo |
+| [_templates/](_templates/) | Las 15 plantillas de los artefactos del flujo (incluida `UC`, la del caso de uso) |
 
 ## Carpetas numeradas
 
@@ -27,6 +27,7 @@ Todo lo que el flujo SDD escribe o consulta vive aquí. Empieza por [WORKFLOW.md
 | [02_discovery/spikes/](02_discovery/spikes/) | `SPIKE-NN-slug.md` (+ `completadas/`, `descartadas/`) | a mano, con la plantilla `SPIKE` |
 | [03_delivery/hu/](03_delivery/hu/) | `HU-NN-slug/` con `hu.md`, `specs/`, `plans/`, `tasks/`, `review/`, `CHANGELOG.md` (+ `completadas/`) | `product-owner` y las skills de delivery |
 | [05_modules/](05_modules/) | `{candidatos,ofertas,inscripciones}/{functional,technical}.md` | `/module-sync` |
+| `05_modules/{módulo}/casos-de-uso/` | Catálogo de casos de uso: `UC-NN-slug.md` + índice `README.md` | `/feature-shaping` los crea; `/module-sync` los mantiene |
 | [06_design_principles/](06_design_principles/README.md) | Principios de interfaz del ATS | a mano |
 | [07_architecture_principles/](07_architecture_principles/) | [QUALITY-GATES.md](07_architecture_principles/QUALITY-GATES.md), [DECISIONS.md](07_architecture_principles/DECISIONS.md) y `contracts/` | a mano y `/tech-design` |
 | [10_audits/](10_audits/) | `reviews/`, `sprints/sprint-NN-AUDIT.md`, `qa/sprint-NN-AAAA-MM-DD/` | `/audit-sprint`, `/qa-e2e` |

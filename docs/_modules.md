@@ -19,6 +19,9 @@ Las carpetas de código de cada módulo se crean con su primera HU; hasta entonc
 
 - `docs/05_modules/{módulo}/functional.md`: descripción funcional y estado vivo (lo mantiene `/module-sync`).
 - `docs/05_modules/{módulo}/technical.md`: foto técnica para los architects (endpoints, tablas, componentes).
+- `docs/05_modules/{módulo}/casos-de-uso/`: catálogo de casos de uso del módulo, un fichero `UC-NN-slug.md` por caso
+  (plantilla `UC`, numeración global con `node scripts/next-id.mjs uc`) y el índice `README.md`. Los crea
+  `/feature-shaping`; los citan por ID la HU, el PRD y la review; `/module-sync` mantiene su estado y el índice.
 - La fila del módulo en [MVP-STATUS.md](MVP-STATUS.md).
 
 ## Mantenimiento

@@ -19,7 +19,8 @@ Si `specs/PRD.md` ya existe, pregunta qué ha cambiado y actualiza solo lo afect
 ## Pre-flight (bloquea si falla)
 
 1. Existe `docs/03_delivery/hu/HU-NN-slug/hu.md`. Si no: «No encuentro la HU-NN. La crea el `product-owner` al descomponer una feature shaped (`/feature-shaping`).» STOP.
-2. Resuelve el módulo con `docs/_modules.md` y lee `docs/05_modules/{módulo}/functional.md` y `technical.md`. Si aún no existen (primera HU del módulo), avisa y sigue con el README del módulo.
+2. **Rama de la HU** (la crea esta skill): con el árbol limpio, si existe `hu/HU-NN-slug`, `git switch hu/HU-NN-slug`; si no, `git switch -c hu/HU-NN-slug main`. Todo el trabajo de la HU (PRD, diseño, tareas, código y review) va en esa rama.
+3. Resuelve el módulo con `docs/_modules.md` y lee `docs/05_modules/{módulo}/functional.md` y `technical.md`. Si aún no existen (primera HU del módulo), avisa y sigue con el README del módulo.
 
 ## Workflow
 
@@ -28,6 +29,7 @@ Si `specs/PRD.md` ya existe, pregunta qué ha cambiado y actualiza solo lo afect
 Lee directamente:
 - `docs/03_delivery/hu/HU-NN-slug/hu.md` (historia y criterios de aceptación).
 - `docs/02_discovery/features/FEAT-NN-slug/feature.md` (la que cita el frontmatter de la HU).
+- Los casos de uso que declara la HU en `## Casos de uso` (`UC-NN · P, A1, E1`): `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md`, uno por UC.
 - La doc del módulo (paso anterior) y `docs/_modules.md`.
 - `docs/07_architecture_principles/DECISIONS.md` (decisiones `DEC-NN` vigentes) y `docs/07_architecture_principles/QUALITY-GATES.md`.
 - `docs/RGPD.md` si la HU toca datos de candidatos.
@@ -57,6 +59,7 @@ Desde la plantilla, con estas secciones:
 - **Info:** HU, feature, módulo, scope, estado `Draft`.
 - **Contexto:** problema, situación actual (de los subagentes), resultado esperado.
 - **Requisitos funcionales:** `RF-NN` con prioridad Must/Should/Could, `Scope:` y criterios verificables en checkbox. Cada criterio de aceptación de `hu.md` queda cubierto por al menos un RF.
+- **Casos de uso:** tabla `UC · flujo → CA-NN`, citando cada UC por su ID y su ruta desde la raíz en código (sin enlace relativo). **Cada flujo que cubre la HU (P, cada A y cada E) se convierte en al menos un criterio de aceptación** `CA-NN` en formato Dado/Cuando/Entonces dentro de «Criterios de aceptación»; los alternativos y las excepciones son CA, no se quedan solo en «Edge cases». Un flujo cubierto sin CA es una OQ bloqueante.
 - **Requisitos no funcionales:** solo con métrica numérica (ver gate 2).
 - **Modelo de datos:** tablas y columnas afectadas; datos personales marcados.
 - **Endpoints y pantallas:** método, ruta, códigos de respuesta y errores (envelope `{ error: { code, message, details? } }`); rutas de la web.
@@ -88,8 +91,11 @@ Desde la plantilla, con estas secciones:
    6. Seguridad: HTML en el resumen del candidato (XSS), `q` con comillas (inyección SQL), datos personales en logs o errores.
    7. Idempotencia: doble clic en «Inscribir» no crea dos inscripciones.
 4. **Decisiones aplicables** presente y no vacía (o con el motivo de «sin decisiones»).
+5. **Casos de uso → CA:** cada flujo cubierto por la HU (`UC-NN · P/A/E`) tiene al menos un `CA-NN`, y cada UC citado existe en el catálogo de su módulo. Si la HU no declara UC, debe decir por qué (p. ej. HU técnica).
 
 Si falla alguno, corrige o abre una OQ y vuelve al paso 5.
+
+Con el PRD aprobado, rellena la columna **Criterio de aceptación (PRD)** de la tabla «Trazabilidad» de cada UC cubierto (`HU-NN` · `CA-NN` por flujo).
 
 ### Paso 7 — Contradicciones
 
@@ -103,7 +109,10 @@ Resume: HU, título, scope, RF por prioridad, RNF, ruta del PRD. Y pregunta:
 
 **STOP.** Aprobado → `Estado: Ready`. Ajustes → aplícalos y repite el gate. Abortar → se queda en `Draft`.
 
-### Paso 9 — Cierre
+### Paso 9 — Commit en la rama y cierre
+
+En `hu/HU-NN-slug`, nombrando ficheros (`specs/PRD.md`, `hu.md` si cambió y los UC cuya Trazabilidad rellenaste):
+`git commit -m "docs(HU-NN): PRD"` (si quedan OQ abiertas: `"docs(HU-NN): PRD draft, open questions"`). Sin push.
 
 Resumen (RF, RNF, OQ resueltas, estado) y siguiente paso:
 
@@ -112,7 +121,7 @@ Resumen (RF, RNF, OQ resueltas, estado) y siguiente paso:
 ## Reglas duras
 
 - Nunca inventes requisitos ni rellenes huecos de la HU suponiendo: se pregunta.
-- Criterios de aceptación comprobables con un test («el reclutador ve…», no «funciona bien»).
+- Criterios de aceptación comprobables con un test («el reclutador ve…», no «funciona bien»). Cada flujo de UC cubierto, al menos un CA.
 - «Fuera de scope» y «Open Questions» siempre presentes.
 - Más de 15 RF: propón partir la HU.
 - No avances a `/tech-design` con OQ abiertas: `tech-design` lo comprueba.

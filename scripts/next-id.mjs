@@ -1,4 +1,4 @@
-// node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task> [--root <dir>]
+// node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task|uc> [--root <dir>]
 //
 // Imprime el siguiente identificador libre, calculado de forma determinista sobre lo que ya
 // existe en docs/ (incluidas las carpetas completadas/ y descartadas/). Las skills lo usan en
@@ -10,6 +10,7 @@
 //   sprint → sprint-NN  máximo de docs/01_roadmap/sprints/sprint-NN.md
 //   hu     → HU-NN      máximo entre docs/03_delivery/hu/**/HU-NN-slug/ y los `### HU-NN` de los sprints
 //   task   → T-NN       máximo de los `### T-NN` de los sprints (tareas de sprint sin HU)
+//   uc     → UC-NN      máximo global de docs/05_modules/*/casos-de-uso/UC-NN-slug.md (+ `id: UC-NN`)
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -42,6 +43,12 @@ const KINDS = {
     format: (n) => `HU-${pad(n, 2)}`,
   },
   task: { dir: null, sprints: /^###\s+T-(\d+)/gm, format: (n) => `T-${pad(n, 2)}` },
+  uc: {
+    dir: 'docs/05_modules',
+    name: /^UC-(\d+)-.+\.md$/,
+    content: /^id:\s*UC-(\d+)/m,
+    format: (n) => `UC-${pad(n, 2)}`,
+  },
 };
 
 function pad(n, width) {

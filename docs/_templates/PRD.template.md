@@ -18,6 +18,19 @@
 ### Resultado esperado
 <Cómo se ve el sistema cuando esté hecho.>
 
+## Casos de uso
+Los UC y flujos que cubre la HU (de `hu.md`), citados por ID y ruta desde la raíz. **Cada flujo cubierto (P, cada A y
+cada E) tiene al menos un criterio de aceptación** en «Criterios de aceptación»; un flujo cubierto sin CA es una Open
+Question que bloquea.
+
+| UC · flujo | Descripción corta | CA |
+|---|---|---|
+| UC-NN · P | <flujo principal> | CA-01 |
+| UC-NN · A1 | <alternativo> | CA-02 |
+| UC-NN · E1 | <excepción> | CA-03 |
+
+Fichero de cada UC: `docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md` (rellena su columna CA de «Trazabilidad»).
+
 ## Requisitos funcionales
 
 | ID | Descripción | Prioridad | Scope | Criterios de aceptación |
@@ -77,8 +90,19 @@ cada respuesta y qué NO debe aparecer en logs ni errores. «No aplica — <raz�
 |----|----------|-------|-------------------|-------|
 | DT-01 | … | … | … | AAAA-MM-DD |
 
-## Criterios de aceptación globales
+## Criterios de aceptación
+Uno o más por cada flujo de UC cubierto: los alternativos y las excepciones **son criterios de aceptación**, no solo
+edge cases. Formato Dado / Cuando / Entonces, comprobable con un test.
+
+| ID | Origen (UC · flujo o RF) | Dado | Cuando | Entonces |
+|----|--------------------------|------|--------|----------|
+| CA-01 | UC-NN · P / RF-01 | <estado inicial> | <acción del reclutador> | <resultado observable> |
+| CA-02 | UC-NN · A1 / RF-01 | … | … | … |
+| CA-03 | UC-NN · E1 / RF-01 | … | … | <error que ve; qué NO cambia> |
+
+## Checklist de cierre
 - [ ] Todos los RF tienen implementación verificable.
+- [ ] Cada flujo de UC cubierto tiene al menos un CA, y cada CA su test.
 - [ ] Cada edge case Must tiene su test.
 - [ ] Review aprobada.
 - [ ] 0 Open Questions.

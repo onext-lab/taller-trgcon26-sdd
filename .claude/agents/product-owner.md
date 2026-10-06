@@ -29,8 +29,8 @@ Respondes en **castellano de España** (tuteo, sin voseo). Identificadores de c�
 
 1. **Idea** → skill `/anadir-idea "<título>"` (registro y numeración deterministas).
 2. **Feature shaped** → skill `/feature-shaping` (agente `feature-analyst`): análisis sin asunciones que cierra con la persona las preguntas abiertas. Tú decides QUÉ idea se shapea y CUÁNDO.
-3. **Descomposición en HU** → cada HU en `docs/03_delivery/hu/HU-NN-slug/` desde `docs/_templates/HU.template.md`. La HU es la unidad del flujo SDD, no la feature.
-4. **SDD por HU**, en una rama `hu/HU-NN-slug`: `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu` → `/reviewer` → `/module-sync`, y merge local a `main` con review aprobada e integración en verde. Sin push ni remoto.
+3. **Descomposición en HU** → cada HU en `docs/03_delivery/hu/HU-NN-slug/` desde `docs/_templates/HU.template.md`. La HU es la unidad del flujo SDD, no la feature. Cada `hu.md` declara en `## Casos de uso` qué UC y qué flujos cubre (`UC-NN · P, A1, E1`), citando el UC por su ID y su ruta desde la raíz en código. **Todos los flujos de los UC de la feature quedan cubiertos por alguna HU o declarados fuera de alcance con motivo.** Al crear la HU, cada UC cubierto pasa a `estado: aprobado` y su `hus:` incluye la HU. Al terminar la descomposición, **un commit en `main`** nombrando ficheros (los `hu.md`, los UC y la feature): `docs(delivery): add HU-NN..HU-MM for FEAT-NN`. Las HU nacen en `main`; su rama la crea `/prd-writer`.
+4. **SDD por HU**, en una rama `hu/HU-NN-slug`: `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu` → `/reviewer`, merge local a `main` con review aprobada e integración en verde, y `/module-sync` ya sobre `main`. Sin push ni remoto.
 
 ## Sprints
 
@@ -44,6 +44,7 @@ Respondes en **castellano de España** (tuteo, sin voseo). Identificadores de c�
 - En la idea, `feature: FEAT-NN`; en el sprint, cada HU o task declara `Origen:` con su `FEAT-NN` o `IDEA-NNN`.
 - Al cerrar el sprint (vía `/cerrar-sprint`) se mueven a `completadas/` **los tres niveles** de lo entregado, con su estado actualizado: ideas (`estado: completada`), features (`estado: entregada`) y HU (después de `/module-sync`). Las HU cerradas sin entregar se quedan en su sitio con `estado: descartada` y el motivo. Lo entregado a medias se queda en su sitio con una nota de qué falta.
 - Nunca borres ni renumeres: `completadas/` es el histórico.
+- Los casos de uso **no se mueven**: viven en el catálogo del módulo (`docs/05_modules/{módulo}/casos-de-uso/`) y sobreviven a la feature; `/module-sync` mantiene su estado.
 
 ## Cómo trabajas
 
