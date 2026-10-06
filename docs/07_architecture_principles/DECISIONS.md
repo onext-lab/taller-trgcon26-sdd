@@ -79,3 +79,89 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
 - **Consecuencias.** Las versiones van fijadas (sin `^`) en los `package.json`. Subir TypeScript a 7.x queda pendiente
   de que `typescript-eslint` lo soporte; se hará con un `DEC-NN` nuevo.
 - **Estado.** Aceptada (2026-10-06).
+
+## DEC-06 · Colaboración entre módulos: operaciones internas en una sola transacción
+
+- **Contexto.** El shaping de FEAT-01..03 dejó dos efectos que cruzan módulos: cerrar una oferta rechaza sus
+  inscripciones activas (RV-05, S-10) y crear o cerrar inscripciones recalcula la retención del candidato (S-06).
+  Las dos operaciones tienen que ser todo o nada.
+- **Decisión.**
+  - Cada módulo es **dueño de sus tablas**; ningún otro escribe en ellas ni las consulta con SQL.
+  - Un efecto en otro módulo se pide con una **operación interna** (función exportada, no HTTP) del módulo dueño,
+    que el iniciador llama **dentro de su transacción** de `node:sqlite` (`BEGIN … COMMIT`, `ROLLBACK` ante cualquier
+    error).
+  - Una lectura de otro módulo va por un **puerto** (interfaz) que define el módulo que la necesita y que implementa el
+    dueño de los datos. Hoy: `candidatos` define el puerto de procesos del candidato y lo implementa `inscripciones`.
+  - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos`.
+- **Alternativas.** Eventos en proceso (consistencia eventual y más piezas para una demo); SQL directo entre módulos
+  (acoplamiento y transacciones repartidas); endpoints HTTP internos (sin transacción común).
+- **Consecuencias.** Cada efecto cruzado tiene un test que inyecta un fallo y comprueba que no queda nada a medias.
+  `candidatos` no importa nada de los otros dos módulos.
+- **Estado.** Aceptada (2026-10-06).
+
+## DEC-07 · Códigos HTTP y validación de la API
+
+- **Contexto.** Las features reparten 400, 404 y 409 en muchos flujos; sin una convención, cada PRD los decidiría de
+  una forma distinta.
+- **Decisión.**
+  - **400** · validación: JSON Schema estricto de Fastify (`additionalProperties: false`). Un campo desconocido o de
+    solo lectura (p. ej., el fin de retención) también es 400 (S-03). `details` lista los campos con error.
+  - **404** · el recurso no existe; el mensaje no incluye datos personales.
+  - **409** · conflicto de estado: duplicado (con el ID del existente en `details`: RV-10, S-14), transición o
+    precondición de estado no permitida (p. ej., cerrar un borrador o inscribir en una oferta no publicada) y etapa
+    esperada distinta de la actual (RV-22).
+  - **200** · lectura, edición y repetición idempotente de una acción ya aplicada (S-01); **201** · creación;
+    **204** · borrado.
+  - `error.code` en `SCREAMING_SNAKE_CASE` (`VALIDATION_ERROR`, `NOT_FOUND`, `DUPLICATE`, `INVALID_TRANSITION`,
+    `STAGE_MISMATCH`…); el PRD de cada HU fija los suyos.
+- **Alternativas.** 422 para validación de negocio (más códigos que explicar en la demo); 400 para todo (los tests no
+  distinguen un duplicado de un dato inválido).
+- **Consecuencias.** Los criterios de aceptación de los PRD citan el código esperado, y cada uno tiene su test.
+- **Estado.** Aceptada (2026-10-06).
+
+## DEC-08 · Concurrencia e idempotencia
+
+- **Contexto.** Un único usuario local (DEC-04), pero con doble clic, reintentos y varias pestañas (S-01, S-02, RV-22,
+  RV-23).
+- **Decisión.**
+  - **Ediciones de campos:** gana la última escritura.
+  - **Transiciones de estado** (publicar, cerrar, cambiar de etapa): se comprueba el estado actual dentro de la
+    transacción; si no la permite, 409.
+  - **Cambio de etapa:** control optimista con la etapa esperada (RV-22).
+  - **Repetición de una acción ya aplicada:** 200 sin cambios, sin tocar fechas ni crear `StageChange` (S-01; prevalece
+    RV-23 sobre RV-22).
+  - **Unicidad** (email del candidato, pareja candidato-oferta): la garantiza un índice único en la base, no solo una
+    comprobación previa; el choque se traduce a 409.
+- **Alternativas.** Versión optimista en todas las ediciones (más carga en formularios sin beneficio con un único
+  usuario); bloqueos explícitos (innecesarios con `node:sqlite` síncrono).
+- **Consecuencias.** Los edge cases de concurrencia e idempotencia de los PRD se prueban contra estas reglas.
+- **Estado.** Aceptada (2026-10-06).
+
+## DEC-09 · Fechas, zona horaria y reloj
+
+- **Contexto.** La retención vence por día natural en Europe/Madrid (RV-25) y suma meses con fechas que no existen
+  (S-06); los casos límite de fecha tienen que ser comprobables.
+- **Decisión.**
+  - Los instantes se guardan en UTC como texto ISO 8601; la interfaz los muestra en Europe/Madrid con formato
+    `dd/mm/aaaa` (y la hora cuando aplique).
+  - El **fin de retención** es una fecha de calendario (`AAAA-MM-DD`) de Europe/Madrid. Sumar meses a una fecha que no
+    existe en el mes destino da el último día de ese mes.
+  - El **reloj se inyecta** (`now()` como dependencia) en la API, para fijar la fecha en los tests.
+- **Alternativas.** Guardar en hora local (ambigüedad en los cambios de hora); librerías de fechas (dependencia más:
+  `Intl` y aritmética propia bastan).
+- **Consecuencias.** Hay tests de frontera de fecha (cambio de día entre UTC y Madrid, 31/08 + 6 meses, año bisiesto)
+  sin depender del reloj real.
+- **Estado.** Aceptada (2026-10-06).
+
+## DEC-10 · Listados: paginación y búsqueda
+
+- **Contexto.** Ofertas y candidatos se listan con filtros y paginación (RV-08, RV-14, S-04).
+- **Decisión.** Parámetros `page` (desde 1) y `pageSize` (por defecto 20, máximo 100; más de 100 da 400). Respuesta
+  `{ items, total, page, pageSize }`. La búsqueda de texto ignora mayúsculas y tildes (normalización Unicode NFD sin
+  diacríticos) en el servidor. Orden estable con desempate por ID. Los listados devuelven solo los campos de la lista,
+  no la ficha completa (minimización, `docs/RGPD.md` §6).
+- **Alternativas.** Paginación por cursor (innecesaria con el volumen del taller); búsqueda en el cliente (no escala y
+  obliga a enviar datos personales de más).
+- **Consecuencias.** Los dos listados comparten forma de respuesta y tests de frontera (página vacía, 20 y 21
+  elementos, `pageSize` 100 y 101).
+- **Estado.** Aceptada (2026-10-06).
