@@ -97,3 +97,30 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera; typecheck del workspace tocado (@ats/web) porque TASK-02 editaba apps/api a la vez. Adelanta dos tests de EC-39 (de TASK-13), que se quedan. Builder: general-purpose con las instrucciones de web-builder.md (respaldo)
 - **Commit:** el de esta tarea (`[HU-02 TASK-07]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** `isJob` (`apps/web/src/features/jobs/api.ts:46`) tiene unas 13 ramas (una cadena de `&&`) y el umbral es 10: pásalo a una tabla de comprobaciones por campo (p. ej. un objeto campo → predicado y `every`) sin cambiar qué acepta ni qué rechaza.
+- **Ficheros:** `apps/web/src/features/jobs/api.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/web -- api.test` en verde con el mismo número de tests que antes; `npm run typecheck -w @ats/web`; `npx eslint` del fichero; ninguna función pasa de 10 ramas (justifícalo).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- api.test
+ Test Files  1 passed (1)
+      Tests  32 passed (32)
+exit=0
+$ npm run typecheck -w @ats/web
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/src/features/jobs/api.ts
+exit=0
+$ wc -l (ficheros tocados)
+     157 apps/web/src/features/jobs/api.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; isJob pasa a una tabla JOB_CHECKS (Record<keyof Job, predicado>) con 2 ramas; 32 tests antes y después
+

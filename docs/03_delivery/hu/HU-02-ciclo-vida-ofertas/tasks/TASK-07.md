@@ -130,3 +130,9 @@ dos. `children` va entre la descripción (`aria-describedby`) y el error (`role=
 exacta), datos inventados. `api.test.ts` pasa de 167 a ~240 líneas; si alguno de los ficheros de test fuera a pasar de
 300, crea un hermano `<nombre>.lifecycle.test.ts(x)` y añade `<nombre>.lifecycle` al patrón de `npm test` (p. ej.
 `api.lifecycle`, porque `api.test` no lo recoge).
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** `isJob` (`apps/web/src/features/jobs/api.ts:46`) tiene unas 13 ramas (una cadena de `&&`) y el umbral es 10: pásalo a una tabla de comprobaciones por campo (p. ej. un objeto campo → predicado y `every`) sin cambiar qué acepta ni qué rechaza.
+- **Ficheros:** `apps/web/src/features/jobs/api.ts`
+- **Criterios de done:** `npm test -w @ats/web -- api.test` en verde con el mismo número de tests que antes; `npm run typecheck -w @ats/web`; `npx eslint` del fichero; ninguna función pasa de 10 ramas (justifícalo).

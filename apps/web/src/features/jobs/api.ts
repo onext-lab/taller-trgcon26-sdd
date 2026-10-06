@@ -42,22 +42,33 @@ function isNullableInteger(value: unknown): boolean {
   return value === null || Number.isSafeInteger(value);
 }
 
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function isNullableWorkMode(value: unknown): boolean {
+  return value === null || isWorkMode(value);
+}
+
+// One check per field of `Job`: the type forces every field to have its own.
+const JOB_CHECKS: Record<keyof Job, (value: unknown) => boolean> = {
+  id: isId,
+  title: isString,
+  description: isNullableString,
+  location: isNullableString,
+  workMode: isNullableWorkMode,
+  salaryMin: isNullableInteger,
+  salaryMax: isNullableInteger,
+  status: isJobStatus,
+  createdAt: isString,
+  publishedAt: isNullableString,
+  closedAt: isNullableString,
+};
+
 /** Minimal shape check of a full job. */
 export function isJob(value: unknown): value is Job {
   if (!isRecord(value)) return false;
-  return (
-    isId(value.id) &&
-    typeof value.title === 'string' &&
-    isNullableString(value.description) &&
-    isNullableString(value.location) &&
-    (value.workMode === null || isWorkMode(value.workMode)) &&
-    isNullableInteger(value.salaryMin) &&
-    isNullableInteger(value.salaryMax) &&
-    isJobStatus(value.status) &&
-    typeof value.createdAt === 'string' &&
-    isNullableString(value.publishedAt) &&
-    isNullableString(value.closedAt)
-  );
+  return Object.entries(JOB_CHECKS).every(([field, check]) => check(value[field]));
 }
 
 function isJobListItem(value: unknown): value is JobListItem {
