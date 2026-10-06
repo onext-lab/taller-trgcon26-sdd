@@ -37,6 +37,7 @@ origen, religión, afiliación…). Un PRD que quiera añadir un dato nuevo tien
 | Con inscripción abierta | Mientras dure el proceso | — |
 | Proceso cerrado, **sin** consentimiento para futuros procesos | 6 meses desde el cierre del último proceso | Anonimizar |
 | Con consentimiento para futuros procesos | 24 meses desde la fecha del consentimiento | Anonimizar, salvo que lo renueve |
+| **Sin** ninguna inscripción y **sin** consentimiento | 6 meses desde el alta | Anonimizar |
 
 - `Candidate` guarda la **fecha de fin de retención**; se recalcula cuando cambia el consentimiento o se cierra su
   último proceso.

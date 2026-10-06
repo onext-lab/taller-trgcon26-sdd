@@ -22,6 +22,7 @@ Todo lo que el flujo SDD escribe o consulta vive aquí. Empieza por [WORKFLOW.md
 |---|---|---|
 | [00_methodology/](00_methodology/README.md) | El flujo en una página | a mano |
 | [01_roadmap/sprints/](01_roadmap/sprints/) | `sprint-NN.md` | `/crear-sprint`, `/cerrar-sprint` |
+| [02_discovery/reglas-validadas.md](02_discovery/reglas-validadas.md) | Reglas de negocio validadas (`RV-NN`), fuente del shaping | la persona valida; se cita |
 | [02_discovery/ideas/](02_discovery/ideas/) | `NNN-slug.md` (+ `completadas/`, `descartadas/`) | `/anadir-idea` |
 | [02_discovery/features/](02_discovery/features/) | `FEAT-NN-slug/feature.md` (+ `completadas/`, `descartadas/`) | `/feature-shaping` |
 | [02_discovery/spikes/](02_discovery/spikes/) | `SPIKE-NN-slug.md` (+ `completadas/`, `descartadas/`) | a mano, con la plantilla `SPIKE` |
