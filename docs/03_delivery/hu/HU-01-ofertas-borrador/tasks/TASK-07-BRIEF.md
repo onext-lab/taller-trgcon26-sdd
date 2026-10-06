@@ -98,3 +98,34 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (sin ciclos de arreglo); no destapa fallos en src
 - **Commit:** el de esta tarea (`[HU-01 TASK-07]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** EC-32 (RF-04 Must, categoría 6, enumeración de IDs) no tiene test. Fija con tests el comportamiento que el PRD declara: (a) la API escucha en `127.0.0.1` por defecto; para poder probarlo sin abrir puertos, extrae de `apps/api/src/server.ts` una función pura (p. ej. `listenOptions(env)`, que devuelve host y puerto con los valores por defecto) y pruébala, sin cambiar el comportamiento de `server.ts`; (b) recorrer IDs secuenciales (`GET /api/jobs/1..N`) solo devuelve campos de oferta (las claves exactas del esquema `Job`) y 404 en el envelope para los que no existen. Nombre de los tests con «EC-32».
+- **Ficheros:** `apps/api/src/server.ts` (modificar, solo extraer la función), `apps/api/test/jobs/enumeration.test.ts` (crear)
+- **Verificación que debes pegar:** `npm test -w apps/api -- enumeration health logger` en verde con 3 ficheros; `npm run typecheck`; `npx eslint` de los ficheros tocados; `npm run dev` sigue arrancando la API en 127.0.0.1:3001 (compruébalo leyendo el log de arranque, sin curl).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- enumeration health logger
+ Test Files  3 passed (3)
+      Tests  6 passed (6)
+exit=0
+$ npm run typecheck
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/src/server.ts apps/api/src/listen-options.ts apps/api/test/jobs/enumeration.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+      16 apps/api/src/listen-options.ts
+      20 apps/api/src/server.ts
+      71 apps/api/test/jobs/enumeration.test.ts
+     107 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; EC-32 cubierto con 4 tests (host por defecto 127.0.0.1 y recorrido de IDs que solo devuelve campos de oferta o 404). Fichero nuevo fuera de la tabla: apps/api/src/listen-options.ts, porque server.ts arranca el servidor al importarse; npm run dev -w @ats/api sigue escuchando en 127.0.0.1:3001 (log del builder)
+

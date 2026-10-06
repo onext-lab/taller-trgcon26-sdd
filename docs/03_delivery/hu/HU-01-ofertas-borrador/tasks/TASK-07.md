@@ -80,3 +80,9 @@ existencia (404). `GET` y `DELETE` **sin** `payload` ni `Content-Type`.
   cuerpo es solo el envelope (ninguna propiedad de oferta).
 - «EC-43 ID no entero → 400»: `abc`, `1.5`, `0`, `007` → 400 `field: "id"`.
 - «EC-46 GET tras borrado → 404»: crear, `DELETE`, `GET` → 404.
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** EC-32 (RF-04 Must, categoría 6, enumeración de IDs) no tiene test. Fija con tests el comportamiento que el PRD declara: (a) la API escucha en `127.0.0.1` por defecto; para poder probarlo sin abrir puertos, extrae de `apps/api/src/server.ts` una función pura (p. ej. `listenOptions(env)`, que devuelve host y puerto con los valores por defecto) y pruébala, sin cambiar el comportamiento de `server.ts`; (b) recorrer IDs secuenciales (`GET /api/jobs/1..N`) solo devuelve campos de oferta (las claves exactas del esquema `Job`) y 404 en el envelope para los que no existen. Nombre de los tests con «EC-32».
+- **Ficheros:** `apps/api/src/server.ts` (modificar, solo extraer la función), `apps/api/test/jobs/enumeration.test.ts` (crear)
+- **Criterios de done:** `npm test -w apps/api -- enumeration health logger` en verde con 3 ficheros; `npm run typecheck`; `npx eslint` de los ficheros tocados; `npm run dev` sigue arrancando la API en 127.0.0.1:3001 (compruébalo leyendo el log de arranque, sin curl).
