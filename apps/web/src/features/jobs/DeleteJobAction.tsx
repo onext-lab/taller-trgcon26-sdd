@@ -12,11 +12,13 @@ type Props = {
   title: string;
   /** Disables only «Borrar» while another action of the detail is in flight. */
   disabled?: boolean;
+  /** 409 (the job is no longer a draft): the dialog closes; the container shows `message` and reloads. */
+  onConflict?: (message: string) => void;
 };
 
 // State and API call of the delete flow. Confirming sends one DELETE (the ref guard keeps a double click
 // from sending two) and returns to the list with a notice.
-function useDeleteJob(id: number) {
+function useDeleteJob(id: number, onConflict?: (message: string) => void) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -40,6 +42,9 @@ function useDeleteJob(id: number) {
       if (caught instanceof ApiError && caught.status === 404) {
         setOpen(false);
         setGone(true);
+      } else if (caught instanceof ApiError && caught.status === 409 && onConflict) {
+        setOpen(false);
+        onConflict(caught.message);
       } else {
         setError(userMessage(caught));
       }
@@ -53,8 +58,8 @@ function useDeleteJob(id: number) {
 }
 
 // «Borrar» button + confirmation dialog (DT-02, DD-05). Cancelling never calls the API.
-export function DeleteJobAction({ id, title, disabled = false }: Props) {
-  const { open, setOpen, busy, error, gone, close, confirm } = useDeleteJob(id);
+export function DeleteJobAction({ id, title, disabled = false, onConflict }: Props) {
+  const { open, setOpen, busy, error, gone, close, confirm } = useDeleteJob(id, onConflict);
 
   if (gone) {
     return (

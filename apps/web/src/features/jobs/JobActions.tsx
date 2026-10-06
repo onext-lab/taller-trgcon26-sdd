@@ -55,7 +55,7 @@ export function JobActions(props: Props) {
       <button type="button" onClick={onPublish} disabled={busy}>
         {pending === 'publish' ? 'Publicando…' : 'Publicar'}
       </button>
-      <DeleteJobAction id={job.id} title={job.title} disabled={busy} />
+      <DeleteJobAction id={job.id} title={job.title} disabled={busy} onConflict={onConflict} />
       {duplicate}
     </div>
   );
