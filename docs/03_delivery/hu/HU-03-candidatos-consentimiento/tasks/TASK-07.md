@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** test
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (gate 4 de RF-03; CA-32 y RNF-03 transversales a RF-01 a RF-06)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 
