@@ -120,3 +120,6 @@ sigue siendo interpolación JSX (RNF-04).
 - **Qué hay que hacer:** CA-18 (decisión de quien aprueba el PRD): la web ofrece solo 20, 50 y 100 en «Por página», alineada con el PRD. Quita la opción extra que hoy añade `apps/web/src/features/jobs/JobFilters.tsx:45` cuando la URL trae un `pageSize` válido distinto de esos tres: en ese caso la interfaz usa 20 (selector y petición). La API sigue aceptando 1-100. Ajusta el test de `apps/web/test/features/jobs/JobListScreen.filters.test.tsx:123` (o donde esté el de `pageSize=7`) para fijar el comportamiento nuevo.
 - **Ficheros:** `apps/web/src/features/jobs/JobFilters.tsx` (y `list-query.ts` si la normalización vive ahí), `apps/web/test/features/jobs/JobListScreen.filters.test.tsx`
 - **Criterios de done:** `npm test -w @ats/web -- JobListScreen list-query` en verde; `npm run typecheck -w @ats/web`; `npx eslint` de los ficheros tocados.
+
+## Nota · review ronda 1 (2026-10-06)
+Los tests de paginación viven en `apps/web/test/features/jobs/JobListScreen.pagination.test.tsx` (umbral de 300 líneas); el patrón `JobListScreen` recoge hoy 4 ficheros (`.test`, `.filters`, `.pagination` y `.filters-adversarial`). En la reapertura, CA-18 se alineó con el PRD: «Por página» ofrece solo 20, 50 y 100.

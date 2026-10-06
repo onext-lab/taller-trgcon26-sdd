@@ -87,3 +87,6 @@ Si `status-rules.test.ts` fuera a pasar de 300 líneas, los casos de esta tarea 
   → 400; de 100 → 200», «CA-20/EC-33 q con carácter de control dentro → 400», «DD-05 tabulador al borde de q se recorta»,
   «CA-21 status=archived → 400 en status», «EC-39 inyección, % y _ son literales», «RNF-06/EC-39 el valor de q no
   aparece en los logs».
+
+## Nota · review ronda 1 (2026-10-06)
+EC-18, EC-20, EC-21, EC-23 y CA-13/EC-24 viven en el hermano `apps/api/test/jobs/status-rules-adversarial.test.ts` (umbral de 300 líneas, previsto en esta tarea); `status-rules.test.ts` no se modificó.

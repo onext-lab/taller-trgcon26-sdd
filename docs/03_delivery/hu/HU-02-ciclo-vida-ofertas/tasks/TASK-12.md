@@ -83,3 +83,6 @@ Si `CloseJobAction.test.tsx` (u otro) fuera a pasar de 300 líneas, los casos de
 - Texto siempre como interpolación JSX: busca `container.querySelector('img')` / `('b')` y espera `null`.
 - Títulos del TD para los casos `[adversarial]`: «EC-16 doble clic en Cerrar oferta = 1 POST», «EC-15 título hostil con
   el diálogo abierto», «EC-46 HTML en una cerrada», «EC-21 409 al borrar → onConflict».
+
+## Nota · review ronda 1 (2026-10-06)
+EC-15, EC-16, EC-43 (cierre) y los demás casos nuevos del diálogo viven en `apps/web/test/features/jobs/CloseJobAction.adversarial.test.tsx` (umbral de 300 líneas); `CloseJobAction.test.tsx` no se modificó.

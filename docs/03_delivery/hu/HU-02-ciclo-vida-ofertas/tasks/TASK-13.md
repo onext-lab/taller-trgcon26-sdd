@@ -82,3 +82,6 @@ patrones de abajo lo recogen.
   comprueba vacío.
 - Títulos del TD para los casos `[adversarial]`: «EC-09 doble clic en Publicar = 1 POST», «EC-31 doble clic en Duplicar
   = 1 POST», «EC-39 encodeURIComponent por valor», «EC-32 URL manipulada».
+
+## Nota · review ronda 1 (2026-10-06)
+El hermano del listado se llama `JobListScreen.filters-adversarial.test.tsx`; el patrón `JobDetailScreen JobListScreen list-query` recoge 8 ficheros, no 6.

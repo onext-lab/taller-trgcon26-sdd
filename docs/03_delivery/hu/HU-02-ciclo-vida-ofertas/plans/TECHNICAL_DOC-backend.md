@@ -1,6 +1,6 @@
 # HU-02 — Publicar, cerrar, duplicar y listar ofertas con filtros — Diseño técnico (backend)
 
-- **Origen:** `specs/PRD.md` (estado Ready, v1.1, 2026-10-06)
+- **Origen:** `specs/PRD.md` (estado Ready, v1.3, 2026-10-06: EC-49 y DT-09 con DEC-12 enmendado)
 - **Generado por:** backend-architect
 - **Scope cubierto:** RF-01 a RF-05 (parte API), RF-07, RNF-01, RNF-02, RNF-03 y RNF-06. La parte web de RF-01 a RF-06,
   RNF-04 y RNF-05 está en `plans/TECHNICAL_DOC-frontend.md`, que consume el *Contrato de API* de este documento tal
@@ -17,7 +17,7 @@ Se amplía el módulo `jobs` sin rediseñar las piezas de HU-01: `AppError` y el
 | **Puerto hacia `inscripciones`** (`applications-port.ts`, nuevo) | `JobApplicationsPort`: lectura `countActiveApplications(jobId)` (DT-01) y operación interna `rejectActiveApplications({ jobId, closedAt })` (DT-02), inyectados en el servicio desde `buildApp`. Hoy es un *stub* (`noJobApplications`: 0 y no hace nada). HU-05 lo conecta en `apps/api/src/app.ts` sin tocar `jobs` |
 | **Acciones sin cuerpo** | `POST /:id/publish`, `/:id/close`, `/:id/duplicate` y `GET /:id/close-preview`. Un hook `rejectBody` da 400 si llega cualquier cuerpo (DT-03) |
 | **Listado con filtros** | `status`, `q`, `page` y `pageSize` validados como texto con `pattern` (DEC-11.2). Búsqueda con una función SQL determinista `fold_search` (minúsculas + NFD sin marcas), registrada en la conexión, e `instr` (literal: `%` y `_` no son comodines) |
-| **Escrituras entre sitios** (DEC-12, `http/cross-site.ts`, nuevo) | Un hook `onRequest` registrado en `buildApp` antes de los módulos rechaza con 403 `CROSS_SITE_REQUEST` cualquier `POST`, `PATCH` o `DELETE` que llegue con `Sec-Fetch-Site: cross-site`. Si falta la cabecera, deja pasar (DD-06) |
+| **Escrituras entre sitios** (DEC-12, `http/cross-site.ts`, nuevo) | Un hook `onRequest` registrado en `buildApp` antes de los módulos rechaza con 403 `CROSS_SITE_REQUEST` cualquier método que no sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` (normalizada) no vale `same-origin` ni `none`. Si falta la cabecera, deja pasar (DD-06) |
 
 Sin migración: las transiciones las comprueba el servicio (tabla `checkAction` y guarda de estado en el `UPDATE`), con
 los `CHECK` que ya trae la 001 como red.
@@ -43,7 +43,7 @@ solo ejecuta SQL. La función SQL no guarda nada derivado y usa el mismo plegado
 | jobs | `apps/api/src/modules/jobs/service.ts` | modificar: `publish`, `close`, `closePreview`, `duplicate`, `list(query)`; estado en `update` y `remove` (~175). `assertSalaryRange` pasa a `rules.ts` |
 | jobs | `apps/api/src/modules/jobs/routes.ts` | modificar: 4 rutas nuevas, `trimSearchText` y `toListQuery` (~140) |
 | tests | `apps/api/test/helpers/test-app.ts` | modificar: `createTestApp({ now?, jobApplications? })`, `createApplicationsSpy`, `publishJob`, `closeJob`, `createPublishedJob` (~115) |
-| tests | `apps/api/test/jobs/{publish,close,status-rules,duplicate,list-filters,list-filters-adversarial}.test.ts`, `apps/api/test/db/text-search.test.ts`, `apps/api/test/http/cross-site.test.ts` | **nuevos** (cada uno < 300; `cross-site` va en un fichero hermano porque `error-handler.test.ts` está a 299) |
+| tests | `apps/api/test/jobs/{publish,close,status-rules,duplicate,list-filters}.test.ts`, `apps/api/test/jobs/status-rules-adversarial.test.ts` (EC-18, EC-20, EC-21, EC-23, EC-24), `apps/api/test/jobs/list-filters-adversarial.test.ts` (CA-19..CA-21, EC-32, EC-33, EC-39, RNF-06), `apps/api/test/db/text-search.test.ts`, `apps/api/test/http/cross-site.test.ts` | **nuevos** (cada uno < 300; `cross-site` va en un fichero hermano porque `error-handler.test.ts` está a 299) |
 | tests | `apps/api/test/jobs/list.test.ts` | modificar: EC-34 de HU-01 (ver *Estrategia de tests*) |
 | tests | `apps/api/test/jobs/seed.test.ts` · `apps/api/test/jobs/performance.test.ts` | modificar: CA-24 · RNF-01/RNF-02 de HU-02 |
 
@@ -61,9 +61,11 @@ se toca, según la deuda abierta). Siguen en verde porque solo trabajan con borr
   cuerpo → 400 «El cuerpo de la petición no es JSON válido.» (lo que ya hacía HU-01); `x-www-form-urlencoded` o
   `multipart` → 415. `rejectBody` corre en `preValidation`, antes que el esquema de `params`: con un ID inválido y además
   un cuerpo, `details` solo trae `body` (los dos casos son 400).
-- **Escrituras entre sitios** (DEC-12): un `POST`, `PATCH` o `DELETE` con `Sec-Fetch-Site: cross-site` → 403
-  `CROSS_SITE_REQUEST`, antes que cualquier otra comprobación y en todas las rutas (también las de HU-01). `same-origin`,
-  `same-site`, `none` o sin cabecera → la petición sigue. `GET` nunca se bloquea.
+- **Escrituras entre sitios** (DEC-12): cualquier método fuera de `GET`, `HEAD` y `OPTIONS` (`POST`, `PATCH`,
+  `DELETE`, también `PUT` o uno desconocido) con `Sec-Fetch-Site` que, en minúsculas y sin espacios, no sea
+  `same-origin` ni `none` (`cross-site`, `same-site`…) → 403 `CROSS_SITE_REQUEST`. Va antes que cualquier otra
+  comprobación, incluido el 404 de ruta, y en todas las rutas (también las de HU-01). `same-origin`, `none` o sin
+  cabecera → la petición sigue. Los métodos seguros nunca se bloquean.
 - **Orden de comprobación** (DT-04 + DEC-12): `Sec-Fetch-Site` (403) → JSON Schema / `rejectBody` (400) → existencia
   (404) → estado (409) → reglas del servicio (400).
 - **409** `INVALID_TRANSITION`: un mensaje por caso, sin `details`, sin ID ni datos de la oferta.
@@ -71,7 +73,7 @@ se toca, según la deuda abierta). Siguen en verde porque solo trabajan con borr
 
 | HTTP | `code` | `message` | Cuándo |
 |---|---|---|---|
-| 403 | `CROSS_SITE_REQUEST` | «Petición no permitida desde otro sitio.» | Escritura con `Sec-Fetch-Site: cross-site` (DEC-12). Sin `details` ni datos de la petición |
+| 403 | `CROSS_SITE_REQUEST` | «Petición no permitida desde otro sitio.» | Método no seguro con `Sec-Fetch-Site` distinto de `same-origin`/`none` (DEC-12). Sin `details` ni datos de la petición |
 | 409 | `INVALID_TRANSITION` | «Una oferta cerrada no se puede publicar.» | `publish` sobre `closed` |
 | 409 | `INVALID_TRANSITION` | «Un borrador no se puede cerrar: publícalo primero.» | `close` sobre `draft` |
 | 409 | `INVALID_TRANSITION` | «Una oferta cerrada no se puede editar.» | `PATCH` sobre `closed` |
@@ -398,17 +400,17 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 | EC-11 | Puerto (stub) · reloj | — | `close-preview` → `{ activeApplications: 0 }`; `closedAt: "2026-10-06T22:30:00.000Z"` · web: 07/10/2026 | `close.test.ts` › «CA-05/EC-11 previa con 0, cierre con closedAt del reloj y puerto invocado una vez» |
 | EC-12 | Puerto o `markClosed` dentro de `withTransaction` | `ROLLBACK` | 500 `INTERNAL_ERROR`; `published`, `closedAt` nulo | `close.test.ts` › «CA-09/EC-12 el punto de rechazo falla → 500 y sigue publicada» y «EC-12 fallo de SQLite al cerrar → 500 y sigue publicada» |
 | EC-13 | `checkAction` → `noop` | idempotente | 200 con el `closedAt` del primero | `close.test.ts` › «CA-07/EC-13/EC-16 segundo cierre → 200 sin cambios ni nueva invocación» |
-| EC-14 | — | N/A en HU-02: no hay inscripciones. Ventana declarada en `hu.md`; la prueba es de HU-05 (UC-04 · A1) | — | — |
+| EC-14 | Puerto por defecto (`noJobApplications`) | aceptar (ventana declarada en `hu.md`) | Sin inscripciones: previa con 0 y cierre 200 sin nada que rechazar. El rechazo real lo prueba HU-05 (UC-04 · A1), que sustituirá este test | `close.test.ts` › «EC-14 sin puerto de inscripciones: previa con 0 y cierre 200 sin nada que rechazar» |
 | EC-15 | Manejador de errores · JSON literal | — | El 500 del cierre, sin *stack*; el título con HTML vuelve literal · web: texto en el diálogo | `close.test.ts` › «CA-09/EC-12 …» (comprueba el envelope exacto) · web |
 | EC-16 | `checkAction` → `noop` antes del puerto | idempotente | 200; el espía registra 1 sola llamada | `close.test.ts` › «CA-07/EC-13/EC-16 …» |
 | EC-17 | `missingRequiredDetails` tras `trim`/`emptyToNull` | rechazar | 400 en el campo, «Obligatorio en una oferta publicada.»; no cambia | `status-rules.test.ts` › «CA-11/EC-17 vaciar un obligatorio de una publicada → 400 sin cambios» (`it.each`: `"   "`, `location: null`, `workMode: null`) |
-| EC-18 | JSON Schema antes que el estado | rechazar | 400 en `title` sobre una `closed` | `status-rules.test.ts` › «EC-18 PATCH inválido a una cerrada → 400 (esquema antes que estado)» |
+| EC-18 | JSON Schema antes que el estado | rechazar | 400 en `title` sobre una `closed` | `status-rules-adversarial.test.ts:71` › «EC-18 PATCH inválido a una cerrada → 400 (esquema antes que estado)» |
 | EC-19 | Servicio | aceptar | 200; `status` y `publishedAt` iguales | `status-rules.test.ts` › «EC-19 cambiar o vaciar la banda de una publicada → 200 sin tocar estado ni fechas» |
-| EC-20 | `repository.update` en `withTransaction` | `ROLLBACK` | 500; `GET` igual que antes | `status-rules.test.ts` › «EC-20 fallo de SQLite al editar una publicada → 500 sin cambios» |
-| EC-21 | `checkAction` dentro de la transacción | rechazar | 409 en los dos casos; si el borrado llega antes, publicar da 404 | `status-rules.test.ts` › «CA-12/EC-21 PATCH tras cerrarla → 409 y nada cambia» y «EC-21 DELETE tras publicarla → 409; publicar tras borrarla → 404» |
+| EC-20 | `repository.update` en `withTransaction` | `ROLLBACK` | 500; `GET` igual que antes | `status-rules-adversarial.test.ts:89` › «EC-20 fallo de SQLite al editar una publicada → 500 sin cambios» |
+| EC-21 | `checkAction` dentro de la transacción | rechazar | 409 en los dos casos; si el borrado llega antes, publicar da 404 | `status-rules.test.ts` › «CA-12/EC-21/EC-44 PATCH tras cerrarla → 409 y nada cambia» y `status-rules-adversarial.test.ts:127` › «EC-21 DELETE tras publicarla → 409; publicar tras borrarla → 404» |
 | EC-22 | `CHECK` INV-04 (001:18) | rechazar en la base | `INSERT` `published` sin modalidad falla | `migration.test.ts` › «DD-08 … published sin modalidad» (existe) |
-| EC-23 | JSON Schema (`additionalProperties`) | rechazar | 400 en `status`/`publishedAt`; nada cambia | `status-rules.test.ts` › «EC-23 PATCH con status o publishedAt sobre una publicada → 400 sin cambios» |
-| EC-24 | `checkAction` | — | `DELETE` ×2 → 409 ×2; `PATCH` ×2 → 200 ×2 con el mismo cuerpo | `status-rules.test.ts` › «CA-13/EC-24 dos DELETE de una publicada → 409; el mismo PATCH dos veces → 200 igual» |
+| EC-23 | JSON Schema (`additionalProperties`) | rechazar | 400 en `status`/`publishedAt`; nada cambia | `status-rules-adversarial.test.ts:105` › «EC-23 PATCH con status o publishedAt sobre una publicada → 400 sin cambios» |
+| EC-24 | `checkAction` | — | `DELETE` ×2 → 409 ×2; `PATCH` ×2 → 200 ×2 con el mismo cuerpo | `status-rules-adversarial.test.ts:145` › «CA-13/EC-24 dos DELETE de una publicada → 409; el mismo PATCH dos veces → 200 igual» |
 | EC-25 | `IdParams` · `findById` | rechazar | 400 / 404; mismo número de filas | `duplicate.test.ts` › «EC-25 ID no válido → 400; inexistente → 404; no se crea nada» |
 | EC-26 | `insert(editableFields(original))` | copiar | Borrador con solo el título; título de 120 sin sufijo | `duplicate.test.ts` › «EC-26 borrador con solo título y título de 120 se copian tal cual» |
 | EC-27 | `insert` en `withTransaction` (`failWrites INSERT`) | `ROLLBACK` | 500; sin filas nuevas; la original igual | `duplicate.test.ts` › «EC-27 fallo de SQLite al duplicar → 500 sin borrador nuevo» |
@@ -428,18 +430,18 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 | EC-41 | — | N/A — ID inválido cubierto por HU-01 | — | — |
 | EC-42 | `Job` con las 3 fechas | — | API: `createdAt`, `publishedAt` y `closedAt` informados en una `closed` · web: formato | `close.test.ts` › «CA-05/EC-11 …» · web |
 | EC-43 | — | web: ver TECHNICAL_DOC-frontend | API: 500 en el envelope (EC-05, EC-12, EC-27) | web |
-| EC-44 | `checkAction('update')` | rechazar | API: 409 (CA-12) · web: mensaje y recarga | `status-rules.test.ts` › «CA-12/EC-21 …» · web |
+| EC-44 | `checkAction('update')` | rechazar | API: 409 (CA-12) · web: mensaje y recarga | `status-rules.test.ts` › «CA-12/EC-21/EC-44 …» · web |
 | EC-45 | — | N/A — la 001 impide una `closed` sin `closed_at` | — | — |
 | EC-46 | — | web: ver TECHNICAL_DOC-frontend (la API devuelve el texto literal, EC-48 de HU-01) | — | web |
 | EC-47 | — | N/A — `GET` sin efectos | — | — |
 | EC-48 | `foldSearchText` (ñ → n) | aceptar (DT-05) | `q=Pena` encuentra las dos ofertas | `list-filters.test.ts` › «EC-48 q=Pena encuentra peña y penalizaciones (consecuencia aceptada de DT-05)» |
-| EC-49 (nuevo, DEC-12) | Hook `onRequest` de `registerCrossSiteGuard` (antes de parsear el cuerpo y de validar) | rechazar | `POST /api/jobs/:id/close` (y cualquier `POST`/`PATCH`/`DELETE`) con `Sec-Fetch-Site: cross-site` → 403 `{ error: { code: "CROSS_SITE_REQUEST", message: "Petición no permitida desde otro sitio." } }` y nada cambia; con `same-origin`, `same-site`, `none` o sin cabecera → la respuesta normal (2xx); un `GET` con `cross-site` → 200 | `http/cross-site.test.ts` › «EC-49 escritura cross-site → 403 y nada cambia» (`it.each` sobre `POST /api/jobs`, `POST /:id/publish`, `POST /:id/close`, `POST /:id/duplicate`, `PATCH /:id` y `DELETE /:id`), «EC-49 same-origin, same-site, none o sin cabecera → 2xx» y «EC-49 GET cross-site → 200» |
+| EC-49 (nuevo, DEC-12) | Hook `onRequest` de `registerCrossSiteGuard` (antes de parsear el cuerpo, de validar y del 404 de ruta) | rechazar | Método no seguro (`POST`, `PATCH`, `DELETE`, `PUT`…) con `Sec-Fetch-Site` `cross-site` **o `same-site`** → 403 `{ error: { code: "CROSS_SITE_REQUEST", message: "Petición no permitida desde otro sitio." } }` y nada cambia; `PUT` cross-site → 403 antes del 404. Con `same-origin` o `none` (normalizadas: `"  Same-Origin "`, `"NONE"`) o sin cabecera → la respuesta normal; `GET` con `cross-site` → 200 | `http/cross-site.test.ts` › «EC-49 $name con cross-site → 403 y nada cambia» y «… con same-site → 403 …» (`it.each` sobre las seis escrituras), «EC-49 … con sec-fetch-site=%s → 2xx», «EC-49 PUT con cross-site → 403 antes del 404 (método no listado)», «EC-49 PUT sin cabecera o same-origin sigue su camino normal (404/405, no 403)», «EC-49 GET cross-site → 200 (solo se protegen las escrituras)» y «EC-49 el 403 llega antes que la validación del cuerpo» |
 
 ## Threat modeling
 
 | STRIDE | Amenaza concreta | Mitigación | Riesgo residual |
 |---|---|---|---|
-| Suplantación (CSRF) | **Nuevo en HU-02:** las acciones son `POST` **sin cuerpo ni `Content-Type`**, es decir, peticiones «simples» sin *preflight*. Una web maliciosa abierta en el navegador del reclutador puede hacer `fetch('http://127.0.0.1:3001/api/jobs/3/close', { method: 'POST', mode: 'no-cors' })` (o un `sendBeacon`) y cerrar, publicar o duplicar ofertas. Cerrar es irreversible y, con HU-05, rechazará inscripciones. En HU-01 no pasaba: el alta exige un objeto JSON, y `PATCH`/`DELETE` exigen *preflight* | **DEC-12 (DD-06, EC-49):** el hook `onRequest` rechaza con 403 `CROSS_SITE_REQUEST` toda escritura con `Sec-Fetch-Site: cross-site`, que es lo que mandan los navegadores actuales en ese ataque. Además, `rejectBody` da 400 a un formulario `text/plain` y 415 a uno `urlencoded`/`multipart` | Un navegador que no envíe `Sec-Fetch-Site` pasa (sin la cabecera se deja pasar, para no romper `inject` ni los clientes que no son navegador). *DNS rebinding*, como en HU-01. Aceptado (DEC-04) |
+| Suplantación (CSRF) | **Nuevo en HU-02:** las acciones son `POST` **sin cuerpo ni `Content-Type`**, es decir, peticiones «simples» sin *preflight*. Una web maliciosa abierta en el navegador del reclutador puede hacer `fetch('http://127.0.0.1:3001/api/jobs/3/close', { method: 'POST', mode: 'no-cors' })` (o un `sendBeacon`) y cerrar, publicar o duplicar ofertas. Cerrar es irreversible y, con HU-05, rechazará inscripciones. En HU-01 no pasaba: el alta exige un objeto JSON, y `PATCH`/`DELETE` exigen *preflight* | **DEC-12 (DD-06, EC-49):** el hook `onRequest` rechaza con 403 `CROSS_SITE_REQUEST` todo método fuera de `GET`/`HEAD`/`OPTIONS` cuyo `Sec-Fetch-Site` normalizado no sea `same-origin` ni `none`: el `cross-site` que mandan los navegadores actuales en ese ataque y también el `same-site` de otra aplicación en otro puerto de `127.0.0.1`/`localhost`. Con la lista de métodos seguros, un `PUT` futuro queda protegido. Además, un formulario `text/plain` da 400 (`rejectBody` o el esquema, que exige un objeto JSON) y uno `urlencoded`/`multipart` da 415 | Un navegador que no envíe `Sec-Fetch-Site` pasa (sin la cabecera se deja pasar, para no romper `inject` ni los clientes que no son navegador). *DNS rebinding*, como en HU-01. Aceptado (DEC-04) |
 | Manipulación | *Mass assignment* en las acciones (`{ "status": "draft" }`); `PATCH` con `status`/`publishedAt` (EC-23); inyección SQL en `q` (EC-39); saltarse el servicio con SQL directo | `rejectBody`; `additionalProperties: false` sin `removeAdditional`; SQL fijo con parámetros con nombre (sin `SET` ni `WHERE` dinámicos); `instr` sin comodines; transiciones comprobadas en el servicio dentro de la transacción, con guarda de estado en el `UPDATE` (DD-02, DD-08) | Un SQL directo que se salte el servicio podría violar RN-06/INV-02/INV-03 (sin *triggers*, DD-12); solo los `CHECK` de la 001 lo frenan. Aceptado: ningún otro módulo escribe en `job_openings` (DEC-06) |
 | Repudio | No se sabe quién publicó o cerró | Rol único (DEC-04); el log registra método, ruta y `reqId` | Aceptado |
 | Exposición de datos | Detalles internos en el 500 del cierre (RNF-03); datos de la oferta en un 409; `q` en los logs (RNF-06) | Manejador único: mensaje fijo, el error solo va al log. Los 409 y el 403 no llevan `details` ni ID. Los mensajes de SQLite y del puerto solo llegan al log y no contienen valores. `logger.ts` quita la query | En HU-03, `q` podrá llevar datos personales: el mismo *serializer* lo cubre |
@@ -529,22 +531,30 @@ personales a `jobs`, solo un número; lo que escriba UC-19 (etapas y retención)
 
 ### DD-06: Escrituras entre sitios rechazadas con 403 `CROSS_SITE_REQUEST` (DEC-12, antes OD-01)
 - **Contexto:** las acciones `POST` sin cuerpo son peticiones «simples»: una web ajena puede cerrar una oferta sin
-  *preflight* (*Threat modeling*). El aprobador aprobó OD-01 como **DEC-12**: se rechazan con 403 todas las escrituras
-  (`POST`, `PATCH`, `DELETE`) con `Sec-Fetch-Site: cross-site`, y sin la cabecera se deja pasar.
+  *preflight* (*Threat modeling*). OD-01 se aprobó como **DEC-12**, enmendado en la review de HU-02 (ronda 1): toda
+  petición cuyo método **no** sea `GET`, `HEAD` ni `OPTIONS` se rechaza con 403 si `Sec-Fetch-Site`, normalizada (en
+  minúsculas y sin espacios), no vale `same-origin` ni `none`. Así se rechazan `cross-site` y también `same-site`. Si
+  la cabecera falta, se deja pasar.
 - **Opciones consideradas:** A) Hook `onRequest` global en `apps/api/src/http/cross-site.ts`
   (`registerCrossSiteGuard(app)`), registrado en `buildApp` justo después de `registerErrorHandling(app)` y antes de
-  `/api/health` y de los módulos; lanza `new AppError('CROSS_SITE_REQUEST', 403, 'Petición no permitida desde otro
-  sitio.')`, que traduce el manejador único. B) Comprobarlo en cada plugin de módulo. C) Exigir cuerpo JSON en las
-  acciones (rompe DT-03). D) Código genérico `FORBIDDEN`.
+  `/api/health` y de los módulos, con una **lista de métodos seguros** (`SAFE_METHODS = GET, HEAD, OPTIONS`) y otra de
+  valores admitidos (`same-origin`, `none`). Lanza `new AppError('CROSS_SITE_REQUEST', 403, 'Petición no permitida
+  desde otro sitio.')`, que traduce el manejador único. B) Lista de métodos de escritura (`POST`, `PATCH`, `DELETE`).
+  C) Aceptar `same-site`. D) Comprobarlo en cada plugin de módulo. E) Exigir cuerpo JSON en las acciones (rompe
+  DT-03). F) Código genérico `FORBIDDEN`.
 - **Elegida:** A con el código `CROSS_SITE_REQUEST`.
-- **Razón:** `onRequest` corre antes de parsear el cuerpo y de validar, así que nada se procesa. Al estar en la raíz
-  cubre las rutas de HU-01 y las futuras sin que cada módulo lo recuerde. Un código específico deja claro el motivo en
-  el cliente y en los tests, y no ocupa `FORBIDDEN` para cuando haya permisos (DEC-04). La web va por el *proxy* de Vite
-  (`same-origin`) y `inject` no envía la cabecera: no les afecta.
-- **Tradeoff:** sin la cabecera no protege (navegadores antiguos); `same-site` pasa (otra web en otro puerto del
-  mismo host). Añade el código 403 a los de DEC-07/DEC-11.5.
-- **Test:** `apps/api/test/http/cross-site.test.ts` (EC-49): 403 con `cross-site` en las seis escrituras y la base sin
-  cambios; 2xx con `same-origin`, `same-site`, `none` y sin cabecera; `GET` con `cross-site` → 200.
+- **Razón:** `onRequest` corre antes de parsear el cuerpo, de validar y de resolver el 404, así que nada se procesa.
+  Al estar en la raíz cubre las rutas de HU-01 y las futuras. Con la lista de métodos seguros, un método nuevo (`PUT`)
+  queda protegido sin tocar el hook (B no lo haría). `same-site` no basta en local: otro servicio en otro puerto de
+  `127.0.0.1`/`localhost` llega como `same-site` (C). Un código específico deja claro el motivo y no ocupa
+  `FORBIDDEN` para cuando haya permisos (DEC-04). La web va por el *proxy* de Vite (`same-origin`) e `inject` no envía
+  la cabecera: no les afecta.
+- **Tradeoff:** sin la cabecera no protege (navegadores antiguos). Un `PUT` o un método desconocido desde otro sitio
+  recibe 403 en lugar de 404/405. Añade el código 403 a los de DEC-07/DEC-11.5.
+- **Test:** `apps/api/test/http/cross-site.test.ts` (EC-49): 403 con `cross-site` y con `same-site` en las seis
+  escrituras, y la base sin cambios; 2xx con `same-origin`, `none` (también en mayúsculas o con espacios) y sin
+  cabecera; `PUT` cross-site → 403 antes del 404 (ruta existente o no); `PUT` sin cabecera o `same-origin` → su 404
+  normal; `GET` cross-site → 200; el 403 llega antes que la validación del cuerpo.
 
 ### DD-12: Reglas de estado en la base con *triggers* — **descartada** por el aprobador
 - **Contexto:** RN-06, INV-02, INV-03 e INV-08 no están en la 001; se propuso una migración 002 con 4 *triggers*
@@ -616,7 +626,7 @@ personales a `jobs`, solo un número; lo que escriba UC-19 (etapas y retención)
 | DEC-09 | Aplica | `publishedAt`/`closedAt` con `now()` inyectado, ISO UTC con milisegundos |
 | DEC-10 | Aplica y concreta | Paginación, `total` filtrado, desempate por ID. **Propuesta no bloqueante:** recoger en DEC-10 la implementación de la búsqueda (`foldSearchText` + `fold_search` + `instr`, DD-04) para que HU-03 la reutilice |
 | DEC-11 | Aplica | .2 (`page`/`pageSize` como texto), .3 (recorte de `q`), .4 (`details`), .5, .7 y .8 (`q` sin controles) |
-| **DEC-12** | Nueva (aprobada; la escribe el coordinador en `DECISIONS.md`) | `POST`, `PATCH` y `DELETE` con `Sec-Fetch-Site: cross-site` → 403; sin cabecera, se deja pasar. Se implementa en DD-06 con el código `CROSS_SITE_REQUEST` (EC-49) |
+| **DEC-12** | Nueva (aceptada; enmendada en la review de HU-02, ronda 1) | Métodos fuera de `GET`/`HEAD`/`OPTIONS` con `Sec-Fetch-Site` normalizado distinto de `same-origin`/`none` → 403 `CROSS_SITE_REQUEST`; sin cabecera, se deja pasar. Se implementa en DD-06 (EC-49) |
 | DT-04 de HU-01 | Superada | `GET /api/jobs` ya admite parámetros (cambia el test EC-34 de HU-01) |
 
 `/module-sync` deberá actualizar `docs/05_modules/ofertas/technical.md` (ya no hay latentes, endpoints nuevos, el
@@ -645,9 +655,10 @@ Datos: los títulos inventados del PRD. Las aserciones de error comparan el enve
 | RF-02 | EC-10, DT-01 | `close.test.ts` › «EC-10 …» y «DT-01 close-preview de una oferta inexistente → 404; ID inválido → 400» | sí |
 | RF-03 | CA-10 | `status-rules.test.ts` › «CA-10 PATCH válido a una cerrada → 409 y nada cambia» | sí |
 | RF-03 | CA-11, EC-17 | `status-rules.test.ts` › «CA-11/EC-17 …» | sí |
-| RF-03 | CA-12, EC-21, EC-44 | `status-rules.test.ts` › «CA-12/EC-21 PATCH tras cerrarla → 409 y nada cambia» | sí |
-| RF-03 | CA-13, EC-24 | `status-rules.test.ts` › «CA-13/EC-24 …» (publicada y cerrada) | sí |
-| RF-03 | EC-18..EC-20, EC-23 | `status-rules.test.ts` (nombres en *Error paths*) | sí (18, 20, 23) |
+| RF-03 | CA-12, EC-21, EC-44 | `status-rules.test.ts` › «CA-12/EC-21/EC-44 PATCH tras cerrarla → 409 y nada cambia» · `status-rules-adversarial.test.ts:127` › «EC-21 DELETE tras publicarla → 409; publicar tras borrarla → 404» | sí |
+| RF-03 | CA-13, EC-24 | `status-rules.test.ts` › «CA-13 DELETE de una publicada y de una cerrada → 409» · `status-rules-adversarial.test.ts:145` › «CA-13/EC-24 …» | sí |
+| RF-03 | EC-19 | `status-rules.test.ts` › «EC-19 cambiar o vaciar la banda de una publicada → 200 sin tocar estado ni fechas» | |
+| RF-03 | EC-18, EC-20, EC-23 | `status-rules-adversarial.test.ts:71`, `:89` y `:105` (nombres en *Error paths*) | sí |
 | RF-03 | DD-02 | `status-rules.test.ts` › «DD-02 tabla de acciones × estados» (`it.each` sobre la API) | |
 | RF-04 | CA-14, EC-28 | `duplicate.test.ts` › «CA-14/EC-28 duplicar una cerrada → 201 borrador; la original no cambia» | |
 | RF-04 | CA-15 | `duplicate.test.ts` › «CA-15 duplicar un borrador y una publicada → borradores sin fechas» | |
@@ -660,7 +671,7 @@ Datos: los títulos inventados del PRD. Las aserciones de error comparan el enve
 | RF-05 | EC-32, EC-37..EC-39, EC-48 | `list-filters*.test.ts` (nombres en *Error paths*) | sí (32, 39) |
 | RF-05 | DD-04 | `db/text-search.test.ts` › «foldSearchText: minúsculas, sin tildes, ñ → n, entrada en NFD» | |
 | RF-07 | CA-24 | `seed.test.ts` › «CA-24 migrate + seed → 10 ofertas: 4 draft, 4 published, 2 closed, con fechas coherentes» | |
-| DEC-12 (DD-06) | EC-49 | `http/cross-site.test.ts` › «EC-49 escritura cross-site → 403 y nada cambia» (seis escrituras), «EC-49 same-origin, same-site, none o sin cabecera → 2xx» y «EC-49 GET cross-site → 200» | sí |
+| DEC-12 (DD-06) | EC-49 | `http/cross-site.test.ts` › 403 con `cross-site` y con `same-site` en las seis escrituras (sin cambios en la base); 2xx con `same-origin`, `none`, `"  Same-Origin "`, `"NONE"` y sin cabecera; «EC-49 PUT con cross-site → 403 antes del 404 (método no listado)»; `PUT` sin cabecera o `same-origin` → 404; `GET` cross-site → 200; 403 antes que la validación del cuerpo | sí |
 | RNF-01 | — | `performance.test.ts` › «RNF-01 listado con filtros y pageSize=100, ficha y close-preview < 200 ms con 100 ofertas» | |
 | RNF-02 | — | `performance.test.ts` › «RNF-02 publicar, cerrar, duplicar, PATCH y DELETE < 500 ms con 100 ofertas» | |
 | RNF-03 | — | Cubierto por los envelopes exactos de 409/500 en `publish`, `close` y `status-rules` | sí |

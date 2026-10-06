@@ -1,6 +1,6 @@
 # HU-02 — Publicar, cerrar, duplicar y listar ofertas con filtros — Diseño técnico (frontend)
 
-- **Origen:** `specs/PRD.md` (estado Ready, v1.1, 2026-10-06)
+- **Origen:** `specs/PRD.md` (estado Ready, v1.3, 2026-10-06)
 - **Generado por:** frontend-architect
 - **Scope cubierto:** RF-01 a RF-06 (parte web). RF-07 (seed) es solo backend; aquí solo afecta a los e2e.
 
@@ -47,8 +47,9 @@ simple, pero DT-06 pide que «Atrás» y recargar conserven los filtros, y la UR
 
 - **`Content-Type`:** `requestJson` (`apps/web/src/components/http.ts`) ya lo pone solo cuando hay `body`, así que las
   tres acciones salen sin cuerpo ni `Content-Type`, como el `DELETE` de HU-01. `api.test.ts` lo fija (EC-01, EC-10).
-- **DEC-12 (CSRF):** la API responde 403 a toda escritura con `Sec-Fetch-Site: cross-site`; sin la cabecera, la deja
-  pasar. **La web no cambia:** va al mismo origen a través del *proxy* de Vite, así que el navegador envía
+- **DEC-12 (CSRF, enmendada):** la API responde 403 `CROSS_SITE_REQUEST` a toda petición fuera de su lista de métodos
+  seguros con `Sec-Fetch-Site` `cross-site` **o `same-site`**; solo pasan `same-origin`, `none` y la ausencia de la
+  cabecera. **La web no cambia:** va al mismo origen a través del *proxy* de Vite, así que el navegador envía
   `same-origin`; un 403 inesperado se mostraría como cualquier error con envelope (`role="alert"` con su `message`).
 
 - **HU-01 en `main`:** todo lo citado de `apps/web/src/` existe hoy en la rama.
@@ -84,8 +85,8 @@ Líneas: estimación tras el cambio (umbral ≤ 300 por fichero y ≤ 50 por fun
 | jobs | `apps/web/src/features/jobs/JobFormScreen.tsx` | modificar (~230): `published` al formulario; 409 → alerta + recarga; oferta cerrada → `ClosedJobNotice` |
 | tests | `apps/web/test/components/router.test.tsx` · `use-resource.test.tsx` (**nuevo**) · `ConfirmDialog.test.tsx` | `useSearch`, `setData`, `confirmDisabled` y `children` |
 | tests | `apps/web/test/features/jobs/api.test.ts` · `list-query.test.ts` (**nuevo**) · `labels.test.ts` | cliente, URL y textos |
-| tests | `apps/web/test/features/jobs/JobListScreen.test.tsx` · `JobListScreen.filters.test.tsx` (**nuevo**) | listado |
-| tests | `apps/web/test/features/jobs/JobDetailScreen.test.tsx` · `JobDetailScreen.actions.test.tsx` (**nuevo**) · `CloseJobAction.test.tsx` (**nuevo**) · `DeleteJobAction.test.tsx` | ficha y acciones |
+| tests | `apps/web/test/features/jobs/JobListScreen.test.tsx` · `JobListScreen.filters.test.tsx` (**nuevo**) · `JobListScreen.pagination.test.tsx` (**nuevo**) · `JobListScreen.filters-adversarial.test.tsx` (**nuevo**) | listado |
+| tests | `apps/web/test/features/jobs/JobDetailScreen.test.tsx` · `JobDetailScreen.states.test.tsx` (**nuevo**) · `JobDetailScreen.actions.test.tsx` (**nuevo**) · `CloseJobAction.test.tsx` (**nuevo**) · `CloseJobAction.adversarial.test.tsx` (**nuevo**) · `DeleteJobAction.test.tsx` | ficha y acciones |
 | tests | `apps/web/test/features/jobs/job-form-model.published.test.ts` (**nuevo**) · `JobFormScreen.published.test.tsx` (**nuevo**) | edición de una publicada |
 | e2e | `e2e/jobs.spec.ts` | modificar: comprobaciones del seed con `?status=draft&pageSize=100` y `?pageSize=100` (DD-09) |
 | e2e | `e2e/jobs-lifecycle.spec.ts` · `e2e/jobs-list.spec.ts` | **nuevos**: ciclo de vida y listado (DD-09) |
@@ -117,7 +118,7 @@ query no desmonta `JobListScreen` ni mueve el foco a `<main>` (`useNavigationFoc
 | `<select name="status">` | «Estado» | «Todos» (`''`), «Borrador» (`draft`), «Publicada» (`published`), «Cerrada» (`closed`). Un `status` de la URL que no es ninguno → «Todos» en el control (la API ya dio 400) | — |
 | `<input type="search" name="q">` | «Buscar por título» | recortado; ≤ 100 caracteres contados con `Array.from()`; sin C0 ni DEL (refleja DT-05). Vacío tras recortar = sin filtro. Sin `maxLength` nativo (EC-04 de HU-01) | «La búsqueda no puede pasar de 100 caracteres.» · «La búsqueda no puede tener caracteres de control.» en `<p id="q-error">` con `aria-describedby`, `aria-invalid` y foco en el campo; no se navega |
 | `<button type="submit">` | «Buscar» | Aplica Estado y texto (DD-02): `navigate(listPath({ status, q, pageSize }))`, siempre página 1 | — |
-| `<select name="pageSize">` (fuera del `<form>`) | «Por página» | 20, 50, 100 (DT-07); al cambiar navega a la página 1 con los mismos filtros (DD-02). Si la URL trae otro tamaño válido (p. ej. 7), se añade esa opción delante para no mentir sobre el valor actual | — |
+| `<select name="pageSize">` (fuera del `<form>`) | «Por página» | **Solo** 20, 50 y 100 (DT-07, CA-18); al cambiar navega a la página 1 con los mismos filtros (DD-02). Un `pageSize` válido de la URL que no sea uno de los tres (p. ej. 7) se pide a la API como 20 y el selector muestra 20; la URL no se reescribe (`listRequest` y `PAGE_SIZES` en `list-query.ts`) | — |
 
 - Los valores de los controles se inicializan desde la URL y se **resincronizan** cuando cambia (p. ej., «Atrás»), con
   el patrón «ajustar el estado durante el render» que ya usa `useResource` (comparar la query anterior), no con
@@ -318,19 +319,19 @@ Ficheros de test en `apps/web/test/features/jobs/` salvo que se indique.
 | EC-01 | `api.ts` + API | API: ver TECHNICAL_DOC-backend; la web nunca envía cuerpo ni construye un ID inválido (`jobUrl`) | `POST …/publish` sin cuerpo ni `Content-Type` | `api.test.ts` |
 | EC-02 | API → `useJobActions` | mostrar los pendientes | «Para publicar falta: Descripción, Ubicación, Modalidad.» + «Editar»; sigue «Borrador» y «Publicar» habilitado | `JobDetailScreen.actions.test.tsx` |
 | EC-03 | API | API: ver TECHNICAL_DOC-backend | Sin reacción específica: publica como CA-01 | — (backend) |
-| EC-04 | `formatDate` | Europe/Madrid | `publishedAt` 2026-10-06T22:30:00Z → «Fecha de publicación 07/10/2026» | `JobDetailScreen.test.tsx` |
+| EC-04 | `formatDate` | Europe/Madrid | `publishedAt` 2026-10-06T22:30:00Z → «Fecha de publicación 07/10/2026» | `JobDetailScreen.states.test.tsx` |
 | EC-05 | `requestJson` (500) | mostrar y rehabilitar | `role="alert"` con el `message`; sigue «Borrador»; «Publicar» habilitado y con el foco | `JobDetailScreen.actions.test.tsx` |
 | EC-06 | `ApiError` 404 | salida | «Esta oferta ya no existe.» + «Volver a las ofertas»; sin acciones | `JobDetailScreen.actions.test.tsx` |
 | EC-07 | API/BD | API: ver TECHNICAL_DOC-backend | Sin reacción en la web | — (backend) |
 | EC-08 | API | API: ver TECHNICAL_DOC-backend | El 404 se muestra con el texto fijo de la web; la URL solo lleva el ID | — (backend) |
 | EC-09 | `useJobActions` | `disabled` + guarda `useRef` | Doble clic en «Publicar» → **1** `POST` | `JobDetailScreen.actions.test.tsx` `[adversarial]` |
 | EC-10 | `api.ts` + API | API: ver TECHNICAL_DOC-backend | `POST …/close` sin cuerpo ni `Content-Type` | `api.test.ts` |
-| EC-11 | `CloseJobAction` + `formatDate` | número de la API; Europe/Madrid | Diálogo «Se rechazarán 0 inscripciones activas.»; `closedAt` 22:30Z → «07/10/2026» | `CloseJobAction.test.tsx`, `JobDetailScreen.test.tsx` |
+| EC-11 | `CloseJobAction` + `formatDate` | número de la API; Europe/Madrid | Diálogo «Se rechazarán 0 inscripciones activas.»; `closedAt` 22:30Z → «07/10/2026» | `CloseJobAction.test.tsx`, `JobDetailScreen.states.test.tsx` |
 | EC-12 | `requestJson` (500) en el cierre | mostrar en el diálogo | `role="alert"` en el diálogo; ficha «Publicada», sin «Fecha de cierre» | `CloseJobAction.test.tsx` |
 | EC-13 | API (200 idempotente) | tratar el 200 igual | La ficha muestra `closed` con la fecha que devuelve la API (la de la primera) | `CloseJobAction.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
 | EC-14 | API | API: ver TECHNICAL_DOC-backend (ventana tolerada de INV-05) | La web muestra el número que dé la API; nada más | — |
-| EC-15 | React (escapado) | el diálogo no incluye el título; solo texto JSX | Con título `<img src=x onerror=alert(1)>`, 0 `img` en la página con el diálogo abierto; el error solo muestra `message` | `CloseJobAction.test.tsx` `[adversarial]` |
-| EC-16 | `useCloseJob` | `busy` + guarda `useRef` | Doble clic en «Cerrar oferta» → **1** `POST` | `CloseJobAction.test.tsx` `[adversarial]` |
+| EC-15 | React (escapado) | el diálogo no incluye el título; solo texto JSX | Con título `<img src=x onerror=alert(1)>`, 0 `img` en la página con el diálogo abierto; el error solo muestra `message` | `CloseJobAction.adversarial.test.tsx` `[adversarial]` |
+| EC-16 | `useCloseJob` | `busy` + guarda `useRef` | Doble clic en «Cerrar oferta» → **1** `POST` | `CloseJobAction.adversarial.test.tsx` `[adversarial]` |
 | EC-17 | `validateJobForm({ published })` + API | validar en cliente; un 400 va junto al campo | «Obligatorio en una oferta publicada.» junto a Descripción (vacía o espacios), Ubicación o Modalidad; sin `PATCH` | `job-form-model.published.test.ts`, `JobFormScreen.published.test.tsx` |
 | EC-18 | API | API: ver TECHNICAL_DOC-backend | Inalcanzable desde la web (una cerrada no muestra formulario) | — (backend) |
 | EC-19 | `toPatch` | solo lo cambiado | Cambiar solo la banda de una publicada → `PATCH { salaryMin }`; vuelve a la ficha «Publicada» | `JobFormScreen.published.test.tsx` |
@@ -338,7 +339,7 @@ Ficheros de test en `apps/web/test/features/jobs/` salvo que se indique.
 | EC-21 | `job-form-errors.ts` · `DeleteJobAction` (409) | mensaje + recarga (DD-06) | Guardar: `ClosedJobNotice` con el `message`. Borrar: se cierra el diálogo, alerta en la ficha y recarga (ya sin «Borrar») | `JobFormScreen.published.test.tsx`, `DeleteJobAction.test.tsx` `[adversarial]` |
 | EC-22 | API/BD | API: ver TECHNICAL_DOC-backend | Sin reacción en la web | — (backend) |
 | EC-23 | `toPatch` + API | la web nunca envía `status` ni fechas | `PATCH` sin `status`, `publishedAt` ni `closedAt` | `job-form-model.published.test.ts` |
-| EC-24 | `JobActions` + API | no se ofrece «Borrar» fuera de `draft` | Publicada y cerrada sin «Borrar» | `JobDetailScreen.test.tsx` |
+| EC-24 | `JobActions` + API | no se ofrece «Borrar» fuera de `draft` | Publicada y cerrada sin «Borrar» | `JobDetailScreen.states.test.tsx` |
 | EC-25 | `jobUrl` + `ApiError` 404 | nunca un ID inválido; salida en 404 | «Esta oferta ya no existe.» al duplicar | `JobDetailScreen.actions.test.tsx`, `api.test.ts` |
 | EC-26 | API | API: ver TECHNICAL_DOC-backend | La ficha nueva muestra el título tal cual lo devuelve la API | `JobDetailScreen.actions.test.tsx` (navega a `/jobs/{nuevo}`) |
 | EC-27 | `requestJson` (500) | mostrar y rehabilitar | `role="alert"`; sigue en la ficha original; «Duplicar» habilitado | `JobDetailScreen.actions.test.tsx` |
@@ -346,21 +347,21 @@ Ficheros de test en `apps/web/test/features/jobs/` salvo que se indique.
 | EC-29 | — | N/A — el PRD lo declara N/A | — | — |
 | EC-30 | React (escapado) | texto JSX, `pre-wrap` | La descripción con `<script>` se ve literal (test EC-48 de HU-01) | `JobDetailScreen.test.tsx` |
 | EC-31 | `useJobActions` | `disabled` + guarda `useRef` | Doble clic en «Duplicar» → **1** `POST` | `JobDetailScreen.actions.test.tsx` `[adversarial]` |
-| EC-32 | `list-query.ts` + API | reenviar las 4 claves conocidas en bruto; ignorar las demás (DD-01) | `/jobs?pageSize=abc` → `role="alert"` + «Por página: …» + «Quitar filtros»; `/jobs?sort=title` → listado normal sin `sort` en la petición | `list-query.test.ts`, `JobListScreen.filters.test.tsx` |
-| EC-33 | `validateSearchText` + API | validar al enviar | `q` con tabulador pegado → «La búsqueda no puede tener caracteres de control.»; sin navegación ni petición | `list-query.test.ts`, `JobListScreen.filters.test.tsx` |
-| EC-34 | `JobPagination` · `validateSearchText` | `totalPages` con la respuesta | 20 de 20 → sin «Siguiente»; 21 → «Página 1 de 2»; opción 100; `q` de 100 se envía y de 101 da error; página 9 de 2 → «Esta página no tiene ofertas.» | `JobListScreen.filters.test.tsx`, `list-query.test.ts` |
+| EC-32 | `list-query.ts` + API | reenviar las 4 claves conocidas en bruto; ignorar las demás (DD-01) | `/jobs?pageSize=abc` → `role="alert"` + «Por página: …» + «Quitar filtros»; `/jobs?sort=title` → listado normal sin `sort` en la petición | `list-query.test.ts`, `JobListScreen.filters-adversarial.test.tsx` |
+| EC-33 | `validateSearchText` + API | validar al enviar | `q` con tabulador pegado → «La búsqueda no puede tener caracteres de control.»; sin navegación ni petición | `list-query.test.ts`, `JobListScreen.filters-adversarial.test.tsx` |
+| EC-34 | `JobPagination` · `validateSearchText` | `totalPages` con la respuesta | 20 de 20 → sin «Siguiente»; 21 → «Página 1 de 2»; opción 100; `q` de 100 se envía y de 101 da error; página 9 de 2 → «Esta página no tiene ofertas.» | `JobListScreen.pagination.test.tsx`, `list-query.test.ts` |
 | EC-35 | API | API: ver TECHNICAL_DOC-backend; la web no normaliza | `q` se envía tal cual (recortado): `GESTIÓN` → `q=GESTI%C3%93N` | `list-query.test.ts` |
-| EC-36 | `requestJson` | estado «error»; controles desde la URL | `role="alert"` + «Reintentar»; Estado y texto conservan lo elegido | `JobListScreen.filters.test.tsx`, `e2e/jobs-list.spec.ts` |
+| EC-36 | `requestJson` | estado «error»; controles desde la URL | `role="alert"` + «Reintentar»; Estado y texto conservan lo elegido | `JobListScreen.filters-adversarial.test.tsx`, `e2e/jobs-list.spec.ts` |
 | EC-37 | API | aceptado (DEC-10) | Pinta en el orden recibido (test EC-37 de HU-01) | `JobListScreen.test.tsx` |
 | EC-38 | API | API: ver TECHNICAL_DOC-backend | Sin reacción en la web | — (backend) |
 | EC-39 | `toSearch` | `encodeURIComponent` por valor | `%` → `q=%25`; `a&status=closed` → `q=a%26status%3Dclosed` (no inyecta parámetros) | `list-query.test.ts` `[adversarial]` |
 | EC-40 | — | N/A — `GET` sin efectos | — | — |
 | EC-41 | — | N/A — la ficha no recibe entrada | — | — |
-| EC-42 | `JobDetails` | pintar solo las fechas no nulas | `closed`: tres fechas; `draft`: solo creación | `JobDetailScreen.test.tsx` |
-| EC-43 | `requestJson` (red) | mostrar y rehabilitar | En «Publicar», «Cerrar oferta» y «Duplicar»: `role="alert"`, estado anterior, botón habilitado | `JobDetailScreen.actions.test.tsx`, `CloseJobAction.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
+| EC-42 | `JobDetails` | pintar solo las fechas no nulas | `closed`: tres fechas; `draft`: solo creación | `JobDetailScreen.states.test.tsx` |
+| EC-43 | `requestJson` (red) | mostrar y rehabilitar | En «Publicar», «Cerrar oferta» y «Duplicar»: `role="alert"`, estado anterior, botón habilitado | `JobDetailScreen.actions.test.tsx`, `CloseJobAction.adversarial.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
 | EC-44 | `job-form-errors.ts` (409) | mensaje + recarga (DD-06) | `ClosedJobNotice` con el `message`; «Ver la oferta» lleva a la ficha en solo lectura | `JobFormScreen.published.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
 | EC-45 | — | N/A — la base impone la coherencia estado-fechas | — | — |
-| EC-46 | React (escapado) | texto JSX | Título con HTML en una `closed`: texto literal, 0 `b` | `JobDetailScreen.test.tsx` `[adversarial]` |
+| EC-46 | React (escapado) | texto JSX | Título con HTML en una `closed`: texto literal, 0 `b` | `JobDetailScreen.states.test.tsx` `[adversarial]` |
 | EC-47 | — | N/A — `GET` | — | — |
 | EC-48 | API | API: ver TECHNICAL_DOC-backend; la web no normaliza ni filtra en cliente | `Pena` se envía tal cual; la web pinta lo que devuelva | — (backend) |
 | EC-49 | API (DEC-12) | API: ver TECHNICAL_DOC-backend; la web no puede provocarlo (mismo origen por el *proxy* de Vite) | Si llegara un 403 `CROSS_SITE_REQUEST`, se muestra su `message` («Petición no permitida desde otro sitio.») en el `role="alert"` de la acción | — (backend) |
@@ -373,7 +374,7 @@ Errores de `useClosePreview`: los mismos textos de `userMessage`; una respuesta 
 | STRIDE | Amenaza concreta en la web | Mitigación | Riesgo residual |
 |---|---|---|---|
 | Suplantación | — | N/A — sin login (DEC-04) | Ninguno nuevo |
-| Suplantación (CSRF) | Otra web abierta en el navegador lanza `POST …/close` sin cuerpo contra la API (lo detalla el backend) | En la API: **DEC-12** (403 a toda escritura con `Sec-Fetch-Site: cross-site`). La web llama siempre por el *proxy* de Vite (mismo origen), así que no le afecta | Bajo (DEC-12) |
+| Suplantación (CSRF) | Otra web abierta en el navegador lanza `POST …/close` sin cuerpo contra la API (lo detalla el backend) | En la API: **DEC-12** (403 a toda petición fuera de los métodos seguros con `Sec-Fetch-Site` `cross-site` o `same-site`). La web llama siempre por el *proxy* de Vite (mismo origen), así que no le afecta | Bajo (DEC-12) |
 | Manipulación | XSS con título o descripción en el listado filtrado, la ficha cerrada, el diálogo o el valor de búsqueda (RNF-04) | Solo interpolación JSX; el diálogo no incluye el título; prohibido `dangerouslySetInnerHTML`; tests `[adversarial]` | Bajo (depende de la review) |
 | Manipulación | Inyección de parámetros en la query de la API con `q` (`&`, `=`, `%`) | `encodeURIComponent` por valor; solo las 4 claves conocidas (DD-01) | Ninguno |
 | Manipulación | URL manipulada (`?pageSize=100000`, `?status=x`, claves repetidas) | La web no confía en la URL: la reenvía y la API valida (400 → alerta); una vista con valores raros se arregla con «Quitar filtros» | Ninguno |
@@ -544,11 +545,11 @@ Vitest + Testing Library en `apps/web/test/` (jsdom), como HU-01: consultas por 
 | RF | Vitest (fichero → qué) | Playwright |
 |---|---|---|
 | RF-01 | `JobDetailScreen.actions.test.tsx` → publicar: 200 → «Oferta publicada.», «Publicada», fecha 06/10/2026, acciones Editar/Cerrar/Duplicar y foco al h1 (CA-01); 400 → «Para publicar falta: Descripción, Modalidad.» + «Editar», sigue Borrador (CA-03, EC-02); 409 → alerta + recarga; 404 (EC-06); 500 y red (EC-05, EC-43); `[adversarial]` doble clic = 1 `POST` (EC-09). `api.test.ts` → `publishJob` sin cuerpo (EC-01) | `jobs-lifecycle.spec.ts`: CA-01 completo (híbrida, Valencia, 32 000-40 000); CA-03 solo título; EC-43 con `page.route('**/publish', abort)` |
-| RF-02 | `CloseJobAction.test.tsx` → foco en «Cancelar», «Comprobando…» y confirmar deshabilitado, «Se rechazarán 0 inscripciones activas.» (CA-05, EC-11); cancelar y `simulateCancel` sin `POST` y con la lectura abortada (CA-06); 200 → ficha cerrada (CA-05, EC-13); 500 → alerta en el diálogo, sigue publicada (CA-09, EC-12); error de la lectura; 409 y 404; `[adversarial]` doble clic = 1 `POST` (EC-16) y título hostil (EC-15). `ConfirmDialog.test.tsx` → `confirmDisabled` y `children`. `labels.test.ts` → `activeApplicationsText` 0/1/2 | `jobs-lifecycle.spec.ts`: «Cerrar» → foco en «Cancelar» → `Escape` (sigue publicada) → «Cerrar oferta» → solo lectura con fecha de cierre (CA-05, CA-06) |
+| RF-02 | `CloseJobAction.test.tsx` → foco en «Cancelar», «Comprobando…» y confirmar deshabilitado, «Se rechazarán 0 inscripciones activas.» (CA-05, EC-11); cancelar y `simulateCancel` sin `POST` y con la lectura abortada (CA-06); 200 → ficha cerrada (CA-05, EC-13); 500 → alerta en el diálogo, sigue publicada (CA-09, EC-12); error de la lectura; 409 y 404; `CloseJobAction.adversarial.test.tsx` → `[adversarial]` doble clic = 1 `POST` (EC-16), título hostil (EC-15) y red al confirmar (EC-43). `ConfirmDialog.test.tsx` → `confirmDisabled` y `children`. `labels.test.ts` → `activeApplicationsText` 0/1/2 | `jobs-lifecycle.spec.ts`: «Cerrar» → foco en «Cancelar» → `Escape` (sigue publicada) → «Cerrar oferta» → solo lectura con fecha de cierre (CA-05, CA-06) |
 | RF-03 | `JobFormScreen.published.test.tsx` → etiquetas «(obligatorio)»; descripción en espacios → error sin `PATCH` (CA-11, EC-17); 400 del servidor junto al campo; solo banda (EC-19); 500 (EC-20); 409 → `ClosedJobNotice` con el `message` (CA-12, EC-21, EC-44); URL de una cerrada → `ClosedJobNotice` sin formulario (CA-10). `job-form-model.published.test.ts` → reglas y `toPatch` sin `status` (EC-23). `DeleteJobAction.test.tsx` → `[adversarial]` 409 → `onConflict` (EC-21) | `jobs-lifecycle.spec.ts`: CA-11 en la interfaz; CA-12/EC-44 con dos páginas (una cierra, la otra guarda) |
 | RF-04 | `JobDetailScreen.actions.test.tsx` → 201 → navega a `/jobs/{nuevo}` con «Oferta duplicada.» y la original no se toca (CA-14, CA-15, EC-26); 404 (EC-25); 500 (EC-27); `[adversarial]` doble clic = 1 `POST` (EC-31). `api.test.ts` → `duplicateJob` | `jobs-lifecycle.spec.ts`: duplicar la cerrada → ficha nueva «Borrador», mismo título, sin fecha de publicación; la original sigue cerrada (`page.request`) (CA-14) |
-| RF-05 | `list-query.test.ts` → lectura, orden canónico, omisión de valores por defecto, claves desconocidas fuera (EC-32), `encodeURIComponent` `[adversarial]` (EC-39), `q` 100/101 y control (EC-33, EC-34), sin normalizar (EC-35), `totalPages`. `JobListScreen.filters.test.tsx` → enviar Estado + texto navega a `/jobs?status=published&q=gestion` y pide esa URL (CA-16); «Siguiente» → `page=2`, foco al h1 (CA-18); «Por página» 50 → página 1 y mismo filtro, opciones 20/50/100 (CA-18); 20 de 20 sin «Siguiente», 21 con «Página 1 de 2» (EC-34); página más allá (CA-17); vacío con filtros + «Quitar filtros»; 400 con `details` + «Quitar filtros» sin «Reintentar» (CA-19 a CA-21 vistos desde la web); red con controles conservados (EC-36); «Atrás» resincroniza los controles. `router.test.tsx` → `useSearch` | `jobs-list.spec.ts` (DD-09): CA-16 con Estado «Publicada» y «gestion» → «GESTIÓN de proveedores» y la del seed; CA-18 con «Oferta de paginación 01-21» publicadas (siguiente, 50 por página, «Atrás»); EC-36 con `page.route` abortado al filtrar; `/jobs?pageSize=101` → alerta + «Quitar filtros» |
-| RF-06 | `JobDetailScreen.test.tsx` → draft: 4 acciones y solo fecha de creación (CA-23); published: 3 acciones y dos fechas; closed: solo «Duplicar», tres fechas y aviso de solo lectura (CA-22, EC-42); 22:30Z → 07/10/2026 (EC-04, EC-11); `[adversarial]` HTML en una cerrada (EC-46). `use-resource.test.tsx` → `setData` | `jobs-lifecycle.spec.ts`: acciones por estado a lo largo del ciclo (CA-22, CA-23) |
+| RF-05 | `list-query.test.ts` → lectura, orden canónico, omisión de valores por defecto, claves desconocidas fuera (EC-32), `encodeURIComponent` `[adversarial]` (EC-39), `q` 100/101 y control (EC-33, EC-34), sin normalizar (EC-35), `totalPages`. `JobListScreen.filters.test.tsx` → enviar Estado + texto navega a `/jobs?status=published&q=gestion` y pide esa URL (CA-16); vacío con filtros + «Quitar filtros»; «Atrás» resincroniza los controles. `JobListScreen.pagination.test.tsx` → «Siguiente» → `page=2`, foco al h1 (CA-18); «Por página» 50 → página 1 y mismo filtro, solo opciones 20/50/100 y `pageSize=7` en la URL → petición con 20 y selector en 20 (CA-18); 20 de 20 sin «Siguiente», 21 con «Página 1 de 2» (EC-34); página más allá (CA-17). `JobListScreen.filters-adversarial.test.tsx` → URL hostil: 400 con `details` + «Quitar filtros» sin «Reintentar» (EC-32; CA-19 a CA-21 vistos desde la web); `q` con control (EC-33); red con controles conservados (EC-36). `router.test.tsx` → `useSearch` | `jobs-list.spec.ts` (DD-09): CA-16 con Estado «Publicada» y «gestion» → «GESTIÓN de proveedores» y la del seed; CA-18 con «Oferta de paginación 01-21» publicadas (siguiente, 50 por página, «Atrás»); EC-36 con `page.route` abortado al filtrar; `/jobs?pageSize=101` → alerta + «Quitar filtros» |
+| RF-06 | `JobDetailScreen.test.tsx` → draft: 4 acciones y solo fecha de creación (CA-23). `JobDetailScreen.states.test.tsx` → published: 3 acciones, dos fechas y sin «Borrar» (EC-24); closed: solo «Duplicar», tres fechas y aviso de solo lectura (CA-22, EC-42); 22:30Z → 07/10/2026 (EC-04, EC-11); `[adversarial]` HTML en una cerrada (EC-46). `use-resource.test.tsx` → `setData` | `jobs-lifecycle.spec.ts`: acciones por estado a lo largo del ciclo (CA-22, CA-23) |
 
 **Tests de HU-01 que cambian:**
 
@@ -574,10 +575,11 @@ pura: los prueba el backend con `fastify.inject`.
 **Criterio → test (parte web):** CA-01 → `JobDetailScreen.actions.test.tsx` + e2e; CA-03 → `JobDetailScreen.actions`
 + e2e; CA-05, CA-06, CA-09 → `CloseJobAction.test.tsx` + e2e (CA-05, CA-06); CA-10 → `JobDetailScreen.test.tsx` (sin
 «Editar») + `JobFormScreen.published.test.tsx`; CA-11, CA-12 → `JobFormScreen.published.test.tsx` + e2e; CA-13 →
-`JobDetailScreen.test.tsx` (sin «Borrar») + `DeleteJobAction.test.tsx` (409); CA-14, CA-15 →
+`JobDetailScreen.states.test.tsx` (sin «Borrar») + `DeleteJobAction.test.tsx` (409); CA-14, CA-15 →
 `JobDetailScreen.actions.test.tsx` + e2e (CA-14); CA-16 → `JobListScreen.filters.test.tsx` + e2e; CA-17 →
-`JobListScreen.filters.test.tsx`; CA-18 → `JobListScreen.filters.test.tsx` + e2e; CA-19 a CA-21 →
-`JobListScreen.filters.test.tsx` (400 mostrado) + e2e (`pageSize=101`); CA-22, CA-23 → `JobDetailScreen.test.tsx` + e2e.
+`JobListScreen.pagination.test.tsx`; CA-18 → `JobListScreen.pagination.test.tsx` + e2e; CA-19 a CA-21 →
+`JobListScreen.filters-adversarial.test.tsx` (400 mostrado) + e2e (`pageSize=101`); CA-22 →
+`JobDetailScreen.states.test.tsx` + e2e; CA-23 → `JobDetailScreen.test.tsx` + e2e.
 
 ## Checklist de implementación
 
