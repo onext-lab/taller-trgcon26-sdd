@@ -1,0 +1,99 @@
+/* Minimal accessible styles: AA contrast (#1a1a1a and #b00020 on white) and a visible focus ring. */
+
+:root {
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  padding: 1rem;
+}
+
+:focus-visible {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
+}
+
+a {
+  color: #1a5fb4;
+}
+
+.error-text {
+  color: #b00020;
+}
+
+[aria-invalid='true'] {
+  border-color: #b00020;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-end: 1rem;
+}
+
+.field-help {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.form-field .error-text {
+  margin: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+caption {
+  text-align: start;
+  font-weight: bold;
+  padding-block-end: 0.5rem;
+}
+
+th,
+td {
+  text-align: start;
+  padding: 0.5rem;
+  border-block-end: 1px solid #c0c0c0;
+  vertical-align: top;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+h1,
+h2,
+td,
+dd,
+.long-text {
+  overflow-wrap: anywhere;
+}
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+dialog {
+  max-width: min(32rem, 90vw);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}

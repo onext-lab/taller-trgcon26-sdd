@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-test('la página carga y muestra el estado de la API', async ({ page }) => {
+// The entry of the web is the job list; the API health stays in the footer (DD-07). There are two
+// `role="status"` on the page, so the health line is found by its text.
+test('la entrada es el listado de ofertas y muestra el estado de la API', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'ATS' })).toBeVisible();
-  await expect(page.getByRole('status')).toHaveText('Estado de la API: ok');
+  await expect(page).toHaveURL(/\/jobs$/);
+  await expect(page.getByRole('heading', { name: 'Ofertas' })).toBeVisible();
+  await expect(page.getByText('Estado de la API: ok')).toBeVisible();
 });

@@ -11,7 +11,7 @@ Lo que necesitas antes del taller y cómo comprobarlo. Hazlo en casa: el día de
 | git | ≥ 2.30 | ramas por HU y etiquetas por fase |
 | Chromium de Playwright | el que instala `npx playwright install chromium` | e2e y QA |
 | Claude Code | la última | ejecutar el flujo (skills, agentes y hooks del repo) |
-| Puertos libres | 3001 (API) y 5173 (web) | `npm run dev` y los e2e |
+| Puertos libres | 3001 (API) y 5173 (web) para `npm run dev`; 3101 (API) y 5174 (web) para los e2e | desarrollo y `npm run e2e` |
 
 No hace falta Docker, ni Python, ni base de datos instalada, ni ninguna clave: la base de datos es un fichero SQLite que
 crea el propio Node.
@@ -87,3 +87,13 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 | `check:env` dice que un puerto está ocupado | Cierra el `npm run dev` que tengas abierto en otra terminal. |
 | Los e2e no encuentran el navegador | `npx playwright install chromium`. |
 | La base de datos tiene datos raros | `npm run db:reset` la regenera desde el esquema, las migraciones y el seed. |
+| `npm run e2e` falla porque el puerto 3101 o 5174 está ocupado | Cierra el proceso que lo usa. Los e2e no reutilizan servidores (`reuseExistingServer: false`) para no probar contra otra base. |
+
+## Cómo se preparan los e2e
+
+`npm run e2e` usa su propia base, `data/e2e.db`, y sus propios puertos (3101 la API y 5174 la web), así que se puede
+lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y seed de 4
+borradores) en el comando del `webServer` de la API, en `playwright.config.ts`
+(`npm run db:reset -w apps/api && npm run start -w apps/api`). No va en un `globalSetup` porque en Playwright 1.63 el
+`webServer` arranca **antes** que `globalSetup`: borrar la base entonces dejaría a la API escribiendo en ficheros ya
+borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones seguidas dan el mismo resultado.

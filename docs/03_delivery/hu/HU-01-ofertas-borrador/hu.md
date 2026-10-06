@@ -2,10 +2,10 @@
 id: HU-01
 feature: FEAT-01
 titulo: "Crear, editar y consultar ofertas en borrador"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [ofertas]
-sprint: null             # sprint-NN
+sprint: sprint-01        # sprint-NN
 rama: "hu/HU-01-ofertas-borrador"
 ---
 
@@ -94,9 +94,9 @@ filtros y la paginación del listado):
 - Errores en el envelope de DEC-01, sin *stack traces*; fechas en UTC y mostradas en Europe/Madrid (RN-12).
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
-- [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
-- [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
-- [ ] Implementación + integración — `/implementar-hu`
-- [ ] Review (`review/REVIEW.md`) — `/reviewer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `-frontend.md`) — `/tech-design`
+- [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
+- [x] Implementación + integración — `/implementar-hu`
+- [x] Review (`review/REVIEW.md`) — `/reviewer`
 - [ ] Sync de módulos + merge local a `main` — `/module-sync`

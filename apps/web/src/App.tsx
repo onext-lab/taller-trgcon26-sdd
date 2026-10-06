@@ -1,25 +1,93 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, type ReactElement, type RefObject } from 'react';
+import { ApiHealth } from './components/ApiHealth.tsx';
+import { Link, matchPath, navigate, usePath } from './components/router.tsx';
+import { JobDetailScreen } from './features/jobs/JobDetailScreen.tsx';
+import { JobFormScreen } from './features/jobs/JobFormScreen.tsx';
+import { JobListScreen } from './features/jobs/JobListScreen.tsx';
+import { jobPaths } from './features/jobs/paths.ts';
 
-type ApiStatus = 'comprobando' | 'ok' | 'sin conexión';
+const APP_NAME = 'ATS';
+const NOT_FOUND_TITLE = 'Página no encontrada';
 
-export function App() {
-  const [status, setStatus] = useState<ApiStatus>('comprobando');
+interface Screen {
+  title: string;
+  element: ReactElement;
+}
+
+function NotFoundScreen() {
+  return (
+    <>
+      <h1>{NOT_FOUND_TITLE}</h1>
+      <p>
+        <Link to={jobPaths.list}>Ir a las ofertas</Link>
+      </p>
+    </>
+  );
+}
+
+// Route table. `null` means «redirect to the list» (`/`).
+function resolveScreen(path: string): Screen | null {
+  if (matchPath('/', path)) return null;
+  if (matchPath(jobPaths.list, path)) return { title: 'Ofertas', element: <JobListScreen /> };
+  // `/jobs/new` also matches `/jobs/:id`: it must be declared first.
+  if (matchPath(jobPaths.create, path)) {
+    return { title: 'Nueva oferta', element: <JobFormScreen mode="create" /> };
+  }
+  if (matchPath('/jobs/:id/edit', path)) {
+    return { title: 'Editar oferta', element: <JobFormScreen mode="edit" /> };
+  }
+  if (matchPath('/jobs/:id', path)) return { title: 'Oferta', element: <JobDetailScreen /> };
+  return { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
+}
+
+function RedirectToList() {
+  useEffect(() => {
+    navigate(jobPaths.list, { replace: true });
+  }, []);
+  return null;
+}
+
+// On navigation (not on the first load, which includes the `/` redirect) focus goes to <main> and the
+// document title names the screen.
+function useNavigationFocus(
+  path: string,
+  title: string | null,
+  mainRef: RefObject<HTMLElement | null>,
+) {
+  const previousPath = useRef<string | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch('/api/health', { signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error())))
-      .then((body: { status?: string }) => setStatus(body.status === 'ok' ? 'ok' : 'sin conexión'))
-      .catch(() => {
-        if (!controller.signal.aborted) setStatus('sin conexión');
-      });
-    return () => controller.abort();
-  }, []);
+    const previous = previousPath.current;
+    previousPath.current = path;
+    if (title === null || previous === null || previous === '/' || previous === path) return;
+    document.title = `${title} · ${APP_NAME}`;
+    mainRef.current?.focus();
+  }, [path, title, mainRef]);
+}
+
+export function App() {
+  const path = usePath();
+  const screen = resolveScreen(path);
+  const mainRef = useRef<HTMLElement>(null);
+  useNavigationFocus(path, screen?.title ?? null, mainRef);
+  const onList = matchPath(jobPaths.list, path) !== null;
 
   return (
-    <main>
-      <h1>ATS</h1>
-      <p role="status">Estado de la API: {status}</p>
-    </main>
+    <>
+      <header>
+        <p>{APP_NAME}</p>
+        <nav aria-label="Principal">
+          <Link to={jobPaths.list} aria-current={onList ? 'page' : undefined}>
+            Ofertas
+          </Link>
+        </nav>
+      </header>
+      <main ref={mainRef} tabIndex={-1}>
+        {screen ? screen.element : <RedirectToList />}
+      </main>
+      <footer>
+        <ApiHealth />
+      </footer>
+    </>
   );
 }
