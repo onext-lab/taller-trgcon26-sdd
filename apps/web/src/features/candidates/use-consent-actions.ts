@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useRef, useState } from 'react';
 import { userMessage } from '../../components/http.ts';
 import { useLifetimeSignal } from '../../components/use-lifetime-signal.ts';
 import { registerConsent, withdrawConsent } from './api.ts';
 import type { Candidate } from './types.ts';
+import { useFocusReturn, type ConsentControls, type FocusTarget } from './use-consent-focus.ts';
+
+export type { ConsentControls } from './use-consent-focus.ts';
 
 export type ConsentAction = 'register' | 'renew' | 'withdraw';
-
-/** Which control gets the focus back: the checkbox or «Renovar consentimiento» (falls back to the checkbox). */
-type FocusTarget = 'checkbox' | 'renew';
 
 /** Local feedback of the section: the success text (`status`) or the message of a failed register or renew. */
 export type ConsentFeedback = { kind: 'status' | 'alert'; text: string };
@@ -16,38 +16,6 @@ const DONE_TEXT: Record<ConsentAction, string> = {
   register: 'Consentimiento registrado.',
   renew: 'Consentimiento renovado.',
   withdraw: 'Consentimiento retirado.',
-};
-
-// DD-12: the focus goes back to the control that started the action, by `ref` (never `document.activeElement`,
-// which Safari does not move on click). It waits until nothing is in flight and the dialog is closed, so the
-// control is enabled again. The effect only reads refs.
-function useFocusReturn(
-  controls: ConsentControls,
-  pending: ConsentAction | null,
-  dialogOpen: boolean,
-) {
-  const { checkboxRef, renewRef } = controls;
-  const wanted = useRef<FocusTarget | null>(null);
-
-  useEffect(() => {
-    if (pending !== null || dialogOpen || wanted.current === null) return;
-    const target = wanted.current;
-    wanted.current = null;
-    const renew = target === 'renew' ? renewRef.current : null;
-    (renew ?? checkboxRef.current)?.focus();
-  }, [checkboxRef, renewRef, pending, dialogOpen]);
-
-  return {
-    want(target: FocusTarget): void {
-      wanted.current = target;
-    },
-  };
-}
-
-/** The two controls that can get the focus back; the section creates the refs and attaches them. */
-export type ConsentControls = {
-  checkboxRef: RefObject<HTMLInputElement | null>;
-  renewRef: RefObject<HTMLButtonElement | null>;
 };
 
 export type ConsentActions = {
@@ -63,6 +31,24 @@ export type ConsentActions = {
   cancelWithdraw: () => void;
 };
 
+// Withdrawal dialog: whether it is open, the error of a failed withdrawal (shown inside it) and the focus return.
+function useWithdrawDialog(controls: ConsentControls, busy: boolean) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const focus = useFocusReturn(controls, busy, open);
+  return {
+    state: { dialogOpen: open, dialogError: error },
+    want: focus.want,
+    setOpen,
+    setError,
+    cancel(): void {
+      focus.want('checkbox');
+      setError(undefined);
+      setOpen(false);
+    },
+  };
+}
+
 /**
  * Register, renew and withdraw the consent of a candidate (RF-06). Nothing is optimistic (DD-05): the section
  * only changes with the API answer, which goes to `onChange`. The ref guard keeps a second click, made before
@@ -74,31 +60,29 @@ export function useConsentActions(
   controls: ConsentControls,
 ): ConsentActions {
   const [pending, setPending] = useState<ConsentAction | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [feedback, setFeedback] = useState<ConsentFeedback | null>(null);
-  const [dialogError, setDialogError] = useState<string | undefined>(undefined);
+  const dialog = useWithdrawDialog(controls, pending !== null);
   const inFlight = useRef(false);
   const lifetimeSignal = useLifetimeSignal();
-  const focus = useFocusReturn(controls, pending, dialogOpen);
 
   async function run(action: ConsentAction, target: FocusTarget): Promise<void> {
     if (inFlight.current) return;
     inFlight.current = true;
     const signal = lifetimeSignal();
-    focus.want(target);
+    dialog.want(target);
     setPending(action);
     setFeedback(null);
-    setDialogError(undefined);
+    dialog.setError(undefined);
     try {
       const send = action === 'withdraw' ? withdrawConsent : registerConsent;
       const updated = await send(id, signal);
       if (signal?.aborted === true) return;
-      setDialogOpen(false);
+      dialog.setOpen(false);
       setFeedback({ kind: 'status', text: DONE_TEXT[action] });
       onChange(updated);
     } catch (caught) {
       if (signal?.aborted === true) return;
-      if (action === 'withdraw') setDialogError(userMessage(caught));
+      if (action === 'withdraw') dialog.setError(userMessage(caught));
       else setFeedback({ kind: 'alert', text: userMessage(caught) });
     } finally {
       inFlight.current = false;
@@ -108,21 +92,16 @@ export function useConsentActions(
 
   return {
     pending,
-    dialogOpen,
     feedback,
-    dialogError,
+    ...dialog.state,
     register: () => run('register', 'checkbox'),
     renew: () => run('renew', 'renew'),
     withdraw: () => run('withdraw', 'checkbox'),
     askWithdraw(): void {
       setFeedback(null);
-      setDialogError(undefined);
-      setDialogOpen(true);
+      dialog.setError(undefined);
+      dialog.setOpen(true);
     },
-    cancelWithdraw(): void {
-      focus.want('checkbox');
-      setDialogError(undefined);
-      setDialogOpen(false);
-    },
+    cancelWithdraw: dialog.cancel,
   };
 }

@@ -116,7 +116,7 @@ describe('CandidateDetailScreen · consentimiento', () => {
     await waitFor(() => expect(document.activeElement).toBe(checkbox()));
   });
 
-  it('un fallo al registrar muestra la alerta, no cambia la ficha y devuelve el foco a la casilla (CA-24)', async () => {
+  it('un fallo al registrar muestra la alerta, no cambia la ficha y devuelve el foco a la casilla (CA-30)', async () => {
     await renderDetail(NEVER, { [CONSENT]: { networkError: true } });
 
     fireEvent.click(checkbox());
@@ -195,7 +195,7 @@ describe('CandidateDetailScreen · consentimiento', () => {
     await waitFor(() => expect(document.activeElement).toBe(checkbox()));
   });
 
-  it('un fallo al retirar se queda dentro del diálogo y la ficha no cambia (CA-26)', async () => {
+  it('un fallo al retirar se queda dentro del diálogo y la ficha no cambia (CA-30)', async () => {
     await renderDetail(ACTIVE, {
       [WITHDRAWAL]: {
         status: 500,
@@ -255,7 +255,7 @@ describe('CandidateDetailScreen · consentimiento', () => {
     await waitFor(() => expect(document.activeElement).toBe(renewButton()));
   });
 
-  it('con el consentimiento retirado, marcar la casilla registra y nunca retira (CA-28)', async () => {
+  it('con el consentimiento retirado, marcar la casilla registra y nunca retira (EC-49)', async () => {
     const mock = await renderDetail(WITHDRAWN_PAST, { [CONSENT]: { status: 200, json: ACTIVE } });
     expect(checkbox().checked).toBe(false);
 
@@ -267,7 +267,7 @@ describe('CandidateDetailScreen · consentimiento', () => {
     expect(checkbox().checked).toBe(true);
   });
 
-  it('sin consentimiento previo, marcar registra sin abrir el diálogo de retirada (CA-28)', async () => {
+  it('sin consentimiento previo, marcar registra sin abrir el diálogo de retirada (EC-49)', async () => {
     const mock = await renderDetail(NEVER, { [CONSENT]: { status: 200, json: ACTIVE } });
 
     fireEvent.click(checkbox());

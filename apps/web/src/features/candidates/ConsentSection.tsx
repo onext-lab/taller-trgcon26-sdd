@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useId, useRef, type RefObject } from 'react';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
 import { CONSENT_TEXT, CONSENT_VERSION, consentStatus, consentSummary } from './consent.ts';
 import type { Candidate } from './types.ts';
@@ -19,6 +19,42 @@ function Feedback({ actions }: { actions: ConsentActions }) {
     );
   }
   return <p role="status">{feedback.text}</p>;
+}
+
+function RenewButton({
+  buttonRef,
+  actions,
+}: {
+  buttonRef: RefObject<HTMLButtonElement | null>;
+  actions: ConsentActions;
+}) {
+  return (
+    <p>
+      <button
+        ref={buttonRef}
+        type="button"
+        disabled={actions.pending !== null}
+        onClick={() => void actions.renew()}
+      >
+        {actions.pending === 'renew' ? 'Renovando…' : 'Renovar consentimiento'}
+      </button>
+    </p>
+  );
+}
+
+function WithdrawDialog({ actions }: { actions: ConsentActions }) {
+  return (
+    <ConfirmDialog
+      open={actions.dialogOpen}
+      title="¿Retirar el consentimiento?"
+      description="Se guardará la fecha de retirada y se conservarán la de otorgamiento y la versión. La fecha de fin de retención se recalculará sin el consentimiento y puede quedar ya vencida."
+      confirmLabel="Retirar"
+      busy={actions.pending === 'withdraw'}
+      error={actions.dialogError}
+      onConfirm={() => void actions.withdraw()}
+      onCancel={actions.cancelWithdraw}
+    />
+  );
 }
 
 type Props = {
@@ -64,29 +100,9 @@ export function ConsentSection({ candidate, onChange }: Props) {
         />
         El candidato da su consentimiento
       </label>
-      {status === 'active' ? (
-        <p>
-          <button
-            ref={renewRef}
-            type="button"
-            disabled={busy}
-            onClick={() => void actions.renew()}
-          >
-            {actions.pending === 'renew' ? 'Renovando…' : 'Renovar consentimiento'}
-          </button>
-        </p>
-      ) : null}
+      {status === 'active' ? <RenewButton buttonRef={renewRef} actions={actions} /> : null}
       <Feedback actions={actions} />
-      <ConfirmDialog
-        open={actions.dialogOpen}
-        title="¿Retirar el consentimiento?"
-        description="Se guardará la fecha de retirada y se conservarán la de otorgamiento y la versión. La fecha de fin de retención se recalculará sin el consentimiento y puede quedar ya vencida."
-        confirmLabel="Retirar"
-        busy={actions.pending === 'withdraw'}
-        error={actions.dialogError}
-        onConfirm={() => void actions.withdraw()}
-        onCancel={actions.cancelWithdraw}
-      />
+      <WithdrawDialog actions={actions} />
     </section>
   );
 }

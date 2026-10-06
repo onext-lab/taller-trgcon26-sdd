@@ -90,3 +90,9 @@ Pantalla `/candidates/:id`:
 - No uses `useReturnFocus` de ofertas ni `document.activeElement` (deuda HU-02 §9.3, DD-12).
 - Polyfill de `<dialog>` en `apps/web/test/helpers/dialog.ts`; `mockFetch` con URL exacta.
 - Los casos hostiles de la ficha y del consentimiento (doble clic, 404/500, HTML, forma inesperada) van en TASK-14.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Gate de QUALITY-GATES (≤ 50 líneas por función): `ConsentSection` tiene 57 y `useConsentActions` 56. Pártelos (p. ej. un subcomponente para el diálogo de retirada y un hook auxiliar para el foco) sin cambiar el comportamiento. Corrige además las etiquetas de ID de `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx`: `:119` y `:198` dicen CA-24/CA-26 y prueban el fallo del consentimiento (CA-30); `:258` y `:270` dicen CA-28 y prueban la protección de la casilla en la web (pon «EC-49» o una descripción sin ID equivocado).
+- **Ficheros:** `apps/web/src/features/candidates/ConsentSection.tsx`, `apps/web/src/features/candidates/use-consent-actions.ts` (y uno nuevo si extraes), `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx`
+- **Criterios de done:** `ConsentSection` y `useConsentActions` ≤ 50 líneas cada una (max-lines-per-function con skipBlankLines y skipComments); `npm test -w @ats/web -- CandidateDetailScreen` en verde; typecheck y eslint de los ficheros tocados a 0.
