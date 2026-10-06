@@ -10,7 +10,7 @@ export interface ListenOptions {
  */
 export function listenOptions(env: Record<string, string | undefined>): ListenOptions {
   return {
-    port: Number(env.API_PORT ?? 3001),
-    host: env.API_HOST ?? '127.0.0.1',
+    port: Number(env.API_PORT || 3001),
+    host: env.API_HOST || '127.0.0.1',
   };
 }

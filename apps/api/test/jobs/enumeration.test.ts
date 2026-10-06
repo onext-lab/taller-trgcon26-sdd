@@ -31,6 +31,13 @@ describe('EC-32 la API escucha solo en loopback por defecto', () => {
     });
   });
 
+  it('EC-32 API_HOST y API_PORT vacíos → 127.0.0.1:3001', () => {
+    expect(listenOptions({ API_HOST: '', API_PORT: '' })).toEqual({
+      host: '127.0.0.1',
+      port: 3001,
+    });
+  });
+
   it('EC-32 solo API_HOST y API_PORT, explícitos, cambian dónde escucha', () => {
     expect(listenOptions({ API_HOST: '0.0.0.0', API_PORT: '4000' })).toEqual({
       host: '0.0.0.0',

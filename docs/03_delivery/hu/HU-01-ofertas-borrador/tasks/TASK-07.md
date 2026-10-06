@@ -31,7 +31,7 @@ el test. Si el fallo es del diseño, se para y se escala.
 
 | RF | 1 Input inválido | 3 Fallo de dependencia | 4 Concurrencia | 6 Seguridad | 7 Idempotencia |
 |---|---|---|---|---|---|
-| RF-04 | EC-27 | EC-29 | (EC-30 en TASK-06) | EC-32: sin test (*Threat modeling*: aceptado) | EC-33 |
+| RF-04 | EC-27 | EC-29 | (EC-30 en TASK-06) | EC-32: test añadido en la reapertura de la review (`apps/api/test/jobs/enumeration.test.ts`) | EC-33 |
 | RF-05 | EC-34 | (EC-38: 500 en el envelope, TASK-01) | — (EC-39 N/A) | EC-41 + solo campos de lista | — (EC-42 N/A) |
 | RF-06 | EC-43 + CA-20 | (EC-45 es de la web) | EC-46 | (EC-48 en TASK-04) | — (EC-49 N/A) |
 
@@ -82,7 +82,13 @@ existencia (404). `GET` y `DELETE` **sin** `payload` ni `Content-Type`.
 - «EC-46 GET tras borrado → 404»: crear, `DELETE`, `GET` → 404.
 
 ## Reapertura · review ronda 1 (2026-10-06)
-- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Origen:** `review/REVIEW-ronda-1.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
 - **Qué hay que hacer:** EC-32 (RF-04 Must, categoría 6, enumeración de IDs) no tiene test. Fija con tests el comportamiento que el PRD declara: (a) la API escucha en `127.0.0.1` por defecto; para poder probarlo sin abrir puertos, extrae de `apps/api/src/server.ts` una función pura (p. ej. `listenOptions(env)`, que devuelve host y puerto con los valores por defecto) y pruébala, sin cambiar el comportamiento de `server.ts`; (b) recorrer IDs secuenciales (`GET /api/jobs/1..N`) solo devuelve campos de oferta (las claves exactas del esquema `Job`) y 404 en el envelope para los que no existen. Nombre de los tests con «EC-32».
 - **Ficheros:** `apps/api/src/server.ts` (modificar, solo extraer la función), `apps/api/test/jobs/enumeration.test.ts` (crear)
 - **Criterios de done:** `npm test -w apps/api -- enumeration health logger` en verde con 3 ficheros; `npm run typecheck`; `npx eslint` de los ficheros tocados; `npm run dev` sigue arrancando la API en 127.0.0.1:3001 (compruébalo leyendo el log de arranque, sin curl).
+
+## Reapertura · review ronda 2 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 2), §4, hallazgo SEC-03 del security-auditor.
+- **Qué hay que hacer:** SEC-03 (review ronda 2, bajo): `apps/api/src/listen-options.ts:14` usa `env.API_HOST ?? '127.0.0.1'`, así que `API_HOST=` (cadena vacía) deja el host en `''` y Node escucharía en todas las interfaces. Cambia a `||` (y lo mismo para `API_PORT` vacío → 3001) y añade a `apps/api/test/jobs/enumeration.test.ts` el test «EC-32 API_HOST y API_PORT vacíos → 127.0.0.1:3001».
+- **Ficheros:** `apps/api/src/listen-options.ts`, `apps/api/test/jobs/enumeration.test.ts`
+- **Criterios de done:** `npm test -w apps/api -- enumeration` en verde con 1 fichero; `npm run typecheck`; `npx eslint` de los 2 ficheros.
