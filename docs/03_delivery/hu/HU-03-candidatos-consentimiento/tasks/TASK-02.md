@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-07; base de RF-08 y de todo el módulo)
 - **Complejidad:** L (2–4 h; estimada 3 h)
 
