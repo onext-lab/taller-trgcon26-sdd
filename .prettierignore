@@ -4,6 +4,7 @@ data/
 test-results/
 playwright-report/
 package-lock.json
-# La documentación y el harness se escriben a mano: Prettier no los reformatea.
+# La documentación, las skills y los agentes se escriben a mano: Prettier no los reformatea.
 *.md
-.claude/
+docs/_templates/
+.claude/worktrees/
