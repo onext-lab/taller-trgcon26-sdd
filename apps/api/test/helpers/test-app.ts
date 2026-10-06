@@ -4,23 +4,30 @@ import { buildApp } from '../../src/app.ts';
 import type { Clock } from '../../src/clock.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
+import type { CandidateProcessesPort } from '../../src/modules/candidates/processes-port.ts';
 import type { JobApplicationsPort } from '../../src/modules/jobs/applications-port.ts';
 import type { Job } from '../../src/modules/jobs/schemas.ts';
 
 /**
- * App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. `now` y
- * `jobApplications` son opcionales: sin ellos, reloj del sistema y `noJobApplications`.
+ * App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. `now`,
+ * `jobApplications` y `candidateProcesses` son opcionales: sin ellos, reloj del sistema, `noJobApplications` y
+ * `noCandidateProcesses`.
  */
 export function createTestApp({
   now,
   jobApplications,
-}: { now?: Clock; jobApplications?: JobApplicationsPort } = {}): {
+  candidateProcesses,
+}: {
+  now?: Clock;
+  jobApplications?: JobApplicationsPort;
+  candidateProcesses?: CandidateProcessesPort;
+} = {}): {
   app: FastifyInstance;
   db: DatabaseSync;
 } {
   const db = openDatabase(':memory:');
   migrate(db);
-  const app = buildApp({ db, now, jobApplications });
+  const app = buildApp({ db, now, jobApplications, candidateProcesses });
   return { app, db };
 }
 
@@ -107,14 +114,27 @@ export async function createPublishedJob(
 
 export type WriteOperation = 'INSERT' | 'UPDATE' | 'DELETE';
 
+export interface FailWritesTarget {
+  /** Tabla sobre la que falla la escritura; `job_openings` por defecto. */
+  table?: string;
+  /** Solo `UPDATE`: falla únicamente si la sentencia toca esta columna (`UPDATE OF <column>`). */
+  column?: string;
+}
+
 /**
- * Hace fallar las siguientes escrituras `op` en job_openings con un error real de SQLite (un trigger con
- * `RAISE(ABORT, 'fallo simulado')`), sin mocks. Un trigger por operación.
+ * Hace fallar las siguientes escrituras `op` en una tabla (`job_openings` por defecto) con un error real de SQLite
+ * (un trigger con `RAISE(ABORT, 'fallo simulado')`), sin mocks. Un trigger por tabla, operación y columna.
  */
-export function failWrites(db: DatabaseSync, op: WriteOperation): void {
-  const name = `fail_job_openings_${op.toLowerCase()}`;
+export function failWrites(
+  db: DatabaseSync,
+  op: WriteOperation,
+  { table = 'job_openings', column }: FailWritesTarget = {},
+): void {
+  const suffix = column === undefined ? '' : `_${column}`;
+  const name = `fail_${table}_${op.toLowerCase()}${suffix}`;
+  const scope = column === undefined ? '' : ` OF ${column}`;
   db.exec(
-    `CREATE TRIGGER ${name} BEFORE ${op} ON job_openings BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`,
+    `CREATE TRIGGER ${name} BEFORE ${op}${scope} ON ${table} BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`,
   );
 }
 
