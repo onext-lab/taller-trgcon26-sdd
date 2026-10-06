@@ -91,13 +91,18 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     que el iniciador llama **dentro de su transacción** de `node:sqlite` (`BEGIN … COMMIT`, `ROLLBACK` ante cualquier
     error).
   - Una lectura de otro módulo va por un **puerto** (interfaz) que define el módulo que la necesita y que implementa el
-    dueño de los datos. Hoy: `candidatos` define el puerto de procesos del candidato y lo implementa `inscripciones`.
-  - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos`.
+    dueño de los datos. Hoy hay dos:
+    - **Procesos del candidato:** lo define `candidatos` (fórmula de retención, S-06) y lo implementa `inscripciones`.
+    - **Estado de la oferta:** lo define `inscripciones` (inscribir solo en `published`, RV-17 y UC-14 · E1; pipeline en
+      solo lectura de una oferta `closed`, S-18) y lo implementa `ofertas`.
+  - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos`. Un módulo solo importa a los que
+    están a su derecha; los puertos los implementa el módulo de la izquierda y se conectan en `apps/api/src/app.ts`.
 - **Alternativas.** Eventos en proceso (consistencia eventual y más piezas para una demo); SQL directo entre módulos
   (acoplamiento y transacciones repartidas); endpoints HTTP internos (sin transacción común).
 - **Consecuencias.** Cada efecto cruzado tiene un test que inyecta un fallo y comprueba que no queda nada a medias.
-  `candidatos` no importa nada de los otros dos módulos.
-- **Estado.** Aceptada (2026-10-06).
+  `candidatos` no importa nada de los otros dos módulos, e `inscripciones` no importa nada de `ofertas`: lee el estado
+  de la oferta por su puerto. HU-04 implementa los dos puertos; hasta entonces, `ofertas` no los necesita.
+- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1.
 
 ## DEC-07 · Códigos HTTP y validación de la API
 

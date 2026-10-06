@@ -92,6 +92,9 @@ Flujos de esos UC que **no** cubre esta HU:
 - **Depende de:** HU-02 (ofertas `published` y `closed`) y HU-03 (candidatos, fórmula de retención, puerto y operación
   interna de recálculo).
 - **Bloquea:** HU-05.
+- **Puertos (DEC-06):** esta HU implementa los dos. `inscripciones` implementa el de procesos del candidato (lo define
+  `candidatos`) y define el de estado de la oferta, que implementa `ofertas` (RV-17, UC-14 · E1, S-18). Así
+  `inscripciones` no importa nada de `ofertas` y no hay ciclo.
 - **Mismo UC en dos HU:** UC-12 lo comparte con HU-03, y UC-17 y UC-18 con HU-05. Van en secuencia por las
   dependencias: esta HU empieza cuando HU-03 está en `main`, y HU-05 cuando esta lo está.
 - **Reparto entre módulos** (`docs/02_discovery/reglas-validadas.md`): `inscripciones` implementa el puerto que lee

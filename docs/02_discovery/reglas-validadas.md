@@ -80,9 +80,9 @@ Preguntas que no cubrían las RV, respondidas en bloque por la persona («todo s
   RV-08 y se ordenan por alta, la más reciente primero. Más de 100 por página da 400. Sin filtro, las ofertas mezclan
   estados por fecha de referencia (publicación o, si no hay, creación), con desempate por ID. El listado de candidatos
   muestra solo nombre, email y skills. Una sola skill por filtro, combinada con `q` en Y.
-- **S-05 · Anonimizados.** El estado «anonimizado», su exclusión de búsquedas (RV-14) y el bloqueo de inscripción
-  (RV-17) los introduce la feature A, que modifica los UC existentes. El núcleo solo prevé la etiqueta «Candidato
-  anonimizado» en el pipeline.
+- **S-05 · Anonimizados.** El núcleo no modela la anonimización. El estado «anonimizado», su exclusión de búsquedas
+  (RV-14), el bloqueo de inscripción (RV-17) y la etiqueta «Candidato anonimizado» en el pipeline (UC-17 · A3) llegan
+  con la feature A, que modifica los UC existentes. En el núcleo, UC-17 · A3 queda escrito pero fuera de alcance.
 - **S-06 · Fórmula de retención.** Con alguna inscripción no final, sin fecha de fin («mientras dure el proceso»). Si
   no, la fecha más tardía de las que apliquen: consentimiento vigente + 24 meses; cierre del último proceso + 6 meses;
   alta + 6 meses si nunca tuvo inscripciones. `hired` también cierra el proceso. Se recalcula al crear o cerrar

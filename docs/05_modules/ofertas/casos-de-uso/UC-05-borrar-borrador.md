@@ -37,7 +37,7 @@ El reclutador elimina un borrador que ya no necesita.
 - **E1 — Oferta publicada o cerrada** (en el paso 1): la oferta está en `published` o `closed` → la ficha no ofrece
   «Borrar» y la API rechaza la petición con 409; no cambia nada (RV-06, S-02).
 - **E2 — Oferta ya borrada** (en el paso 2): la oferta no existe (p. ej., un segundo clic) → 404 con el envelope de
-  DEC-01; no cambia nada (S-12).
+  DEC-01; no cambia nada (S-12, DEC-07).
 
 ## Reglas de negocio
 - RN-09: solo se borran las ofertas `draft`, y el borrado es físico.

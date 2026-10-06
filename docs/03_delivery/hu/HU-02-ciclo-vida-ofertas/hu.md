@@ -97,7 +97,9 @@ Flujos de esos UC que **no** cubre esta HU:
 - **Mismo UC en dos HU:** UC-02, UC-05, UC-07 y UC-08 los comparte con HU-01, y UC-04 con HU-05. Van en secuencia: esta
   HU empieza cuando HU-01 está en `main`, y HU-05 llega después (depende de HU-04, que depende de esta).
 - **Riesgo heredado de FEAT-01:** INV-05 («ninguna oferta `closed` tiene inscripciones en etapa no final») solo se
-  puede probar cuando HU-05 conecte UC-19 en el cierre.
+  puede probar cuando HU-05 conecte UC-19 en el cierre. **Ventana tolerada en `main`:** entre el merge de HU-04 y el de
+  HU-05, cerrar una oferta con inscripciones activas la cierra sin rechazarlas (INV-05 no se cumple todavía). Es una
+  limitación conocida y declarada, no un defecto de HU-02 ni de HU-04: la cierra HU-05 (UC-04 · A1).
 - Las fechas de publicación y de cierre las pone el sistema en UTC y no cambian al repetir la transición (INV-08).
 
 ## Progreso SDD

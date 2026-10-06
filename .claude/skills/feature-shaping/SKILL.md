@@ -42,6 +42,7 @@ Lee directo (pocas líneas):
 - `docs/07_architecture_principles/DECISIONS.md` (las `DEC-NN` que la idea roce; p. ej. DEC-04: sin login, un único rol «reclutador»).
 - `docs/06_design_principles/README.md`: principios de producto y UX, tratados como invariantes.
 - `docs/RGPD.md` si la idea toca datos personales de candidatos (casi siempre en este ATS).
+- `docs/02_discovery/reglas-validadas.md`: reglas (`RV-NN`) y respuestas (`S-NN`) ya validadas por la persona. Son fuente: se citan y **no se vuelven a preguntar**.
 
 ### Paso 2 — Escaneo de código (opcional, subagente)
 
