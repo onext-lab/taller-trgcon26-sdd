@@ -116,4 +116,15 @@ describe('JobDetailScreen por estado', () => {
 
     expect(screen.getByRole('heading', { level: 1 }).getAttribute('tabindex')).toBe('-1');
   });
+
+  it('EC-46 HTML en una cerrada: el título sale como texto literal y no crea elementos', async () => {
+    const title = 'Oferta <b>X</b>';
+    await renderDetail({ ...CLOSED, title });
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(title);
+    expect(document.querySelector('h1 b')).toBeNull();
+    expect(document.querySelectorAll('b')).toHaveLength(0);
+    expect(document.title).toBe(`${title} · ATS`);
+    expect(controls()).toEqual(['Duplicar']);
+  });
 });

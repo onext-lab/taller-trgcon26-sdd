@@ -109,4 +109,58 @@ describe('toPatch · oferta publicada (EC-19, EC-23)', () => {
     const patch = toPatch(JOB, form({ ...same, title: 'Otro título', description: 'Otra.' }));
     expect(Object.keys(patch).sort()).toEqual(['description', 'title']);
   });
+
+  it('EC-23 [adversarial] cambiando todos los campos solo salen los editables, nunca status ni fechas', () => {
+    const patch = toPatch(
+      JOB,
+      form({
+        title: 'Otro título',
+        description: '',
+        location: 'Bilbao',
+        workMode: 'remota',
+        salaryMin: '',
+        salaryMax: '',
+      }),
+    );
+    expect(Object.keys(patch).sort()).toEqual([
+      'description',
+      'location',
+      'salaryMax',
+      'salaryMin',
+      'title',
+      'workMode',
+    ]);
+    expect(patch).not.toHaveProperty('status');
+    expect(patch).not.toHaveProperty('publishedAt');
+    expect(patch).not.toHaveProperty('closedAt');
+  });
+
+  it('EC-23 [adversarial] un valor que parece status o fecha en un campo de texto no crea esas claves', () => {
+    const values = form({
+      title: 'closed',
+      description: '2026-10-06T10:00:00.000Z',
+      location: 'published',
+      salaryMin: '32000',
+      salaryMax: '40000',
+    });
+    const patch = toPatch(JOB, {
+      ...values,
+      status: 'closed',
+      publishedAt: 'x',
+      closedAt: 'y',
+    } as JobFormValues);
+    expect(Object.keys(patch).sort()).toEqual(['description', 'location', 'title']);
+    expect(patch).not.toHaveProperty('status');
+    expect(patch).not.toHaveProperty('publishedAt');
+    expect(patch).not.toHaveProperty('closedAt');
+  });
+
+  it('EC-23 [adversarial] sin cambios devuelve {} aunque la oferta tenga fechas y estado', () => {
+    expect(
+      toPatch(
+        { ...JOB, status: 'closed', closedAt: '2026-10-07T08:00:00.000Z' },
+        form({ salaryMin: '32000', salaryMax: '40000' }),
+      ),
+    ).toEqual({});
+  });
 });

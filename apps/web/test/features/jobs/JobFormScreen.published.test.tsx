@@ -140,6 +140,34 @@ describe('JobFormScreen · edición de una publicada', () => {
     expect(screen.getByText('Publicada')).toBeDefined();
   });
 
+  it('EC-20 un 500 al guardar una publicada muestra la alerta y conserva lo escrito', async () => {
+    const mock = await openEditor({
+      'GET /api/jobs/7': { status: 200, json: PUBLISHED },
+      'PATCH /api/jobs/7': {
+        status: 500,
+        json: { error: { code: 'INTERNAL_ERROR', message: 'Error interno. Inténtalo de nuevo.' } },
+      },
+    });
+
+    type('Descripción (obligatorio)', 'Texto nuevo.');
+    type('Salario mínimo (€/año)', '33000');
+    save();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Error interno. Inténtalo de nuevo.');
+    expect((screen.getByLabelText('Descripción (obligatorio)') as HTMLTextAreaElement).value).toBe(
+      'Texto nuevo.',
+    );
+    expect((screen.getByLabelText('Salario mínimo (€/año)') as HTMLInputElement).value).toBe(
+      '33000',
+    );
+    expect((screen.getByRole('button', { name: 'Guardar' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+    expect(window.location.pathname).toBe('/jobs/7/edit');
+    expect(patches(mock)).toEqual([{ description: 'Texto nuevo.', salaryMin: 33000 }]);
+  });
+
   it('CA-12, EC-44: un 409 al guardar muestra el message de la API, «Ver la oferta» y vuelve a pedir la oferta', async () => {
     let reads = 0;
     const mock = await openEditor({
