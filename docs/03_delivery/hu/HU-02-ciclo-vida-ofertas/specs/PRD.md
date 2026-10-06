@@ -213,6 +213,7 @@ no las exige.
 | EC-46 | RF-06 | 6 Seguridad | Título con HTML en la ficha de una `closed` | Se ve como texto (RNF-04) |
 | EC-47 | RF-06 | 7 Idempotencia | — | N/A — mostrar la ficha es un `GET`; la idempotencia de sus acciones está en EC-09, EC-16 y EC-31 |
 | EC-48 | RF-05 | 2 Boundary | `q=Pena` con las ofertas «Monitor/a de la peña deportiva» y «Técnico/a de penalizaciones aduaneras» | Encuentra las dos: NFD sin marcas combinantes convierte «ñ» en «n» en los dos lados. Consecuencia **aceptada** de S-04 y DEC-10 (DT-05), fijada por un test de la API para que nadie la «arregle» sin una decisión nueva |
+| EC-49 | RF-01, RF-02, RF-04 | 6 Seguridad | Una página de otro sitio lanza `POST /api/jobs/:id/close` (petición simple, sin *preflight*) contra la API local mientras el reclutador navega | 403 `CROSS_SITE_REQUEST` en el envelope y sin datos si `Sec-Fetch-Site` vale `cross-site`; nada cambia. Sin la cabecera (tests, clientes que no son navegador) pasa. Aplica a todas las escrituras (DEC-12, DT-09) |
 
 ## Decisiones aplicables
 - **DEC-01** (stack y envelope): rutas nuevas con JSON Schema en Fastify y errores en
@@ -234,6 +235,8 @@ no las exige.
   NFD sin diacríticos en el servidor, desempate por ID (RF-05).
 - **DEC-11** (validación): `page` y `pageSize` como texto con `pattern` (punto 2), recorte (3), `details` por campo
   (4), `INTERNAL_ERROR` (5), reloj (6), `withTransaction` (7) y caracteres de control en `q` (8).
+- **DEC-12** (escrituras desde otro sitio): 403 `CROSS_SITE_REQUEST` con `Sec-Fetch-Site: cross-site` en
+  publicar, cerrar, duplicar y el resto de escrituras (EC-49, DT-09).
 
 ## Fuera de scope
 - UC-04 · A1: rechazar las inscripciones activas al cerrar y el número real de inscripciones activas (HU-05, con
@@ -265,6 +268,7 @@ ingeniería; OQ-07 (clase 2), por decisión de producto con la misma convención
 | DT-06 | (OQ-06) Listado en la web: filtros y página en la URL (`/jobs?status=…&q=…&page=…&pageSize=…`), para que «Atrás» y recargar los conserven; búsqueda al enviar (Enter o «Buscar»), no a cada tecla; cambiar un filtro o el tamaño vuelve a la página 1; «Anterior»/«Siguiente» y «Página X de Y» en un `<nav>` con nombre; sin resultados por filtro, «Ninguna oferta cumple los filtros.» con «Quitar filtros»; `q` validado también en el cliente (≤ 100) con el error junto al campo; una URL con parámetros inválidos muestra el `message` de la API con `role="alert"` y «Quitar filtros» | UC-07 · A1 y A3 no detallan la interfaz; diseño §2-§4 | RF-05; endpoints/pantallas; EC-36; CA-18 | 2026-10-06 |
 | DT-07 | (OQ-07, producto) Selector «Por página» con 20, 50 y 100 (20 por defecto), con la misma convención que el listado de candidatos; los demás tamaños de 1-100, solo por la API o la URL | UC-07 · A3 pide que el reclutador elija el tamaño; la interfaz necesita valores concretos | RF-05; pantallas; CA-18 | 2026-10-06 |
 | DT-08 | (OQ-08) Acciones en la web: «Publicar» y «Duplicar» sin confirmación. Diálogo de cierre sobre `ConfirmDialog` (como DT-02 de HU-01): título «¿Cerrar la oferta?», «Se rechazarán N inscripciones activas.» y «Una oferta cerrada no se puede reabrir: para volver a publicarla, duplícala.»; botones «Cancelar» (foco inicial) y «Cerrar oferta». Avisos con `role="status"`: «Oferta publicada.», «Oferta cerrada.», «Oferta duplicada.». Campos pendientes al publicar: «Para publicar falta: Descripción, Modalidad.» con `role="alert"` y enlace a «Editar». Tras un 409 en una acción o al guardar, se muestra el `message` y se vuelve a cargar la ficha | UC-03, UC-04 y UC-06 fijan los pasos, no los textos; RV-03 (`closed` es final) | RF-02, RF-03, RF-06; flujos de usuario; EC-44; CA-03, CA-05, CA-12 | 2026-10-06 |
+| DT-09 | (Diseño, OD-01) Las escrituras con `Sec-Fetch-Site: cross-site` se rechazan con 403 `CROSS_SITE_REQUEST`; sin la cabecera se dejan pasar. Es DEC-12 | Publicar, cerrar y duplicar son `POST` sin cuerpo: peticiones simples que el navegador envía sin *preflight*, y la API no tiene login (DEC-04) | EC-49; Decisiones aplicables | 2026-10-06 |
 
 ## Criterios de aceptación
 
@@ -315,3 +319,4 @@ recoger:
 _v1.0 (2026-10-06): borrador con 8 Open Questions pendientes (7 de clase 1 y 1 de clase 2)._
 _v1.1 (2026-10-06): OQ-01 a OQ-08 resueltas (DT-01 a DT-08), añadido EC-48 («n» encuentra «ñ», fijado por test) y
 estado `Ready`, aprobado por quien aprueba el PRD._
+_v1.2 (2026-10-06, diseño): añadidos EC-49 y DT-09 (DEC-12, 403 a escrituras desde otro sitio), aprobados con el diseño. El resto no cambia._

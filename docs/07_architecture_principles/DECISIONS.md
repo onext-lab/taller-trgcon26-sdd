@@ -202,3 +202,22 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
   texto → 400».
 - **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1).
+
+## DEC-12 · Escrituras desde otro sitio: 403 por `Sec-Fetch-Site`
+
+- **Contexto.** El ATS no tiene login (DEC-04) y su API escucha en `127.0.0.1`. Al diseñar HU-02 apareció que publicar,
+  cerrar y duplicar una oferta son `POST` **sin cuerpo**: para el navegador son peticiones «simples», que se envían sin
+  *preflight* de CORS. Cualquier página que el reclutador abra en otra pestaña podría lanzarlas contra
+  `http://127.0.0.1:3001` (CSRF) y cerrar ofertas sin que él lo sepa. `PATCH`, `DELETE` y los `POST` con JSON ya exigen
+  *preflight*, y sin cabeceras CORS el navegador los bloquea; los cuerpos `text/plain` dan 415 (DEC-11.5).
+- **Decisión.** La API rechaza con **403** todas las escrituras (`POST`, `PATCH`, `DELETE`) cuya cabecera
+  `Sec-Fetch-Site` valga `cross-site`, en el envelope de DEC-01 y sin datos. Si la cabecera falta (tests con
+  `fastify.inject`, clientes que no son navegador) o vale `same-origin`, `same-site` o `none`, se dejan pasar. Se aplica
+  en un único hook registrado en `buildApp` antes de los módulos, y lo fija un test.
+- **Alternativas.** Token CSRF (exige sesión, que no hay); comprobar `Origin` o `Referer` (más casos que explicar y
+  `Origin` falta en algunos `POST` simples); exigir un `Content-Type` JSON en las acciones (rompe la convención de
+  «sin cuerpo» de HU-02 y no protege otras escrituras futuras).
+- **Consecuencias.** La web no cambia: va por el proxy de Vite y es del mismo origen. Cada HU que añada escrituras
+  hereda la protección sin hacer nada. Un navegador antiguo sin `Sec-Fetch-Site` no estaría protegido; se acepta para un
+  taller local.
+- **Estado.** Aceptada (2026-10-06), en el diseño de HU-02 (OD-01).
