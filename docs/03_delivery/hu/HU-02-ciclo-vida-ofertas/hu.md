@@ -2,10 +2,10 @@
 id: HU-02
 feature: FEAT-01
 titulo: "Publicar, cerrar, duplicar y listar ofertas con filtros"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [ofertas]
-sprint: null             # sprint-NN
+sprint: sprint-01        # sprint-NN
 rama: "hu/HU-02-ciclo-vida-ofertas"
 ---
 
@@ -103,9 +103,9 @@ Flujos de esos UC que **no** cubre esta HU:
 - Las fechas de publicación y de cierre las pone el sistema en UTC y no cambian al repetir la transición (INV-08).
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
-- [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
-- [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
-- [ ] Implementación + integración — `/implementar-hu`
-- [ ] Review (`review/REVIEW.md`) — `/reviewer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `-frontend.md`) — `/tech-design`
+- [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
+- [x] Implementación + integración — `/implementar-hu`
+- [x] Review (`review/REVIEW.md`) — `/reviewer`
 - [ ] Sync de módulos + merge local a `main` — `/module-sync`

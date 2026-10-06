@@ -1,4 +1,5 @@
-import type { FastifyServerOptions } from 'fastify';
+import type { FastifyServerOptions, preValidationHookHandler } from 'fastify';
+import { validationError } from '../errors.ts';
 
 /**
  * Ajv estricto de verdad (DEC-11.1): sin coerción (`"40000"` no es un entero), sin quitar en silencio los campos
@@ -52,3 +53,15 @@ export function trimTextFields(body: unknown, { trim, emptyToNull }: TrimOptions
     if (Object.hasOwn(body, key) && body[key] === '') body[key] = null;
   }
 }
+
+/**
+ * Hook `preValidation` de las acciones sin cuerpo (DD-01): cualquier cuerpo, también `{}`, `null` o un texto, es un 400.
+ * Corre antes que el esquema de `params`: con ID inválido y cuerpo, `details` solo trae `body`.
+ */
+export const rejectBody: preValidationHookHandler = (request, _reply, done) => {
+  if (request.body !== undefined) {
+    done(validationError([{ field: 'body', message: 'Esta acción no admite cuerpo.' }]));
+    return;
+  }
+  done();
+};

@@ -202,3 +202,32 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
   texto → 400».
 - **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1).
+
+## DEC-12 · Escrituras desde otro sitio: 403 por `Sec-Fetch-Site`
+
+- **Contexto.** El ATS no tiene login (DEC-04) y su API escucha en `127.0.0.1`. Al diseñar HU-02 apareció que publicar,
+  cerrar y duplicar una oferta son `POST` **sin cuerpo**: para el navegador son peticiones «simples», que se envían sin
+  *preflight* de CORS. Cualquier página que el reclutador abra en otra pestaña podría lanzarlas contra
+  `http://127.0.0.1:3001` (CSRF) y cerrar ofertas sin que él lo sepa. `PATCH`, `DELETE` y los `POST` con JSON ya exigen
+  *preflight*, y sin cabeceras CORS el navegador los bloquea. Un `POST` simple con cuerpo `text/plain` sí llega, pero
+  Fastify lo entrega como texto y la API lo rechaza con 400 (el esquema exige un objeto JSON, o `rejectBody` en las
+  acciones sin cuerpo); `application/x-www-form-urlencoded` y `multipart/form-data` dan 415 (DEC-11.5).
+- **Decisión.** La API rechaza con **403 `CROSS_SITE_REQUEST`** («Petición no permitida desde otro sitio.», en el
+  envelope de DEC-01 y sin datos) **toda petición cuyo método no sea `GET`, `HEAD` ni `OPTIONS`** si la cabecera
+  `Sec-Fetch-Site`, en minúsculas y sin espacios, no vale `same-origin` ni `none`. Si la cabecera falta (tests con
+  `fastify.inject`, clientes que no son navegador), se deja pasar. Se aplica en un único hook registrado en `buildApp`
+  antes de los módulos, y lo fijan tests de `cross-site`, `same-site` y de un método de escritura no listado.
+  - **Por qué `same-site` no basta en local.** «Mismo sitio» compara el dominio registrable, no el puerto: cualquier
+    otra aplicación servida en otro puerto de `127.0.0.1` o `localhost` (otro servidor de desarrollo, una herramienta
+    local) llega como `same-site` y podría lanzar las mismas peticiones. La web del ATS siempre llega como
+    `same-origin`, porque va por el proxy de Vite.
+  - **Por qué una lista de métodos seguros y no de métodos de escritura.** Así un método nuevo (`PUT`) que añada otra HU
+    queda protegido sin tocar el hook.
+- **Alternativas.** Token CSRF (exige sesión, que no hay); comprobar `Origin` o `Referer` (más casos que explicar y
+  `Origin` falta en algunos `POST` simples); exigir un `Content-Type` JSON en las acciones (rompe la convención de
+  «sin cuerpo» de HU-02 y no protege otras escrituras futuras); aceptar `same-site` (deja abierto el caso de otro puerto
+  local).
+- **Consecuencias.** La web no cambia. Cada HU que añada escrituras hereda la protección sin hacer nada. Un navegador
+  antiguo sin `Sec-Fetch-Site` no estaría protegido; se acepta para un taller local.
+- **Estado.** Aceptada (2026-10-06), en el diseño de HU-02 (OD-01); enmendada en la review de HU-02 (ronda 1): lista de
+  métodos seguros, `same-site` rechazado y código `CROSS_SITE_REQUEST` nombrado.

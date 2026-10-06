@@ -52,6 +52,6 @@ Ninguno. No se copian inscripciones (S-11).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-02 | | |
+| P | HU-02 | CA-14, CA-15 | `apps/api/test/jobs/duplicate.test.ts:46` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

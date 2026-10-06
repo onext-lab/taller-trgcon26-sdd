@@ -13,6 +13,8 @@ const WORK_MODE_OPTIONS = [
 
 type Props = {
   heading: string;
+  /** Editing a published job: description, location and work mode are marked and `required` (RF-03). */
+  published?: boolean;
   values: JobFormValues;
   errors: JobFormErrors;
   /** Error that does not belong to any field; shown in a `role="alert"` above the buttons. */
@@ -26,13 +28,16 @@ type Props = {
 type FieldProps = {
   name: FieldName;
   label: string;
+  required?: boolean;
   values: JobFormValues;
   errors: JobFormErrors;
   onChange: Props['onChange'];
 };
 
+type ControlProps = Omit<FieldProps, 'name' | 'label'>;
+
 // No native `maxLength` on any control: it counts UTF-16 units and would cut valid titles with emoji (EC-04).
-function TextInput({ name, label, values, errors, onChange }: FieldProps) {
+function TextInput({ name, label, required = false, values, errors, onChange }: FieldProps) {
   const numeric = name === 'salaryMin' || name === 'salaryMax';
   return (
     <FormField id={name} label={label} error={errors[name]}>
@@ -41,7 +46,7 @@ function TextInput({ name, label, values, errors, onChange }: FieldProps) {
           {...control}
           name={name}
           type="text"
-          required={name === 'title'}
+          required={required}
           inputMode={numeric ? 'numeric' : undefined}
           value={values[name]}
           onChange={(event) => onChange(name, event.target.value)}
@@ -51,11 +56,11 @@ function TextInput({ name, label, values, errors, onChange }: FieldProps) {
   );
 }
 
-function DescriptionField({ values, errors, onChange }: Omit<FieldProps, 'name' | 'label'>) {
+function DescriptionField({ required = false, values, errors, onChange }: ControlProps) {
   return (
     <FormField
       id="description"
-      label="Descripción"
+      label={required ? 'Descripción (obligatorio)' : 'Descripción'}
       help="Hasta 5 000 caracteres."
       error={errors.description}
     >
@@ -64,6 +69,7 @@ function DescriptionField({ values, errors, onChange }: Omit<FieldProps, 'name' 
           {...control}
           name="description"
           rows={6}
+          required={required}
           value={values.description}
           onChange={(event) => onChange('description', event.target.value)}
         />
@@ -72,13 +78,18 @@ function DescriptionField({ values, errors, onChange }: Omit<FieldProps, 'name' 
   );
 }
 
-function WorkModeField({ values, errors, onChange }: Omit<FieldProps, 'name' | 'label'>) {
+function WorkModeField({ required = false, values, errors, onChange }: ControlProps) {
   return (
-    <FormField id="workMode" label="Modalidad" error={errors.workMode}>
+    <FormField
+      id="workMode"
+      label={required ? 'Modalidad (obligatorio)' : 'Modalidad'}
+      error={errors.workMode}
+    >
       {(control) => (
         <select
           {...control}
           name="workMode"
+          required={required}
           value={values.workMode}
           onChange={(event) => onChange('workMode', event.target.value)}
         >
@@ -96,6 +107,7 @@ function WorkModeField({ values, errors, onChange }: Omit<FieldProps, 'name' | '
 // Presentational job form (`noValidate`: validation runs on submit, in the container).
 export function JobForm({
   heading,
+  published = false,
   values,
   errors,
   formError,
@@ -109,10 +121,15 @@ export function JobForm({
     <>
       <h1>{heading}</h1>
       <form noValidate onSubmit={onSubmit}>
-        <TextInput name="title" label="Título (obligatorio)" {...shared} />
-        <DescriptionField {...shared} />
-        <TextInput name="location" label="Ubicación" {...shared} />
-        <WorkModeField {...shared} />
+        <TextInput name="title" label="Título (obligatorio)" required {...shared} />
+        <DescriptionField required={published} {...shared} />
+        <TextInput
+          name="location"
+          label={published ? 'Ubicación (obligatorio)' : 'Ubicación'}
+          required={published}
+          {...shared}
+        />
+        <WorkModeField required={published} {...shared} />
         <TextInput name="salaryMin" label="Salario mínimo (€/año)" {...shared} />
         <TextInput name="salaryMax" label="Salario máximo (€/año)" {...shared} />
         {formError ? (

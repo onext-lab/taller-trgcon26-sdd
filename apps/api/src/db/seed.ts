@@ -3,11 +3,21 @@ import { createJobsRepository } from '../modules/jobs/repository.ts';
 import type { JobInput } from '../modules/jobs/schemas.ts';
 import { withTransaction } from './transaction.ts';
 
+interface SeedJob {
+  input: JobInput;
+  createdAt: string;
+  /** Si viene, la oferta se publica en esa fecha (`draft` → `published`). */
+  publishedAt?: string;
+  /** Si viene, la oferta se cierra en esa fecha (`published` → `closed`); exige `publishedAt`. */
+  closedAt?: string;
+}
+
 /**
  * Datos de ejemplo de data/ats.db (RF-07). Regla del taller: datos inventados siempre; nunca CVs, personas ni empresas
- * reales. Borradores completos y válidos (RN-02 a RN-04) con `created_at` fijos y escalonados: orden determinista.
+ * reales. 10 ofertas completas y válidas (RN-02 a RN-04) con fechas fijas en UTC: orden determinista. Las 4 primeras
+ * son borradores; las 4 siguientes están publicadas y las 2 últimas, cerradas.
  */
-const SEED_JOBS: readonly { input: JobInput; createdAt: string }[] = [
+const SEED_JOBS: readonly SeedJob[] = [
   {
     input: {
       title: 'Analista de datos junior',
@@ -52,16 +62,96 @@ const SEED_JOBS: readonly { input: JobInput; createdAt: string }[] = [
     },
     createdAt: '2026-10-01T10:00:00.000Z',
   },
+  {
+    input: {
+      title: 'Desarrollador/a backend (Node.js)',
+      description:
+        'Desarrollo de servicios y APIs con Node.js y bases de datos relacionales. Pruebas automatizadas y revisión de código.',
+      location: 'Málaga',
+      workMode: 'remota',
+      salaryMin: 36000,
+      salaryMax: 45000,
+    },
+    createdAt: '2026-09-29T09:00:00.000Z',
+    publishedAt: '2026-10-02T08:00:00.000Z',
+  },
+  {
+    input: {
+      title: 'Administrativo/a contable',
+      description:
+        'Registro de facturas, conciliación de cuentas y apoyo al cierre mensual. Se valora manejo de hojas de cálculo.',
+      location: 'Murcia',
+      workMode: 'presencial',
+    },
+    createdAt: '2026-09-22T07:45:00.000Z',
+    publishedAt: '2026-09-25T10:15:00.000Z',
+  },
+  {
+    input: {
+      title: 'Técnico/a de selección de personal',
+      description:
+        'Gestión de procesos de selección de principio a fin: publicación de ofertas, entrevistas y seguimiento de candidaturas.',
+      location: 'Valencia',
+      workMode: 'híbrida',
+      salaryMin: 30000,
+      salaryMax: 37000,
+    },
+    createdAt: '2026-09-17T10:00:00.000Z',
+    publishedAt: '2026-09-19T08:30:00.000Z',
+  },
+  {
+    input: {
+      title: 'Responsable de gestión de nóminas',
+      description:
+        'Coordinación del cálculo mensual de nóminas y de las cotizaciones. Interlocución con las gestorías externas.',
+      location: 'Madrid',
+      workMode: 'presencial',
+      salaryMin: 38000,
+      salaryMax: 46000,
+    },
+    createdAt: '2026-09-10T08:00:00.000Z',
+    publishedAt: '2026-09-12T09:00:00.000Z',
+  },
+  {
+    input: {
+      title: 'Becario/a de marketing digital',
+      description:
+        'Apoyo en la gestión de redes sociales y en campañas de correo. Beca de seis meses con tutor asignado.',
+      location: 'Barcelona',
+      workMode: 'remota',
+      salaryMin: 12000,
+      salaryMax: 14000,
+    },
+    createdAt: '2026-08-25T10:00:00.000Z',
+    publishedAt: '2026-08-27T08:00:00.000Z',
+    closedAt: '2026-09-26T15:30:00.000Z',
+  },
+  {
+    input: {
+      title: 'Auxiliar de logística',
+      description:
+        'Preparación de pedidos, control de existencias y carga de mercancía en almacén. Turno de tarde.',
+      location: 'Getafe',
+      workMode: 'presencial',
+    },
+    createdAt: '2026-08-18T08:00:00.000Z',
+    publishedAt: '2026-08-20T09:00:00.000Z',
+    closedAt: '2026-09-15T16:00:00.000Z',
+  },
 ];
 
-/** Títulos del seed en el orden del listado (fecha de referencia descendente). */
-export const SEED_TITLES_IN_LIST_ORDER: readonly string[] = SEED_JOBS.map(
-  ({ input }) => input.title,
-).reverse();
+/** Títulos del seed en el orden del listado: fecha de referencia (`publishedAt ?? createdAt`) descendente. */
+export const SEED_TITLES_IN_LIST_ORDER: readonly string[] = [...SEED_JOBS]
+  .sort((a, b) => (b.publishedAt ?? b.createdAt).localeCompare(a.publishedAt ?? a.createdAt))
+  .map(({ input }) => input.title);
 
 export function seed(db: DatabaseSync): void {
   const repository = createJobsRepository(db);
   withTransaction(db, () => {
-    for (const { input, createdAt } of SEED_JOBS) repository.insert(input, createdAt);
+    for (const { input, createdAt, publishedAt, closedAt } of SEED_JOBS) {
+      const { id } = repository.insert(input, createdAt);
+      if (publishedAt) repository.markPublished(id, publishedAt);
+      if (closedAt) repository.markClosed(id, closedAt);
+    }
   });
 }

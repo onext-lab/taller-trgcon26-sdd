@@ -42,6 +42,11 @@ export interface JobPage {
   pageSize: number;
 }
 
+/** `GET /api/jobs/:id/close-preview`: how many active applications closing the job would reject. */
+export interface ClosePreview {
+  activeApplications: number;
+}
+
 /** Body of `POST /api/jobs`: an empty optional is omitted or `null`, never `""`. */
 export interface JobInput {
   title: string;

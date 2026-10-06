@@ -1,13 +1,22 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Link, matchPath, navigate, useNotice, usePath } from '../../src/components/router.tsx';
+import {
+  Link,
+  matchPath,
+  navigate,
+  useNotice,
+  usePath,
+  useSearch,
+} from '../../src/components/router.tsx';
 
 function Probe() {
   const path = usePath();
+  const search = useSearch();
   const notice = useNotice();
   return (
     <div>
       <p>Ruta: {path}</p>
+      <p>Query: {search === '' ? '(vacía)' : search}</p>
       {notice ? <p role="status">{notice}</p> : null}
       <Link to="/jobs/new">Nueva oferta</Link>
     </div>
@@ -102,6 +111,37 @@ describe('router', () => {
 
     await waitFor(() => expect(screen.getByText('Ruta: /jobs/7/edit')).toBeDefined());
     expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('useSearch devuelve window.location.search y sigue a navigate sin cambiar de ruta', () => {
+    render(<Probe />);
+    expect(screen.getByText('Query: (vacía)')).toBeDefined();
+
+    act(() => navigate('/jobs?status=published&page=2'));
+
+    expect(screen.getByText('Query: ?status=published&page=2')).toBeDefined();
+    expect(screen.getByText('Ruta: /jobs')).toBeDefined();
+    expect(window.location.search).toBe('?status=published&page=2');
+  });
+
+  it('useSearch sigue a «atrás» (popstate)', async () => {
+    render(<Probe />);
+    act(() => navigate('/jobs?status=draft'));
+    act(() => navigate('/jobs?status=closed'));
+    expect(screen.getByText('Query: ?status=closed')).toBeDefined();
+
+    act(() => window.history.back());
+
+    await waitFor(() => expect(screen.getByText('Query: ?status=draft')).toBeDefined());
+  });
+
+  it('el aviso «Oferta duplicada.» viaja en history.state y se lee en destino', () => {
+    render(<Probe />);
+
+    act(() => navigate('/jobs/12', { notice: 'Oferta duplicada.' }));
+
+    expect(screen.getByRole('status').textContent).toBe('Oferta duplicada.');
+    expect(window.history.state).toEqual({ notice: 'Oferta duplicada.' });
   });
 
   it('ignora en history.state un aviso que no es uno de los textos fijos', () => {

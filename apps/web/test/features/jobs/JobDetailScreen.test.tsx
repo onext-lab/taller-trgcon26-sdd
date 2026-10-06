@@ -66,7 +66,7 @@ describe('JobDetailScreen', () => {
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
   });
 
-  it('muestra la ficha completa con solo «Editar» y «Borrar» como acciones (CA-19)', async () => {
+  it('muestra la ficha completa de un borrador con 4 controles en orden (CA-19, CA-23)', async () => {
     mockFetch({ 'GET /api/jobs/7': { status: 200, json: FULL_JOB } });
 
     render(<JobDetailScreen />);
@@ -93,9 +93,10 @@ describe('JobDetailScreen', () => {
     ]);
     const edit = screen.getByRole('link', { name: 'Editar' });
     expect(edit.getAttribute('href')).toBe('/jobs/7/edit');
-    expect(screen.getByRole('button', { name: 'Borrar' })).toBeDefined();
-    const main = screen.getAllByRole('link').length + screen.getAllByRole('button').length;
-    expect(main).toBe(2);
+    const controls = [...document.querySelectorAll('a, button')]
+      .filter((control) => control.closest('dialog') === null)
+      .map((control) => control.textContent);
+    expect(controls).toEqual(['Editar', 'Publicar', 'Borrar', 'Duplicar']);
     expect(screen.queryByRole('status')).toBeNull();
     await waitFor(() => expect(document.title).toBe('Desarrollador/a backend (Node.js) · ATS'));
   });

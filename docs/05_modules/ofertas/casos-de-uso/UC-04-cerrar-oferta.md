@@ -70,11 +70,11 @@ retención de los candidatos afectados (`docs/RGPD.md` §3, S-06).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-02 | | |
+| P | HU-02 | CA-05 | `apps/api/test/jobs/close.test.ts:51` |
 | A1 | HU-05 | | |
-| A2 | HU-02 | | |
-| A3 | HU-02 | | |
-| E1 | HU-02 | | |
-| E2 | HU-02 | | |
+| A2 | HU-02 | CA-06 | `apps/web/test/features/jobs/CloseJobAction.test.tsx:121` |
+| A3 | HU-02 | CA-07 | `apps/api/test/jobs/close.test.ts:80` |
+| E1 | HU-02 | CA-08 | `apps/api/test/jobs/close.test.ts:143` |
+| E2 | HU-02 | CA-09 | `apps/api/test/jobs/close.test.ts:161` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

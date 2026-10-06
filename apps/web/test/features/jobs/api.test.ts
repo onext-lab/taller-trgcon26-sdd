@@ -1,10 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, BAD_RESPONSE_MESSAGE } from '../../../src/components/http.ts';
 import {
+  closeJob,
   createJob,
   deleteJob,
+  duplicateJob,
+  getClosePreview,
   getJob,
+  isClosePreview,
   listJobs,
+  publishJob,
   updateJob,
 } from '../../../src/features/jobs/api.ts';
 import { jobPaths, parseJobId } from '../../../src/features/jobs/paths.ts';
@@ -49,12 +54,115 @@ describe('API de ofertas', () => {
   it('listJobs llama exactamente a GET /api/jobs, sin parámetros (EC-34)', async () => {
     const mock = mockFetch({ 'GET /api/jobs': { status: 200, json: PAGE } });
 
-    expect(await listJobs()).toEqual(PAGE);
+    expect(await listJobs([])).toEqual(PAGE);
 
     expect(summary(mock)).toEqual([
       { method: 'GET', url: '/api/jobs', contentType: undefined, body: undefined },
     ]);
     expect(mock.unmatched).toEqual([]);
+  });
+
+  it('listJobs con query llama a la URL exacta en orden canónico', async () => {
+    const url = '/api/jobs?status=published&q=gesti%C3%B3n&page=2&pageSize=50';
+    const mock = mockFetch({ [`GET ${url}`]: { status: 200, json: PAGE } });
+
+    await listJobs([
+      ['pageSize', '50'],
+      ['page', '2'],
+      ['q', 'gestión'],
+      ['status', 'published'],
+    ]);
+
+    expect(summary(mock)).toEqual([
+      { method: 'GET', url, contentType: undefined, body: undefined },
+    ]);
+    expect(mock.unmatched).toEqual([]);
+  });
+
+  it.each([
+    ['publishJob', publishJob, 'publish', 200, 'EC-01'],
+    ['closeJob', closeJob, 'close', 200, 'EC-10'],
+    ['duplicateJob', duplicateJob, 'duplicate', 201, 'CA-14'],
+  ])(
+    '%s hace POST /api/jobs/7/%s sin cuerpo ni Content-Type y valida la forma Job (%s %s)',
+    async (_name, action, path, status) => {
+      const mock = mockFetch({ [`POST /api/jobs/7/${path}`]: { status, json: JOB } });
+
+      expect(await action(7)).toEqual(JOB);
+
+      expect(summary(mock)).toEqual([
+        { method: 'POST', url: `/api/jobs/7/${path}`, contentType: undefined, body: undefined },
+      ]);
+    },
+  );
+
+  it.each([
+    ['publishJob', publishJob, 'publish'],
+    ['closeJob', closeJob, 'close'],
+    ['duplicateJob', duplicateJob, 'duplicate'],
+  ])(
+    '%s con una respuesta que no es un Job → ApiError de respuesta no válida',
+    async (_n, action, path) => {
+      mockFetch({ [`POST /api/jobs/7/${path}`]: { status: 200, json: { ...JOB, id: 'x' } } });
+
+      const error = await action(7).catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).message).toBe(BAD_RESPONSE_MESSAGE);
+    },
+  );
+
+  it('las acciones muestran el envelope de un 409 tal cual', async () => {
+    mockFetch({
+      'POST /api/jobs/7/close': {
+        status: 409,
+        json: {
+          error: {
+            code: 'INVALID_TRANSITION',
+            message: 'Un borrador no se puede cerrar: publícalo primero.',
+          },
+        },
+      },
+    });
+
+    const error = await closeJob(7).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(409);
+    expect((error as ApiError).message).toBe('Un borrador no se puede cerrar: publícalo primero.');
+  });
+
+  it('getClosePreview hace GET /api/jobs/{id}/close-preview sin cuerpo', async () => {
+    const mock = mockFetch({
+      'GET /api/jobs/7/close-preview': { status: 200, json: { activeApplications: 0 } },
+    });
+
+    expect(await getClosePreview(7)).toEqual({ activeApplications: 0 });
+
+    expect(summary(mock)).toEqual([
+      { method: 'GET', url: '/api/jobs/7/close-preview', contentType: undefined, body: undefined },
+    ]);
+  });
+
+  it.each([
+    ['sin activeApplications', {}],
+    ['negativo', { activeApplications: -1 }],
+    ['decimal', { activeApplications: 1.5 }],
+    ['texto', { activeApplications: '0' }],
+    ['null', null],
+  ])('getClosePreview con %s → ApiError de respuesta no válida', async (_name, body) => {
+    mockFetch({ 'GET /api/jobs/7/close-preview': { status: 200, json: body } });
+
+    const error = await getClosePreview(7).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe(BAD_RESPONSE_MESSAGE);
+  });
+
+  it('isClosePreview acepta un entero ≥ 0', () => {
+    expect(isClosePreview({ activeApplications: 0 })).toBe(true);
+    expect(isClosePreview({ activeApplications: 3 })).toBe(true);
+    expect(isClosePreview({ activeApplications: -1 })).toBe(false);
   });
 
   it('getJob llama a GET /api/jobs/{id} sin cuerpo', async () => {
@@ -131,7 +239,7 @@ describe('API de ofertas', () => {
   ])('EC-40 isJobPage rechaza una página con %s → ApiError', async (_name, body) => {
     mockFetch({ 'GET /api/jobs': { status: 200, json: body } });
 
-    const error = await listJobs().catch((caught: unknown) => caught);
+    const error = await listJobs([]).catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).message).toBe(BAD_RESPONSE_MESSAGE);
@@ -142,6 +250,8 @@ describe('API de ofertas', () => {
 
     await expect(getJob(0)).rejects.toThrow(RangeError);
     await expect(deleteJob(1.5)).rejects.toThrow(RangeError);
+    await expect(publishJob(0)).rejects.toThrow(RangeError);
+    await expect(getClosePreview(-1)).rejects.toThrow(RangeError);
 
     expect(mock.calls).toEqual([]);
   });

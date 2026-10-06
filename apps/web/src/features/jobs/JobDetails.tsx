@@ -1,26 +1,38 @@
+import type { Ref } from 'react';
 import { formatDate } from '../../components/format.ts';
-import { Link } from '../../components/router.tsx';
-import { DeleteJobAction } from './DeleteJobAction.tsx';
 import { formatSalaryBand, jobStatusLabel, NOT_SPECIFIED_TEXT, workModeLabel } from './labels.ts';
-import { jobPaths } from './paths.ts';
 import type { Job } from './types.ts';
 
-// Actions depend on the status so that later stories only add theirs here.
-function JobActions({ job }: { job: Job }) {
-  if (job.status !== 'draft') return null;
+export const CLOSED_READ_ONLY_TEXT =
+  'Esta oferta está cerrada y no se puede modificar. Para volver a publicarla, duplícala.';
+
+// A date that the job does not have (`null`) is not painted at all, not even as «Sin indicar» (EC-42).
+function DateEntry({ label, iso }: { label: string; iso: string | null }) {
+  if (iso === null) return null;
   return (
-    <div className="actions">
-      <Link to={jobPaths.edit(job.id)}>Editar</Link>
-      <DeleteJobAction id={job.id} title={job.title} />
-    </div>
+    <>
+      <dt>{label}</dt>
+      <dd>
+        <time dateTime={iso}>{formatDate(iso)}</time>
+      </dd>
+    </>
   );
 }
 
+type Props = {
+  job: Job;
+  /** The container moves the focus here after an action (DD-07). */
+  headingRef?: Ref<HTMLHeadingElement>;
+};
+
 // Presentational detail of a job (RF-06). Every value is rendered as JSX text (RNF-04): never as HTML.
-export function JobDetails({ job }: { job: Job }) {
+// The actions of each status live in `JobActions`.
+export function JobDetails({ job, headingRef }: Props) {
   return (
     <>
-      <h1>{job.title}</h1>
+      <h1 ref={headingRef} tabIndex={-1}>
+        {job.title}
+      </h1>
       <dl>
         <dt>Estado</dt>
         <dd>{jobStatusLabel(job.status)}</dd>
@@ -32,12 +44,11 @@ export function JobDetails({ job }: { job: Job }) {
         <dd>{workModeLabel(job.workMode)}</dd>
         <dt>Banda salarial</dt>
         <dd>{formatSalaryBand(job.salaryMin, job.salaryMax)}</dd>
-        <dt>Fecha de creación</dt>
-        <dd>
-          <time dateTime={job.createdAt}>{formatDate(job.createdAt)}</time>
-        </dd>
+        <DateEntry label="Fecha de creación" iso={job.createdAt} />
+        <DateEntry label="Fecha de publicación" iso={job.publishedAt} />
+        <DateEntry label="Fecha de cierre" iso={job.closedAt} />
       </dl>
-      <JobActions job={job} />
+      {job.status === 'closed' ? <p>{CLOSED_READ_ONLY_TEXT}</p> : null}
     </>
   );
 }
