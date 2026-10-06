@@ -75,7 +75,6 @@ describe('POST /api/jobs — mass assignment (CA-08, EC-02)', () => {
     ['status', 'published'],
     ['createdAt', '2020-01-01T00:00:00.000Z'],
     ['id', 99],
-    ['foo', 'bar'],
   ])('CA-08/EC-02 campo %s → 400 con el campo en details', async (field, value) => {
     const response = await postJob({ title: 'Oferta inventada', [field]: value });
 
@@ -87,6 +86,21 @@ describe('POST /api/jobs — mass assignment (CA-08, EC-02)', () => {
         details: [{ field, message: 'Campo no permitido.' }],
       },
     });
+    expect(countJobs()).toBe(0);
+  });
+
+  it('CA-08/EC-02 clave no declarada foo → 400 sin nombrarla (DEC-11.4)', async () => {
+    const response = await postJob({ title: 'Oferta inventada', foo: 'bar' });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Hay campos con errores.',
+        details: [{ field: 'body', message: 'Hay campos no permitidos.' }],
+      },
+    });
+    expect(response.body).not.toContain('foo');
     expect(countJobs()).toBe(0);
   });
 });

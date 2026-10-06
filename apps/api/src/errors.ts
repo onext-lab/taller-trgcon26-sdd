@@ -1,6 +1,8 @@
 export interface ErrorDetail {
   field: string;
   message: string;
+  /** Solo en un 409 `DUPLICATE` (DEC-07, DEC-11.4): el ID del existente, nunca otro dato suyo. */
+  existingId?: number;
 }
 
 /**
@@ -32,4 +34,9 @@ export function invalidTransition(message: string): AppError {
 
 export function validationError(details: ErrorDetail[]): AppError {
   return new AppError('VALIDATION_ERROR', 400, 'Hay campos con errores.', details);
+}
+
+/** 409 de unicidad (DEC-07): el elemento lleva `existingId`; el `message` es fijo y nunca lleva el valor repetido. */
+export function duplicate({ field, message, existingId }: Required<ErrorDetail>): AppError {
+  return new AppError('DUPLICATE', 409, message, [{ field, message, existingId }]);
 }

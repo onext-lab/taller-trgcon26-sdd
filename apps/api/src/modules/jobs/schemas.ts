@@ -1,7 +1,11 @@
 // Contrato del módulo jobs (TECHNICAL_DOC-backend § Esquemas compartidos). Longitudes en puntos de código: Ajv cuenta
 // con `unicode: true` (su valor por defecto), igual que `length()` de SQLite.
 
-import { NO_CONTROL_CHARS, NO_CONTROL_CHARS_EXCEPT_WHITESPACE } from '../../http/validation.ts';
+import {
+  NO_CONTROL_CHARS,
+  NO_CONTROL_CHARS_EXCEPT_WHITESPACE,
+  forbiddenFields,
+} from '../../http/validation.ts';
 
 export const WORK_MODES = ['presencial', 'híbrida', 'remota'] as const;
 export const JOB_STATUSES = ['draft', 'published', 'closed'] as const;
@@ -173,12 +177,15 @@ export const listQuerySchema = {
   },
 } as const;
 
+/** Solo lectura que el alta y la edición nombran con «Campo no permitido.» (DEC-11.4); el resto sale sin nombre. */
+const readOnlyFields = forbiddenFields(['id', 'status', 'createdAt', 'publishedAt', 'closedAt']);
+
 /** Cuerpo de `POST /api/jobs`. */
 export const createJobBodySchema = {
   type: 'object',
   additionalProperties: false,
   required: ['title'],
-  properties: jobFieldsSchema,
+  properties: { ...jobFieldsSchema, ...readOnlyFields },
 } as const;
 
 /** Cuerpo de `PATCH /api/jobs/:id`: al menos un campo; un campo ausente no cambia. `title` no admite `null`. */
@@ -186,7 +193,7 @@ export const updateJobBodySchema = {
   type: 'object',
   additionalProperties: false,
   minProperties: 1,
-  properties: jobFieldsSchema,
+  properties: { ...jobFieldsSchema, ...readOnlyFields },
 } as const;
 
 /** Respuesta de `GET /api/jobs/:id/close-preview`. */

@@ -233,9 +233,9 @@ describe('envelope de error (RNF-03)', () => {
       code: 'Debe tener al menos 3 caracteres.',
       when: 'Formato no válido.',
       nested: 'Debe ser un objeto JSON.',
-      flag: 'Tipo de dato no válido.',
+      flag: 'Debe ser verdadero o falso.',
       even: 'Valor no válido.',
-      extra: 'Campo no permitido.',
+      body: 'Hay campos no permitidos.',
     });
     // Ningún mensaje repite el valor recibido.
     for (const received of ['hibrida', 'ayer-inventado', 'quizá', 'sobrante']) {
@@ -289,7 +289,7 @@ describe('envelope de error (RNF-03)', () => {
       [{ field: 'id', message: 'Formato no válido.' }],
       [{ field: 'id', message: 'Formato no válido.' }],
       [{ field: 'id', message: 'Formato no válido.' }],
-      [{ field: 'page', message: 'Campo no permitido.' }],
+      [{ field: 'querystring', message: 'Hay campos no permitidos.' }],
     ]);
 
     const valid = await app.inject({ method: 'GET', url: '/test/items/12' });

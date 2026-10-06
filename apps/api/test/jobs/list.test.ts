@@ -91,23 +91,23 @@ describe('GET /api/jobs — listado (camino feliz y fronteras)', () => {
 });
 
 describe('GET /api/jobs — adversarial', () => {
-  it.each([
-    ['?sort=title', 'sort'],
-    ['?foo=1', 'foo'],
-  ])('EC-34 (HU-01) parámetro desconocido %s → 400', async (query, field) => {
-    await createDrafts(1);
+  it.each(['?sort=title', '?foo=1'])(
+    'EC-34 (HU-01) parámetro desconocido %s → 400',
+    async (query) => {
+      await createDrafts(1);
 
-    const response = await app.inject({ method: 'GET', url: `/api/jobs${query}` });
+      const response = await app.inject({ method: 'GET', url: `/api/jobs${query}` });
 
-    expect(response.statusCode).toBe(400);
-    expect(response.json()).toEqual({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Hay campos con errores.',
-        details: [{ field, message: 'Campo no permitido.' }],
-      },
-    });
-  });
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toEqual({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Hay campos con errores.',
+          details: [{ field: 'querystring', message: 'Hay campos no permitidos.' }],
+        },
+      });
+    },
+  );
 
   it('EC-41 el título con HTML se devuelve literal', async () => {
     const title = '<img src=x onerror=alert(1)>';

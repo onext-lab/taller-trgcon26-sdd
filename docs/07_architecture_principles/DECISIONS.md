@@ -183,8 +183,13 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   1. Ajv con `coerceTypes: false`, `removeAdditional: false` y `allErrors: true`.
   2. Los numéricos de `params` y `querystring` se declaran como `string` con `pattern` y se convierten en la ruta.
   3. Los textos se recortan en el hook `preValidation`; un texto opcional que queda vacío pasa a `null`.
-  4. `details` es `[{ field, message }]`, un elemento por campo, con mensajes en castellano por *keyword* y **sin
-     repetir el valor recibido**.
+  4. `details` es `[{ field, message }]`, con mensajes en castellano por *keyword* y **sin repetir el valor
+     recibido**, y está **acotado al esquema**: como mucho un elemento por campo declarado en el esquema de la parte
+     validada (`body`, `querystring` o `params`) más uno para todas las claves no declaradas juntas, que sale como
+     `{ field: 'body' }` o `{ field: 'querystring' }` con «Hay campos no permitidos.» y **sin el nombre de ninguna**.
+     Los campos de solo lectura que la API nombra (`id`, fechas, estado, `retentionEndsAt`…) se declaran en el
+     esquema con el esquema `false` y salen con su nombre y «Campo no permitido.». En un 409 `DUPLICATE`, el elemento
+     lleva además `existingId` con el ID del existente (DEC-07).
   5. Códigos adicionales a los de DEC-07: `INTERNAL_ERROR` (500), `PAYLOAD_TOO_LARGE` (413),
      `UNSUPPORTED_MEDIA_TYPE` (415) y `BAD_REQUEST` (otros 4xx). Todos en el envelope de DEC-01, sin *stack traces*.
   6. Reloj `Clock = () => Date` inyectado en `buildApp({ now })` (concreta DEC-09).
@@ -201,7 +206,8 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   manejador lo traduce. Las HU siguientes reutilizan el manejador de errores, el recorte, `withTransaction` y las
   utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
   texto → 400».
-- **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1).
+- **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1);
+  punto 4 enmendado en el diseño de HU-03.
 
 ## DEC-12 · Escrituras desde otro sitio: 403 por `Sec-Fetch-Site`
 

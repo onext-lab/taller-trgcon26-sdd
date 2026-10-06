@@ -59,7 +59,7 @@ describe('GET /api/jobs — parámetros inválidos', () => {
     ['pageSize=abc', 'pageSize', INVALID_FORMAT],
     ['status=Published', 'status', STATUS_MESSAGE],
     ['status=draft&status=closed', 'status', 'Debe ser un texto.'],
-    ['sort=title', 'sort', 'Campo no permitido.'],
+    ['sort=title', 'querystring', 'Hay campos no permitidos.'],
   ])(
     'EC-32 parámetro inválido o desconocido (%s) → 400 con el parámetro',
     async (query, field, message) => {
