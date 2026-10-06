@@ -113,3 +113,9 @@ export function computeRetentionEndsAt(facts: {
 - Las fechas de partida son el día natural en Europe/Madrid del instante UTC guardado (DEC-09).
 - `candidates` no importa nada de `jobs` ni de `applications` (DEC-06).
 - Riesgo heredado: `Intl` con ICU reducido. Node 24 trae ICU completo; el caso del cambio de hora lo vigila.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Drift DD-01: el comentario de `lastProcessClosedAt` en `apps/api/src/modules/candidates/processes-port.ts:8-10` dice que incumplir el contrato «hace fallar el cálculo», pero `computeRetentionEndsAt` solo lanza si no aplica ningún plazo (como fija el TD-backend § Firmas internas). Corrige el comentario para que diga eso: «error solo si no aplica ningún plazo; con otro plazo vigente la incoherencia no se detecta». Sin cambio de comportamiento.
+- **Ficheros:** `apps/api/src/modules/candidates/processes-port.ts`
+- **Criterios de done:** Solo cambia el comentario; `npm test -w @ats/api -- candidates/retention` en verde; eslint del fichero a 0.

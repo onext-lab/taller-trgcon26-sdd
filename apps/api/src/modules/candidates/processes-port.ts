@@ -6,7 +6,8 @@ export interface CandidateProcesses {
   hadAnyApplication: boolean;
   /**
    * Instante ISO UTC del cierre del último proceso. Contrato: no nulo si `hadAnyApplication` y no
-   * `hasOpenApplication`; quien lo incumple hace fallar el cálculo de la retención.
+   * `hasOpenApplication`; incumplirlo da error solo si no aplica ningún plazo de retención; con otro plazo
+   * vigente la incoherencia no se detecta.
    */
   lastProcessClosedAt: string | null;
 }

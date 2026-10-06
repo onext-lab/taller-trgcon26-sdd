@@ -94,3 +94,30 @@ INTEGRACION rc=0
 - **Resultado:** en verde. `npm run db:reset` aplica 2 migraciones. `computeRetentionEndsAt` lanza `Error` solo si no aplica ningún plazo, como fija el TD-backend (§ Firmas internas).
 - **Commit:** el de esta tarea (`[HU-03 TASK-02]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** Drift DD-01: el comentario de `lastProcessClosedAt` en `apps/api/src/modules/candidates/processes-port.ts:8-10` dice que incumplir el contrato «hace fallar el cálculo», pero `computeRetentionEndsAt` solo lanza si no aplica ningún plazo (como fija el TD-backend § Firmas internas). Corrige el comentario para que diga eso: «error solo si no aplica ningún plazo; con otro plazo vigente la incoherencia no se detecta». Sin cambio de comportamiento.
+- **Ficheros:** `apps/api/src/modules/candidates/processes-port.ts`
+- **Verificación que debes pegar:** Solo cambia el comentario; `npm test -w @ats/api -- candidates/retention` en verde; eslint del fichero a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- candidates/retention
+ Test Files  1 passed (1)
+      Tests  32 passed (32)
+exit=0
+$ npm run typecheck -w @ats/api
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/src/modules/candidates/processes-port.ts
+exit=0
+$ wc -l (ficheros tocados)
+      30 apps/api/src/modules/candidates/processes-port.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** en verde; solo cambia el comentario (DD-01 de la review).
+
