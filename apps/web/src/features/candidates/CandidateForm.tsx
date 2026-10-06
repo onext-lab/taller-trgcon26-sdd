@@ -106,6 +106,34 @@ function ConsentFieldset({
   );
 }
 
+// 409: link to the candidate that already has the email (nothing else about them is shown, DD-06).
+function DuplicateLink({ id }: { id: number | undefined }) {
+  if (id === undefined) return null;
+  return (
+    <p>
+      <Link to={candidatePaths.detail(id)}>Ver el candidato existente</Link>
+    </p>
+  );
+}
+
+function FormFooter({ formError, busy, cancelTo }: Pick<Props, 'formError' | 'busy' | 'cancelTo'>) {
+  return (
+    <>
+      {formError ? (
+        <p role="alert" className="error-text">
+          {formError}
+        </p>
+      ) : null}
+      <p>
+        <button type="submit" disabled={busy}>
+          {busy ? 'Guardando…' : 'Guardar'}
+        </button>{' '}
+        <Link to={cancelTo}>Cancelar</Link>
+      </p>
+    </>
+  );
+}
+
 // Presentational candidate form (`noValidate`: validation runs on submit, in the container).
 export function CandidateForm({
   heading,
@@ -127,11 +155,7 @@ export function CandidateForm({
       <form noValidate onSubmit={onSubmit}>
         <TextInput name="fullName" label="Nombre y apellidos (obligatorio)" {...shared} />
         <TextInput name="email" label="Email (obligatorio)" inputMode="email" {...shared} />
-        {duplicateId === undefined ? null : (
-          <p>
-            <Link to={candidatePaths.detail(duplicateId)}>Ver el candidato existente</Link>
-          </p>
-        )}
+        <DuplicateLink id={duplicateId} />
         <TextInput name="phone" label="Teléfono" inputMode="tel" {...shared} />
         <SummaryField {...shared} />
         <TextInput
@@ -143,17 +167,7 @@ export function CandidateForm({
         {withConsent ? (
           <ConsentFieldset checked={values.consent} onChange={onConsentChange} />
         ) : null}
-        {formError ? (
-          <p role="alert" className="error-text">
-            {formError}
-          </p>
-        ) : null}
-        <p>
-          <button type="submit" disabled={busy}>
-            {busy ? 'Guardando…' : 'Guardar'}
-          </button>{' '}
-          <Link to={cancelTo}>Cancelar</Link>
-        </p>
+        <FormFooter formError={formError} busy={busy} cancelTo={cancelTo} />
       </form>
     </>
   );

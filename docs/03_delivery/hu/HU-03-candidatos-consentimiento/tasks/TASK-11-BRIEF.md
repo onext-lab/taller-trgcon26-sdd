@@ -95,3 +95,36 @@ INTEGRACION rc=0
 - **Resultado:** en verde (integración conjunta con TASK-12, que comparte `App.tsx`; el commit de esta tarea lleva solo sus dos rutas). Las skills vacías se omiten en el alta. Para no pasar de 300 líneas se quitaron casos menores del test de edición; siguen cubiertos en el modelo y en el alta.
 - **Commit:** el de esta tarea (`[HU-03 TASK-11]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** Gate de QUALITY-GATES (≤ 50 líneas por función): `CandidateForm` tiene 51. Extrae una parte del JSX (p. ej. la sección de consentimiento o el bloque del email con el enlace del 409) a un componente o función de render, sin cambiar el comportamiento ni los tests. Unifica el texto de `CandidateNotFound` con el de la ficha: «El candidato que buscas no existe.» (drift DD-06).
+- **Ficheros:** `apps/web/src/features/candidates/CandidateForm.tsx`, `apps/web/src/features/candidates/CandidateFormScreen.tsx` (y su test si comprueba el texto)
+- **Verificación que debes pegar:** `CandidateForm` ≤ 50 líneas medido con max-lines-per-function (skipBlankLines y skipComments); `npm test -w @ats/web -- CandidateFormScreen candidate-form-model` en verde; typecheck y eslint de los ficheros tocados a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- candidates/api CandidateFormScreen candidate-form-model CandidateDetailScreen
+ Test Files  9 passed (9)
+      Tests  161 passed (161)
+exit=0
+$ npm run typecheck 
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/test/features/candidates/api.test.ts apps/web/test/features/candidates/api.errors.test.ts apps/web/src/features/candidates/CandidateForm.tsx apps/web/src/features/candidates/CandidateFormScreen.tsx apps/web/src/features/candidates/ConsentSection.tsx apps/web/src/features/candidates/use-consent-actions.ts apps/web/src/features/candidates/use-consent-focus.ts apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx
+exit=0
+$ wc -l (ficheros tocados)
+     148 apps/web/test/features/candidates/api.errors.test.ts
+     174 apps/web/src/features/candidates/CandidateForm.tsx
+     197 apps/web/src/features/candidates/CandidateFormScreen.tsx
+     226 apps/web/test/features/candidates/api.test.ts
+     279 apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx
+    1277 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** en verde: `CandidateForm` ≤ 50 (extraídos `DuplicateLink` y `FormFooter`); `CandidateNotFound` con el texto de la ficha. gates.sh sin avisos en candidatos.
+

@@ -98,3 +98,12 @@ Pantallas `/candidates/new` y `/candidates/:id/edit` con el patrón de `JobFormS
   lista de tokens (`[]` si se vacía). Nunca el consentimiento.
 - La ruta `/candidates/:id` (ficha) llega en TASK-12: aquí los tests comprueban la navegación por la ruta, no la ficha.
 - Los casos hostiles del formulario (doble clic, control, claves, 403/413, título) van en TASK-13.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Gate de QUALITY-GATES (≤ 50 líneas por función): `CandidateForm` tiene 51. Extrae una parte del JSX (p. ej. la sección de consentimiento o el bloque del email con el enlace del 409) a un componente o función de render, sin cambiar el comportamiento ni los tests. Unifica el texto de `CandidateNotFound` con el de la ficha: «El candidato que buscas no existe.» (drift DD-06).
+- **Ficheros:** `apps/web/src/features/candidates/CandidateForm.tsx`, `apps/web/src/features/candidates/CandidateFormScreen.tsx` (y su test si comprueba el texto)
+- **Criterios de done:** `CandidateForm` ≤ 50 líneas medido con max-lines-per-function (skipBlankLines y skipComments); `npm test -w @ats/web -- CandidateFormScreen candidate-form-model` en verde; typecheck y eslint de los ficheros tocados a 0.
+
+## Nota · review ronda 1 (2026-10-06)
+`splitCandidateServerError` devuelve además `gone?: boolean` (404 al cargar o al guardar), que pinta la alerta con «Volver a los candidatos» (drift DD-07 de la review).

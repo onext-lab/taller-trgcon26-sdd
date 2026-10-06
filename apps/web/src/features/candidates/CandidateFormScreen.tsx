@@ -42,7 +42,7 @@ function CandidateNotFound() {
   return (
     <>
       <h1>{NOT_FOUND_TITLE}</h1>
-      <p>El candidato que buscas no existe o ya no está disponible.</p>
+      <p>El candidato que buscas no existe.</p>
       <p>
         <Link to={candidatePaths.list}>Volver a los candidatos</Link>
       </p>
