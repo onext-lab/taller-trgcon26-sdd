@@ -5,7 +5,9 @@ import {
   jobPageSchema,
   jobSchema,
   listQuerySchema,
+  updateJobBodySchema,
   type JobInput,
+  type JobPatch,
 } from './schemas.ts';
 import type { JobsService } from './service.ts';
 
@@ -45,5 +47,25 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
     '/:id',
     { schema: { params: idParamsSchema, response: { 200: jobSchema } } },
     (request) => service.get(Number(request.params.id)),
+  );
+
+  // Orden: JSON Schema de `params` y `body` (400) → existencia (404) → reglas del servicio (400).
+  app.patch<{ Params: IdParams; Body: JobPatch }>(
+    '/:id',
+    {
+      preValidation: trimJobText,
+      schema: { params: idParamsSchema, body: updateJobBodySchema, response: { 200: jobSchema } },
+    },
+    (request) => service.update(Number(request.params.id), request.body),
+  );
+
+  // Sin cuerpo: 204 vacío.
+  app.delete<{ Params: IdParams }>(
+    '/:id',
+    { schema: { params: idParamsSchema } },
+    (request, reply) => {
+      service.remove(Number(request.params.id));
+      return reply.code(204).send();
+    },
   );
 };

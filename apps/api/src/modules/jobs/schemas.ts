@@ -134,3 +134,11 @@ export const createJobBodySchema = {
   required: ['title'],
   properties: jobFieldsSchema,
 } as const;
+
+/** Cuerpo de `PATCH /api/jobs/:id`: al menos un campo; un campo ausente no cambia. `title` no admite `null`. */
+export const updateJobBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  minProperties: 1,
+  properties: jobFieldsSchema,
+} as const;

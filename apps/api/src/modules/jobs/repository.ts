@@ -37,6 +37,22 @@ const INSERT_SQL = `INSERT INTO job_openings
   VALUES (?, ?, ?, ?, ?, ?, 'draft', ?)
   RETURNING *`;
 
+// DD-05: lista fija de las 6 columnas editables; nunca un `SET` construido con las claves recibidas.
+const UPDATE_SQL = `UPDATE job_openings
+  SET title = ?, description = ?, location = ?, work_mode = ?, salary_min = ?, salary_max = ?
+  WHERE id = ?
+  RETURNING *`;
+
+/** Los 6 campos editables ya fusionados (todos presentes). */
+export interface JobEditableFields {
+  title: string;
+  description: string | null;
+  location: string | null;
+  workMode: WorkMode | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+}
+
 interface JobListRow {
   id: number;
   title: string;
@@ -84,6 +100,25 @@ export function createJobsRepository(db: DatabaseSync) {
         );
       if (!row) throw new Error('INSERT ... RETURNING no devolvió la fila');
       return toJob(row as unknown as JobRow);
+    },
+    /** `undefined` si no hay fila con ese `id`. */
+    update(id: number, fields: JobEditableFields): Job | undefined {
+      const row = db
+        .prepare(UPDATE_SQL)
+        .get(
+          fields.title,
+          fields.description,
+          fields.location,
+          fields.workMode,
+          fields.salaryMin,
+          fields.salaryMax,
+          id,
+        );
+      return row ? toJob(row as unknown as JobRow) : undefined;
+    },
+    /** Borrado físico; devuelve las filas borradas (0 o 1). */
+    deleteById(id: number): number {
+      return Number(db.prepare('DELETE FROM job_openings WHERE id = ?').run(id).changes);
     },
   };
 }
