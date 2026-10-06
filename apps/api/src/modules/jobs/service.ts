@@ -13,9 +13,12 @@ export interface JobsService {
   create(input: JobInput): Job;
   /** `NOT_FOUND` si no existe. */
   get(id: number): Job;
-  /** Lectura-fusión-escritura (DD-05). `NOT_FOUND` si no existe; `VALIDATION_ERROR` si mínimo > máximo fusionados. */
+  /**
+   * Lectura-fusión-escritura (DD-05). `NOT_FOUND` si no existe; `INVALID_TRANSITION` si está `closed`;
+   * `VALIDATION_ERROR` si, ya fusionado, mínimo > máximo o falta un obligatorio de una `published`.
+   */
   update(id: number, patch: JobPatch): Job;
-  /** Borrado físico. `NOT_FOUND` si no existe. */
+  /** Borrado físico, solo de un `draft`. `NOT_FOUND` si no existe; `INVALID_TRANSITION` si está `published` o `closed`. */
   remove(id: number): void;
   /** `draft` → `published` con `publishedAt = now()`. Ya publicada: la devuelve igual. 404 · 409 · 400 (campos pendientes). */
   publish(id: number): Job;
@@ -78,18 +81,29 @@ export function createJobsService({
       return requireJob(repository, id);
     },
     update(id, patch) {
+      // Orden DT-04: 404 → estado (409) → reglas de campos (400), todo dentro de la transacción (DEC-08).
       return transaction(() => {
         const current = requireJob(repository, id);
-        // Gana la última escritura, campo a campo (DEC-08); la regla de la banda se aplica a lo fusionado (DD-04).
+        checkAction('update', current.status);
+        // Gana la última escritura, campo a campo (DEC-08); las reglas se aplican a lo fusionado (DD-04).
         const merged: JobEditableFields = { ...editableFields(current), ...patch };
-        assertNoDetails(salaryRangeDetails(merged.salaryMin, merged.salaryMax));
+        const missing =
+          current.status === 'published'
+            ? missingRequiredDetails(merged, 'Obligatorio en una oferta publicada.')
+            : [];
+        // Un único 400 con los obligatorios y, detrás, la banda (DD-07).
+        assertNoDetails([...missing, ...salaryRangeDetails(merged.salaryMin, merged.salaryMax)]);
         const updated = repository.update(id, merged);
         if (!updated) throw notFound(NOT_FOUND_MESSAGE);
         return updated;
       });
     },
     remove(id) {
-      if (repository.deleteById(id) === 0) throw notFound(NOT_FOUND_MESSAGE);
+      return transaction(() => {
+        const current = requireJob(repository, id);
+        checkAction('remove', current.status);
+        if (repository.deleteById(id) === 0) throw notFound(NOT_FOUND_MESSAGE);
+      });
     },
     publish(id) {
       // Orden DT-04: 404 → estado (409) → reglas de campos (400).
