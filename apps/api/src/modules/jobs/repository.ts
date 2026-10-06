@@ -43,6 +43,15 @@ const UPDATE_SQL = `UPDATE job_openings
   WHERE id = ?
   RETURNING *`;
 
+// DD-08: la guarda de estado va en el propio UPDATE; sin fila afectada → `undefined`.
+const MARK_PUBLISHED_SQL = `UPDATE job_openings SET status = 'published', published_at = ?
+  WHERE id = ? AND status = 'draft'
+  RETURNING *`;
+
+const MARK_CLOSED_SQL = `UPDATE job_openings SET status = 'closed', closed_at = ?
+  WHERE id = ? AND status = 'published'
+  RETURNING *`;
+
 /** Los 6 campos editables ya fusionados (todos presentes). */
 export interface JobEditableFields {
   title: string;
@@ -114,6 +123,16 @@ export function createJobsRepository(db: DatabaseSync) {
           fields.salaryMax,
           id,
         );
+      return row ? toJob(row as unknown as JobRow) : undefined;
+    },
+    /** `draft` → `published`; `undefined` si no existe o no está en `draft`. */
+    markPublished(id: number, publishedAt: string): Job | undefined {
+      const row = db.prepare(MARK_PUBLISHED_SQL).get(publishedAt, id);
+      return row ? toJob(row as unknown as JobRow) : undefined;
+    },
+    /** `published` → `closed`; `undefined` si no existe o no está en `published`. */
+    markClosed(id: number, closedAt: string): Job | undefined {
+      const row = db.prepare(MARK_CLOSED_SQL).get(closedAt, id);
       return row ? toJob(row as unknown as JobRow) : undefined;
     },
     /** Borrado físico; devuelve las filas borradas (0 o 1). */

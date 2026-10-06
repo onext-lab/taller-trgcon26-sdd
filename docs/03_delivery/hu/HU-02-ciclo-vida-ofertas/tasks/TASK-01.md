@@ -4,7 +4,7 @@
 - **HU:** HU-02 · **Feature:** FEAT-01
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (prepara RF-01 a RF-04; incluye RF-07, Should)
 - **Complejidad:** L (2–4 h; estimada 3 h)
 

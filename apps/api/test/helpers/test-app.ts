@@ -4,17 +4,54 @@ import { buildApp } from '../../src/app.ts';
 import type { Clock } from '../../src/clock.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
+import type { JobApplicationsPort } from '../../src/modules/jobs/applications-port.ts';
 import type { Job } from '../../src/modules/jobs/schemas.ts';
 
-/** App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. */
-export function createTestApp({ now }: { now?: Clock } = {}): {
+/**
+ * App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. `now` y
+ * `jobApplications` son opcionales: sin ellos, reloj del sistema y `noJobApplications`.
+ */
+export function createTestApp({
+  now,
+  jobApplications,
+}: { now?: Clock; jobApplications?: JobApplicationsPort } = {}): {
   app: FastifyInstance;
   db: DatabaseSync;
 } {
   const db = openDatabase(':memory:');
   migrate(db);
-  const app = buildApp({ db, now });
+  const app = buildApp({ db, now, jobApplications });
   return { app, db };
+}
+
+export interface RejectCall {
+  jobId: number;
+  closedAt: string;
+}
+
+export interface ApplicationsSpy {
+  port: JobApplicationsPort;
+  /** Llamadas recibidas por `rejectActiveApplications`, en orden. */
+  rejectCalls: RejectCall[];
+}
+
+/**
+ * Doble del puerto de inscripciones, sin mocks de módulo: cuenta 0 activas y guarda cada llamada de rechazo. Con
+ * `failOnReject` lanza un error real tras guardarla, para probar que el cierre se deshace entero (CA-09).
+ */
+export function createApplicationsSpy({
+  failOnReject = false,
+}: { failOnReject?: boolean } = {}): ApplicationsSpy {
+  const rejectCalls: RejectCall[] = [];
+  const port: JobApplicationsPort = {
+    countActiveApplications: () => 0,
+    rejectActiveApplications(input) {
+      rejectCalls.push(input);
+      if (failOnReject) throw new Error('fallo simulado del rechazo');
+      return 0;
+    },
+  };
+  return { port, rejectCalls };
 }
 
 /** Crea una oferta con `POST /api/jobs` y la devuelve; falla si la respuesta no es 201. */

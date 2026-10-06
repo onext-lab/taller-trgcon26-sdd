@@ -1,5 +1,6 @@
 import type { Clock } from '../../clock.ts';
 import { notFound, validationError } from '../../errors.ts';
+import type { JobApplicationsPort } from './applications-port.ts';
 import type { JobEditableFields, JobsRepository } from './repository.ts';
 import type { Job, JobInput, JobPage, JobPatch } from './schemas.ts';
 
@@ -25,6 +26,8 @@ export interface JobsServiceDeps {
   now: Clock;
   /** `(fn) => withTransaction(db, fn)` (DEC-06). */
   transaction: <T>(fn: () => T) => T;
+  /** Puerto hacia `inscripciones` (DD-03). Aún sin usar: lo usan los casos de uso de TASK-02. */
+  applications: JobApplicationsPort;
 }
 
 const NOT_FOUND_MESSAGE = 'La oferta no existe.';
