@@ -7,6 +7,8 @@
 
 ## 1. Qué hay que hacer
 - **La task es el contrato:** `docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN.md` (criterios de done incluidos).
+- **Capa y builder:** `api` → `api-builder` | `web` → `web-builder` (copiada del campo `Capa:` de la task; si falta,
+  deducida de «Archivos afectados» y dicho aquí).
 - **Diseño:** `docs/03_delivery/hu/HU-NN-slug/plans/TECHNICAL_DOC.md`, secciones <anclas> (no el documento entero).
 - **Criterios que cubre:** RF-NN, EC-NN del `specs/PRD.md`.
 - **Dónde se trabaja:** repo `<ruta absoluta>`, rama `hu/HU-NN-slug` (ya creada; no cambies de rama).

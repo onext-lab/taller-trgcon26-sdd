@@ -22,6 +22,7 @@ código, review y sincronización de la documentación viven en la carpeta de ca
 | **La sesión de Claude Code** | Ejecuta las skills, lanza los agentes y pega la salida real de cada comando. |
 | `product-owner` · `feature-analyst` | Discovery: ideas, shaping, HU y sprints. |
 | `backend-architect` · `frontend-architect` | Diseño técnico de la HU (en paralelo si es fullstack). |
+| `api-builder` · `web-builder` | Implementan una task con su brief, según su `Capa:` (`apps/api` · `apps/web` y `e2e/`). |
 | `security-auditor` · `datos-personales-auditor` · `doc-code-drift-checker` | Auditores de solo lectura en la review y en la auditoría de sprint. |
 | `qa-e2e-runner` | QA de un sprint en el navegador, contra local. |
 
@@ -95,7 +96,7 @@ product-owner ───────► docs/03_delivery/hu/HU-NN-slug/hu.md
 /prd-writer ─────────► specs/PRD.md (Ready)
 /tech-design ────────► plans/TECHNICAL_DOC*.md   ◄── backend-architect ∥ frontend-architect
 /task-planner ───────► tasks/ROADMAP.md + TASK-NN.md
-/implementar-hu ─────► brief + builder por task · integración ejecutada · un commit por task
+/implementar-hu ─────► brief + builder por task · integración · un commit por task  ◄── api-builder | web-builder
 /reviewer ───────────► review/REVIEW.md   ◄── security-auditor ∥ datos-personales-auditor ∥ doc-code-drift-checker
 merge local ─────────► hu/HU-NN-slug → main (review aprobada + integración en verde)
 /module-sync ────────► docs/05_modules/** + MVP-STATUS.md
@@ -116,7 +117,7 @@ merge local ─────────► hu/HU-NN-slug → main (review aproba
 | PRD | `/prd-writer` | — | RNF medibles; ≥3 edge cases por RF Must; 0 OQ | `specs/PRD.md` |
 | Diseño | `/tech-design` | architects | secciones 🔒; 0 OD; todos los RF cubiertos | `plans/TECHNICAL_DOC*.md` |
 | Tareas | `/task-planner` | — | ≤ 15 tasks de ≤ 4 h; ficheros concretos | `tasks/` |
-| Código | `/implementar-hu` | builder por task | integración en verde; ≤ 2 ciclos | commits en `hu/HU-NN-slug` |
+| Código | `/implementar-hu` | `api-builder` · `web-builder` (por capa) | integración en verde; ≤ 2 ciclos | commits en `hu/HU-NN-slug` |
 | Review | `/reviewer` | 3 auditores | `VERDICT` ≠ Requiere cambios; ≤ 2 rondas | `review/REVIEW.md` |
 | Merge | — | — | review aprobada + integración en verde | `main` |
 | Sync | `/module-sync` | — | rutas citadas existen | `05_modules/**`, `MVP-STATUS.md` |
@@ -182,6 +183,7 @@ Los agentes los lanzan las skills; se invocan a mano solo para consultas puntual
 | `product-owner` | — (lo invoca la persona) | trocear una feature en HU, priorizar o actualizar el estado del sprint |
 | `feature-analyst` | `/feature-shaping` | — |
 | `backend-architect` · `frontend-architect` | `/tech-design` | dudas de diseño sobre una HU con PRD `Ready` |
+| `api-builder` · `web-builder` | `/implementar-hu` (uno por task, según `Capa:`) | — |
 | `security-auditor` · `datos-personales-auditor` | `/reviewer`, `/audit-sprint` | revisar un cambio sensible antes de la review |
 | `doc-code-drift-checker` | `/reviewer`, `/module-sync` | comprobar que las rutas citadas en docs existen |
 | `qa-e2e-runner` | `/qa-e2e` | — |

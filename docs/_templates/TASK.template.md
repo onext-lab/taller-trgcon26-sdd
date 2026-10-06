@@ -3,6 +3,8 @@
 ## Metadata
 - **HU:** HU-NN · **Feature:** FEAT-NN
 - **Scope:** backend | frontend | test
+- **Capa:** api | web — decide el builder (`api-builder` | `web-builder`). Una `[e2e]` o `[adversarial]` que toca las
+  dos va a la capa principal (la del fichero de producción o de test principal); una `[e2e]` de Playwright, `web`.
 - **Estado:** Pendiente | Completada | Bloqueada
 - **Complejidad:** S (< 1 h) | M (1–2 h) | L (2–4 h)
 

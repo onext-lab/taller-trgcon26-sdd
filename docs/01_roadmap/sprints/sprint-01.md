@@ -80,6 +80,12 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   con Node 24, instala. Origen: al empezar `/implementar-hu HU-01`, una terminal con Node 20 hacía fallar los
   tests de la API con «No such built-in module: node:sqlite».
 
+### T-02 · Builders especializados `api-builder` y `web-builder` · estado: hecha
+- **Tipo:** infraestructura (kit SDD)
+- Dos agentes nuevos en `.claude/agents/` que sustituyen al builder genérico; el campo `Capa: api | web` en la
+  plantilla de TASK, en `/task-planner` y en el brief decide cuál lanza `/implementar-hu` (R4.0 de
+  `docs/IMPLEMENTATION-RULE.md`). Decisión de la persona responsable tras cerrar HU-01.
+
 ## Orden de ejecución
 1. HU-01 (sin dependencias)
 2. HU-02 (depende de HU-01)

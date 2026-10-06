@@ -29,7 +29,8 @@ de una idea al código integrado, con especificaciones, gates comprobables y ver
    Sus casos de uso van al catálogo del módulo (`docs/05_modules/{módulo}/casos-de-uso/UC-NN-slug.md`, flujos P/A/E):
    cada flujo cubierto por una HU es ≥1 criterio de aceptación del PRD y un test en la review
 3. **HU** → agente `product-owner` → `docs/03_delivery/hu/HU-NN-slug/hu.md`; **sprint** → `/crear-sprint`
-4. **Por HU** (rama `hu/HU-NN-slug`): `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu`
+4. **Por HU** (rama `hu/HU-NN-slug`): `/prd-writer` → `/tech-design` → `/task-planner` → `/implementar-hu`, que
+   lanza un builder por task según su `Capa:` (`api-builder` para `apps/api`; `web-builder` para `apps/web` y `e2e/`)
 5. **Cierre de HU**: `/reviewer` (`VERDICT:`) → merge local a `main` → `/module-sync`
 6. **Cierre de sprint**: `/qa-e2e` (opcional) → `/audit-sprint` → `/cerrar-sprint`
 
