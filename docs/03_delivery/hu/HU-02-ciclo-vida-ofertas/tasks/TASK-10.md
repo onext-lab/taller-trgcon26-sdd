@@ -4,7 +4,7 @@
 - **HU:** HU-02 · **Feature:** FEAT-01
 - **Scope:** frontend
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must
 - **Complejidad:** M (1–2 h; estimada 2 h)
 

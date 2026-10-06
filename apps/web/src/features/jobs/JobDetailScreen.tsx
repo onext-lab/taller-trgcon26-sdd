@@ -8,11 +8,13 @@ import { JobActions } from './JobActions.tsx';
 import { JobDetails } from './JobDetails.tsx';
 import { jobPaths, parseJobId } from './paths.ts';
 import type { Job } from './types.ts';
+import { useJobActions } from './use-job-actions.ts';
 
 const APP_NAME = 'ATS';
 const NOT_FOUND_TITLE = 'Oferta no encontrada';
 const GONE_MESSAGE = 'Esta oferta ya no existe.';
 const CLOSED_NOTICE = 'Oferta cerrada.';
+const PUBLISHED_NOTICE = 'Oferta publicada.';
 
 function useDocumentTitle(title: string | null): void {
   useEffect(() => {
@@ -53,16 +55,21 @@ function useActionFeedback(job: Resource<Job>, headingRef: RefObject<HTMLHeading
     headingRef.current?.focus();
   }, [job.state, job.data, headingRef]);
 
+  // Close and publish answer with the updated job: it replaces the data, with its own notice (DD-05).
+  function showUpdated(updated: Job, text: string): void {
+    refocus.current = true;
+    setAlert(null);
+    setNotice(text);
+    job.setData(updated);
+  }
+
   return {
     notice,
     alert,
     gone,
-    onClosed(updated: Job): void {
-      refocus.current = true;
-      setAlert(null);
-      setNotice(CLOSED_NOTICE);
-      job.setData(updated);
-    },
+    onClosed: (updated: Job) => showUpdated(updated, CLOSED_NOTICE),
+    onPublished: (updated: Job) => showUpdated(updated, PUBLISHED_NOTICE),
+    onAlert: setAlert,
     onConflict(message: string): void {
       refocus.current = true;
       setAlert(message);
@@ -93,9 +100,10 @@ type ViewProps = {
   job: Job;
   headingRef: RefObject<HTMLHeadingElement | null>;
   feedback: Feedback;
+  actions: ReturnType<typeof useJobActions>;
 };
 
-function JobDetailView({ job, headingRef, feedback }: ViewProps) {
+function JobDetailView({ job, headingRef, feedback, actions }: ViewProps) {
   return (
     <>
       <JobDetails job={job} headingRef={headingRef} />
@@ -104,10 +112,9 @@ function JobDetailView({ job, headingRef, feedback }: ViewProps) {
       ) : (
         <JobActions
           job={job}
-          pending={null}
-          // TASK-10 connects publish and duplicate; until then they only paint.
-          onPublish={() => undefined}
-          onDuplicate={() => undefined}
+          pending={actions.pending}
+          onPublish={() => void actions.publish()}
+          onDuplicate={() => void actions.duplicate()}
           onClosed={feedback.onClosed}
           onConflict={feedback.onConflict}
           onGone={feedback.onGone}
@@ -122,6 +129,7 @@ function JobDetailLoader({ id }: { id: number }) {
   const job = useResource((signal) => getJob(id, signal), [id]);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const feedback = useActionFeedback(job, headingRef);
+  const actions = useJobActions(id, feedback);
   useDocumentTitle(job.state === 'success' ? job.data.title : null);
 
   if (job.state === 'error' && isNotFound(job.error)) return <NotFound />;
@@ -134,7 +142,12 @@ function JobDetailLoader({ id }: { id: number }) {
         <ErrorMessage message={userMessage(job.error)} onRetry={job.retry} />
       ) : null}
       {job.state === 'success' ? (
-        <JobDetailView job={job.data} headingRef={headingRef} feedback={feedback} />
+        <JobDetailView
+          job={job.data}
+          headingRef={headingRef}
+          feedback={feedback}
+          actions={actions}
+        />
       ) : null}
       {feedback.alert ? (
         <p role="alert" className="error-text">
