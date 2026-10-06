@@ -64,13 +64,13 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-01 | | |
+| P | HU-01 | CA-15, CA-16 | `apps/api/test/jobs/list.test.ts:40` |
 | A1 | HU-02 | | |
-| A2 | HU-01 | | |
+| A2 | HU-01 | CA-17 | `apps/web/test/features/jobs/JobListScreen.test.tsx:54` |
 | A3 | HU-02 | | |
 | E1 | HU-02 | | |
 | E2 | HU-02 | | |
 | E3 | HU-02 | | |
-| E4 | HU-01 | | |
+| E4 | HU-01 | CA-18 | `apps/web/test/features/jobs/JobListScreen.test.tsx:66` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

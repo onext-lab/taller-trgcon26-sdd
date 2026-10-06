@@ -29,7 +29,7 @@ Sigue el orden del ROADMAP: no empieces una tarea cuyas dependencias no estén `
 ### 1. Brief (R1)
 
 Copia `docs/_templates/BRIEF-IMPLEMENTACION.template.md` a `docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN-BRIEF.md` y **rellénalo entero**, marcando también lo que se descarta y por qué:
-- **Qué hacer:** la tarea es el contrato (`tasks/TASK-NN.md`); secciones del TECHNICAL_DOC por ancla, no el documento entero; rama `hu/HU-NN-slug` con la ruta absoluta del repo; commits previos relevantes; «lee solo lo que la tarea nombra».
+- **Qué hacer:** la tarea es el contrato (`tasks/TASK-NN.md`); su capa y el builder que la implementa (paso 2); secciones del TECHNICAL_DOC por ancla, no el documento entero; rama `hu/HU-NN-slug` con la ruta absoluta del repo; commits previos relevantes; «lee solo lo que la tarea nombra».
 - **Invariantes que aplican**, con su fichero: decisiones `DEC-NN` de `docs/07_architecture_principles/DECISIONS.md`; envelope de error y validación con JSON Schema de Fastify; acceso a SQLite solo desde el módulo, con consultas parametrizadas; datos personales según `docs/RGPD.md` (nada en logs ni en errores); sin NUL ni separadores Unicode crudos (los bloquea un hook).
 - **Prohibiciones:** no arreglar nada fuera de alcance (se reporta); no tocar ficheros fuera de la tabla «Archivos afectados» sin decirlo; no instalar dependencias que no estén en el diseño; **no hacer commit** (lo haces tú); nada de `git add -A`, `git stash`, push ni remotos.
 - **Verificación que debe pegar:** salida real de los tests acotados, del typecheck y del lint de sus ficheros, y los criterios de done uno a uno con su evidencia.
@@ -37,7 +37,9 @@ Copia `docs/_templates/BRIEF-IMPLEMENTACION.template.md` a `docs/03_delivery/hu/
 
 ### 2. Builder
 
-Lanza un subagente `general-purpose` con el prompt: «Implementa la TASK-NN de la HU-NN siguiendo el brief `docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN-BRIEF.md`. Lee solo lo que el brief nombra. No hagas commit.» No fijes `model`: hereda el de la sesión.
+El builder se elige por la **capa** de la tarea (campo `Capa:` de la task, que el brief copia): `api` → agente `api-builder`; `web` → agente `web-builder`. Una `[e2e]` o una `[adversarial]` que toca las dos capas va a la de su capa principal (la del fichero de producción o de test principal), y una `[e2e]` de Playwright, a `web-builder`. Si la task no declara `Capa:`, dedúcela de «Archivos afectados» (`apps/api/` → `api`; `apps/web/` o `e2e/` → `web`) y **dilo** en el brief y en tu respuesta.
+
+Lanza ese subagente con el prompt: «Implementa la TASK-NN de la HU-NN siguiendo el brief `docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN-BRIEF.md`. Lee solo lo que el brief nombra. No hagas commit.» No fijes `model`: hereda el de la sesión.
 
 Por defecto, **una tarea cada vez**. Solo puedes lanzar tareas en paralelo (como mucho 4) si no comparten ni un fichero y ninguna depende de otra; aun así, la integración y el commit van de una en una.
 

@@ -2,7 +2,8 @@
 
 Aplica al paso 5.4 del flujo ([WORKFLOW.md](WORKFLOW.md)), que ejecuta la skill `/implementar-hu`, y a toda task sin HU
 que escriba código. La sesión principal hace de orquestador: prepara el brief, lanza un **builder** (subagente) por task
-y ejecuta ella misma la integración.
+y ejecuta ella misma la integración. Hay dos builders, uno por capa: `api-builder` (`apps/api`) y `web-builder`
+(`apps/web` y los e2e de `e2e/`).
 
 > **Por qué existe.** Un agente obedece bien lo que le pides y no sabe lo que no le dijiste. Y una review que solo lee
 > código no ve lo que únicamente aparece al ejecutarlo.
@@ -12,9 +13,9 @@ y ejecuta ella misma la integración.
 - Cada task se encarga con [BRIEF-IMPLEMENTACION.template.md](_templates/BRIEF-IMPLEMENTACION.template.md), que se
   guarda como `tasks/TASK-NN-BRIEF.md` dentro de la carpeta de la HU.
 - La plantilla se **recorre entera**, incluidas las líneas que se descartan: el valor está en descartarlas a conciencia.
-- El brief nombra **la task como contrato** (`tasks/TASK-NN.md`), las secciones del diseño por ancla (no el documento
-  entero), la rama, los **invariantes que aplican** (con su fichero), las **prohibiciones**, la **verificación que debe
-  pegar** y el **permiso explícito para pararse**.
+- El brief nombra **la task como contrato** (`tasks/TASK-NN.md`), su **capa** y el builder que le toca (R4.0), las
+  secciones del diseño por ancla (no el documento entero), la rama, los **invariantes que aplican** (con su fichero),
+  las **prohibiciones**, la **verificación que debe pegar** y el **permiso explícito para pararse**.
 
 ## R2. El paso de integración se ejecuta siempre
 
@@ -44,6 +45,9 @@ exige la salida del paso de integración y además la vuelve a ejecutar.
 
 ## R4. Cómo se delega
 
+- **R4.0 Builder por capa.** El campo `Capa:` de la task decide: `api` → `api-builder`; `web` → `web-builder`. Una
+  `[e2e]` o `[adversarial]` que toca las dos capas va al de su capa principal (la del fichero de producción o de test
+  principal); una `[e2e]` de Playwright, a `web-builder`. Sin `Capa:`, se deduce de «Archivos afectados» y se dice.
 - **R4.1 Como máximo 4 builders a la vez**, y **solo en paralelo si no comparten ficheros**. En el taller, lo normal
   es uno por task, en orden.
 - **R4.2 Briefs cortos.** Lo que ya está en la rama, la task como contrato y «lee solo lo que la task nombra».

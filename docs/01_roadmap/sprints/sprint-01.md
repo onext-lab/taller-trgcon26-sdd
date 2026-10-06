@@ -3,7 +3,7 @@ sprint: 01
 objetivo: "Núcleo del ATS funcionando de principio a fin: ofertas con su ciclo de vida, candidatos con su consentimiento y retención, e inscripciones con su pipeline e historial."
 inicio: 2026-10-06
 fin: 2026-10-07            # por defecto, inicio + 1 (2 días)
-estado: planificado        # planificado | en curso | completado | cerrado
+estado: en curso           # planificado | en curso | completado | cerrado
 base: 2cd8752              # sha de main al abrir el sprint; /audit-sprint audita base..main
 cerrado_en: null
 audit-override: null       # solo con razón ≥ 20 caracteres
@@ -17,20 +17,20 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 0 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-06 15:45
+- HU: hechas 1 / total 5 · bloqueadas 0
+- Última actualización: 2026-10-06 17:40 (HU-01 aprobada con observaciones en la ronda 2, mergeada y sincronizada)
 
 ## Historias de usuario
 
-### HU-01 · Crear, editar y consultar ofertas en borrador · estado: pendiente
+### HU-01 · Crear, editar y consultar ofertas en borrador · estado: hecha
 - **Origen:** FEAT-01 · **Depende de:** nada · **Rama:** `hu/HU-01-ofertas-borrador`
-- [ ] prd-writer
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
 
 ### HU-02 · Publicar, cerrar, duplicar y listar ofertas con filtros · estado: pendiente
 - **Origen:** FEAT-01 · **Depende de:** HU-01 · **Rama:** `hu/HU-02-ciclo-vida-ofertas`
@@ -74,7 +74,17 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 
 ## Tareas sin HU
 
-Ninguna.
+### T-01 · `engine-strict` para exigir Node 24 en `npm ci` · estado: hecha
+- **Tipo:** infraestructura
+- `.npmrc` con `engine-strict=true` y nota en `docs/SETUP.md`. Con Node 20, `npm ci` se para con `EBADENGINE`;
+  con Node 24, instala. Origen: al empezar `/implementar-hu HU-01`, una terminal con Node 20 hacía fallar los
+  tests de la API con «No such built-in module: node:sqlite».
+
+### T-02 · Builders especializados `api-builder` y `web-builder` · estado: hecha
+- **Tipo:** infraestructura (kit SDD)
+- Dos agentes nuevos en `.claude/agents/` que sustituyen al builder genérico; el campo `Capa: api | web` en la
+  plantilla de TASK, en `/task-planner` y en el brief decide cuál lanza `/implementar-hu` (R4.0 de
+  `docs/IMPLEMENTATION-RULE.md`). Decisión de la persona responsable tras cerrar HU-01.
 
 ## Orden de ejecución
 1. HU-01 (sin dependencias)

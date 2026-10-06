@@ -7,7 +7,7 @@
 //   d) fixtures de hooks (deniegan lo que deben) y ningún hook abre red
 //   e) numeración determinista de IDEA, sprint, HU y UC en un directorio temporal, sin colisión
 //   f) contexto de arranque: AGENTS.md + CLAUDE.md + todas las description ≤ 15 000 caracteres
-//   g) límites de tamaño (AGENTS.md, WORKFLOW.md, skills, arquitectos, security-auditor)
+//   g) límites de tamaño (AGENTS.md, WORKFLOW.md, skills, arquitectos, builders, security-auditor)
 //   h) sin caracteres crudos invisibles (NUL, U+2028, U+2029) en los ficheros versionables
 //   i) catálogo de casos de uso: UC-NN-slug.md con frontmatter coherente, en el índice de su módulo,
 //      sin IDs repetidos, y cada `UC-<número>` citado en docs/ o .claude/ existe
@@ -109,8 +109,8 @@ for (const file of [...skillFiles, ...agentFiles]) {
 }
 if (skillFiles.length !== 12)
   fail('a', '.claude/skills', `hay ${skillFiles.length} skills y se esperan 12`);
-if (agentFiles.length !== 8)
-  fail('a', '.claude/agents', `hay ${agentFiles.length} agentes y se esperan 8`);
+if (agentFiles.length !== 10)
+  fail('a', '.claude/agents', `hay ${agentFiles.length} agentes y se esperan 10`);
 passed.push(`a) frontmatter: ${skillFiles.length} skills y ${agentFiles.length} agentes`);
 
 // ---------- b) enlaces relativos ----------
@@ -306,6 +306,8 @@ const LIMITS = [
   ['docs/WORKFLOW.md', 'lines', 250],
   ['.claude/agents/backend-architect.md', 'bytes', 8 * 1024],
   ['.claude/agents/frontend-architect.md', 'bytes', 8 * 1024],
+  ['.claude/agents/api-builder.md', 'bytes', 6 * 1024],
+  ['.claude/agents/web-builder.md', 'bytes', 6 * 1024],
   ['.claude/agents/security-auditor.md', 'bytes', 10 * 1024],
   ...skillFiles.map((f) => [rel(f), 'bytes', f.includes('/reviewer/') ? 12 * 1024 : 10 * 1024]),
 ];

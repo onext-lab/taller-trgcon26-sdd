@@ -6,7 +6,7 @@ citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso.
 
 | UC | Título | Actor | Estado | Feature | HU |
 |---|---|---|---|---|---|
-| [UC-01](UC-01-crear-borrador.md) | Crear una oferta como borrador | reclutador | aprobado | FEAT-01 | HU-01 |
+| [UC-01](UC-01-crear-borrador.md) | Crear una oferta como borrador | reclutador | implementado | FEAT-01 | HU-01 |
 | [UC-02](UC-02-editar-oferta.md) | Editar una oferta | reclutador | aprobado | FEAT-01 | HU-01, HU-02 |
 | [UC-03](UC-03-publicar-oferta.md) | Publicar una oferta | reclutador | aprobado | FEAT-01 | HU-02 |
 | [UC-04](UC-04-cerrar-oferta.md) | Cerrar una oferta | reclutador | aprobado | FEAT-01 | HU-02, HU-05 |

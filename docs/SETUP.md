@@ -11,7 +11,10 @@ Lo que necesitas antes del taller y cómo comprobarlo. Hazlo en casa: el día de
 | git | ≥ 2.30 | ramas por HU y etiquetas por fase |
 | Chromium de Playwright | el que instala `npx playwright install chromium` | e2e y QA |
 | Claude Code | la última | ejecutar el flujo (skills, agentes y hooks del repo) |
-| Puertos libres | 3001 (API) y 5173 (web) | `npm run dev` y los e2e |
+| Puertos libres | 3001 (API) y 5173 (web) para `npm run dev`; 3101 (API) y 5174 (web) para los e2e | desarrollo y `npm run e2e` |
+
+La API escucha en `API_HOST`:`API_PORT`, por defecto `127.0.0.1:3001`; un `API_HOST` vacío también cae a `127.0.0.1`
+(`apps/api/src/listen-options.ts`). No la expongas a la red: no tiene login (DEC-04).
 
 No hace falta Docker, ni Python, ni base de datos instalada, ni ninguna clave: la base de datos es un fichero SQLite que
 crea el propio Node.
@@ -26,7 +29,10 @@ crea el propio Node.
 - **Node 24 ejecuta TypeScript directamente** (*type stripping*): la API arranca sin paso de compilación.
 - En la v24.21.0, la que se probó, `node:sqlite` ya **no emite ningún aviso** de estabilidad al cargarse.
 
-`package.json` lo declara en `engines.node` (`>=24.15`) y `.nvmrc` fija `24`.
+`package.json` lo declara en `engines.node` (`>=24.15`) y `.nvmrc` fija `24`. Además, `.npmrc` activa
+`engine-strict=true`: con otra versión, `npm ci` se para con `EBADENGINE` y el mensaje «Not compatible with your
+version of node/npm», en lugar de instalar y fallar después en los tests (con Node 20, la API cae con «No such
+built-in module: node:sqlite»).
 
 ## Cómo instalar Node 24
 
@@ -79,6 +85,18 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 | Síntoma | Qué hacer |
 |---|---|
 | `node -v` muestra v20 o v22 | Activa la 24: `nvm use 24` o `fnm use 24`, y abre una terminal nueva. |
+| `npm ci` falla con `EBADENGINE` | La terminal usa otra versión de Node (p. ej., la que `nvm` tiene por defecto). `nvm use` en la raíz del repo (lee `.nvmrc`) o `nvm alias default 24`, y repite. |
+| Los tests de la API fallan con «No such built-in module: node:sqlite» | Igual: Node anterior a la 24. `npm run check:env` lo detecta. |
 | `check:env` dice que un puerto está ocupado | Cierra el `npm run dev` que tengas abierto en otra terminal. |
 | Los e2e no encuentran el navegador | `npx playwright install chromium`. |
 | La base de datos tiene datos raros | `npm run db:reset` la regenera desde el esquema, las migraciones y el seed. |
+| `npm run e2e` falla porque el puerto 3101 o 5174 está ocupado | Cierra el proceso que lo usa. Los e2e no reutilizan servidores (`reuseExistingServer: false`) para no probar contra otra base. |
+
+## Cómo se preparan los e2e
+
+`npm run e2e` usa su propia base, `data/e2e.db`, y sus propios puertos (3101 la API y 5174 la web), así que se puede
+lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y seed de 4
+borradores) en el comando del `webServer` de la API, en `playwright.config.ts`
+(`npm run db:reset -w apps/api && npm run start -w apps/api`). No va en un `globalSetup` porque en Playwright 1.63 el
+`webServer` arranca **antes** que `globalSetup`: borrar la base entonces dejaría a la API escribiendo en ficheros ya
+borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones seguidas dan el mismo resultado.

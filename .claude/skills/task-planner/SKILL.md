@@ -68,7 +68,10 @@ Cada tarea declara `Depende de` y `Bloquea`. Las migraciones van antes que los e
 ### Paso 6 — Escribir los ficheros
 
 **`docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN.md`**, una por tarea, desde la plantilla, con:
-- Metadatos: HU, feature, scope, `Estado: Pendiente`, prioridad, complejidad.
+- Metadatos: HU, feature, scope, **capa**, `Estado: Pendiente`, prioridad, complejidad.
+- **`Capa: api | web`**, que decide el builder de `/implementar-hu` (`api-builder` o `web-builder`). Una tarea de endpoint o
+  migración es `api` y una de pantalla, `web`; una `[e2e]` o `[adversarial]` que toca las dos lleva la de su capa principal (la del fichero de producción
+  o de test principal), y una `[e2e]` de Playwright, `web`.
 - **Descripción autosuficiente:** qué crear o cambiar, qué patrón seguir y qué decisiones aplican, sin tener que abrir el TECHNICAL_DOC.
 - **Archivos afectados** (tabla fichero × acción × descripción).
 - **Implementa:** RF-NN y la sección del TECHNICAL_DOC por ancla.
@@ -84,7 +87,7 @@ Cada tarea declara `Depende de` y `Bloquea`. Las migraciones van antes que los e
 
 ### Paso 7 — Validación humana (obligatoria)
 
-Resume: tareas por scope con su reparto S/M/L, camino crítico y riesgos. Y pregunta:
+Resume: tareas por scope y capa con su reparto S/M/L, camino crítico y riesgos. Y pregunta:
 
 > «Tareas en `{ruta}`. **Léelas antes de implementar**: son el contrato de cada builder. Responde `aprobado`, los ajustes concretos («junta TASK-03 y TASK-04», «parte TASK-05») o `abortar`.»
 

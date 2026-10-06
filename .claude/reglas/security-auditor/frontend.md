@@ -4,7 +4,7 @@
 
 Están separadas del prompt del agente para no pagarlas en cada invocación cuando el diff no toca frontend. El agente está obligado a leer este fichero cuando aplica, y a parar si no puede.
 
-Estado de partida (paso-0): `apps/web` es una sola página que llama a `/api/health`. No hay `dangerouslySetInnerHTML`, ni `localStorage`, ni variables `VITE_*`, ni `postMessage`. Cualquier aparición es **nueva** y se revisa.
+Estado de partida (tras HU-01): router propio sobre la History API, 4 pantallas de ofertas, cliente HTTP compartido (`apps/web/src/components/http.ts`) y `history.state` solo con avisos de texto fijo. No hay `dangerouslySetInnerHTML`, ni `localStorage`, ni variables `VITE_*`, ni `postMessage`. Cualquier aparición es **nueva** y se revisa.
 
 ---
 
