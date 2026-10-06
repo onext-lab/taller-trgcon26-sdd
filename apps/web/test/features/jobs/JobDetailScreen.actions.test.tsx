@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx';
 import type { Job } from '../../../src/features/jobs/types.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 import { mockFetch, type MockRoute } from '../../helpers/fetch.ts';
 
 // Invented data only.
@@ -41,7 +42,6 @@ function click(name: string): void {
   button.focus();
   fireEvent.click(button);
 }
-
 function controls(): string[] {
   return [...document.querySelectorAll('a, button')]
     .filter((control) => control.closest('dialog') === null)
@@ -75,7 +75,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(terms).toContain('Fecha de publicación');
     expect(document.querySelectorAll('dd time')[1]?.textContent).toBe('06/10/2026');
     expect(controls()).toEqual(['Editar', 'Cerrar', 'Duplicar']);
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
     expect(mock.calls.filter((call) => call.method === 'GET')).toHaveLength(1);
   });
 
@@ -214,7 +214,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
 
     await waitFor(() => expect(controls()).toEqual(['Editar', 'Cerrar', 'Duplicar']));
     expect(screen.getByRole('alert').textContent).toBe('La oferta ya no es un borrador.');
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
   });
 
   it('EC-06 [adversarial] un 404 al publicar muestra «Esta oferta ya no existe.» y «Volver a las ofertas», sin acciones', async () => {

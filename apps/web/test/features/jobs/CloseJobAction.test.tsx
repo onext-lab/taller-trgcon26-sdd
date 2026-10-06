@@ -4,6 +4,7 @@ import { BAD_RESPONSE_MESSAGE, CONNECTION_MESSAGE } from '../../../src/component
 import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx';
 import type { Job } from '../../../src/features/jobs/types.ts';
 import { installDialogPolyfill, simulateCancel } from '../../helpers/dialog.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 import { mockFetch, type MockRoute } from '../../helpers/fetch.ts';
 
 // Invented data only.
@@ -165,7 +166,7 @@ describe('CloseJobAction', () => {
     expect(screen.getByText('07/10/2026')).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Cerrar' })).toBeNull();
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
     expect(mock.calls.filter((call) => call.url === '/api/jobs/7')).toHaveLength(1);
   });
 
@@ -292,6 +293,6 @@ describe('CloseJobAction', () => {
     expect(
       mock.calls.filter((call) => call.method === 'GET' && call.url === '/api/jobs/7'),
     ).toHaveLength(2);
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
   });
 });

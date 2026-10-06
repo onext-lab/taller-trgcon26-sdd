@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONNECTION_MESSAGE } from '../../../src/components/http.ts';
 import { JobListScreen } from '../../../src/features/jobs/JobListScreen.tsx';
 import type { JobListItem, JobPage } from '../../../src/features/jobs/types.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 import { mockFetch, type MockReply } from '../../helpers/fetch.ts';
 
 // Invented data only.
@@ -148,7 +149,7 @@ describe('JobListScreen · filtros, paginación y estados', () => {
     expect(await screen.findByRole('table', { name: 'Ofertas' })).toBeDefined();
     expect(currentUrl()).toBe('/jobs');
     expect(field('Buscar por título').value).toBe('');
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Ofertas' }));
+    await expectFocusOn(() => screen.getByRole('heading', { name: 'Ofertas' }));
   });
 
   it('vacío sin filtros muestra «Todavía no hay ofertas.» y «Nueva oferta»', async () => {
