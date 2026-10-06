@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONNECTION_MESSAGE } from '../../../src/components/http.ts';
 import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx';
@@ -97,7 +97,7 @@ describe('JobDetailScreen', () => {
     const main = screen.getAllByRole('link').length + screen.getAllByRole('button').length;
     expect(main).toBe(2);
     expect(screen.queryByRole('status')).toBeNull();
-    expect(document.title).toBe('Desarrollador/a backend (Node.js) · ATS');
+    await waitFor(() => expect(document.title).toBe('Desarrollador/a backend (Node.js) · ATS'));
   });
 
   it('con solo el título muestra «Sin indicar» en el resto, sin «null» ni celdas vacías (EC-44)', async () => {
@@ -132,7 +132,7 @@ describe('JobDetailScreen', () => {
     await screen.findByRole('heading', { level: 1, name: 'Oferta no encontrada' });
     expectNotFoundScreen();
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(document.title).toBe('Oferta no encontrada · ATS');
+    await waitFor(() => expect(document.title).toBe('Oferta no encontrada · ATS'));
   });
 
   it('un 400 de la API se trata como oferta no encontrada (EC-43)', async () => {
@@ -208,5 +208,24 @@ describe('JobDetailScreen', () => {
 
     await screen.findByRole('heading', { level: 1 });
     expect(screen.getByRole('status').textContent).toBe('Oferta creada.');
+  });
+
+  it('EC-48 título y descripción con HTML se ven literales, sin elementos b ni script', async () => {
+    const hostile: Job = {
+      ...FULL_JOB,
+      title: 'Oferta <b>X</b>',
+      description: '<script>alert(1)</script> y <b>negrita</b>',
+    };
+    mockFetch({ 'GET /api/jobs/7': { status: 200, json: hostile } });
+
+    const { container } = render(<JobDetailScreen />);
+
+    const heading = await screen.findByRole('heading', { level: 1 });
+    expect(heading.textContent).toBe('Oferta <b>X</b>');
+    const values = screen.getAllByRole('definition').map((value) => value.textContent);
+    expect(values[1]).toBe('<script>alert(1)</script> y <b>negrita</b>');
+    expect(container.querySelectorAll('b')).toHaveLength(0);
+    expect(container.querySelectorAll('script')).toHaveLength(0);
+    await waitFor(() => expect(document.title).toBe('Oferta <b>X</b> · ATS'));
   });
 });

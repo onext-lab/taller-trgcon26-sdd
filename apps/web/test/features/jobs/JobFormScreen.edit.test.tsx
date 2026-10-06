@@ -70,7 +70,7 @@ describe('JobFormScreen · edición', () => {
     expect(screen.getByText('Cargando la oferta…').getAttribute('role')).toBe('status');
 
     expect(await screen.findByRole('heading', { name: 'Editar oferta' })).toBeDefined();
-    expect(document.title).toBe('Editar oferta · ATS');
+    await waitFor(() => expect(document.title).toBe('Editar oferta · ATS'));
     expect(field('Título (obligatorio)').value).toBe(JOB.title);
     expect(field('Descripción').value).toBe('Busca talento.');
     expect(field('Ubicación').value).toBe('Valencia');

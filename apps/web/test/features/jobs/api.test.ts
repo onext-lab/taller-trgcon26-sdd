@@ -116,6 +116,27 @@ describe('API de ofertas', () => {
     expect((error as ApiError).message).toBe(BAD_RESPONSE_MESSAGE);
   });
 
+  it.each([
+    ['items no es un array', { ...PAGE, items: 'x' }],
+    [
+      'un item sin id',
+      { ...PAGE, items: [{ title: 'Sin id', status: 'draft', referenceDate: JOB.createdAt }] },
+    ],
+    ['un item con id negativo', { ...PAGE, items: [{ ...PAGE.items[0], id: -1 }] }],
+    ['total no numérico', { ...PAGE, total: '1' }],
+    ['total decimal', { ...PAGE, total: 1.5 }],
+    ['sin items', { total: 1, page: 1, pageSize: 20 }],
+    ['null', null],
+    ['un array', []],
+  ])('EC-40 isJobPage rechaza una página con %s → ApiError', async (_name, body) => {
+    mockFetch({ 'GET /api/jobs': { status: 200, json: body } });
+
+    const error = await listJobs().catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).message).toBe(BAD_RESPONSE_MESSAGE);
+  });
+
   it('nunca construye /api/jobs/{id} con un ID no válido', async () => {
     const mock = mockFetch({});
 

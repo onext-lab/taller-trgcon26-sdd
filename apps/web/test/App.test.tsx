@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App.tsx';
 import { mockFetch } from './helpers/fetch.ts';
@@ -57,7 +57,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Ofertas' })).toBeDefined();
     expect(window.location.pathname).toBe('/jobs');
     expect(document.activeElement).toBe(screen.getByRole('main'));
-    expect(document.title).toBe('Ofertas · ATS');
+    await waitFor(() => expect(document.title).toBe('Ofertas · ATS'));
   });
 
   it('muestra «Estado de la API: ok» en el pie', async () => {

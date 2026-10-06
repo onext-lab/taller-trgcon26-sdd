@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CONNECTION_MESSAGE } from '../../../src/components/http.ts';
+import { BAD_RESPONSE_MESSAGE, CONNECTION_MESSAGE } from '../../../src/components/http.ts';
 import { JobListScreen } from '../../../src/features/jobs/JobListScreen.tsx';
 import type { JobListItem, JobPage } from '../../../src/features/jobs/types.ts';
 import { mockFetch, type MockReply } from '../../helpers/fetch.ts';
@@ -177,5 +177,29 @@ describe('JobListScreen', () => {
 
     await screen.findByText('Todavía no hay ofertas.');
     expect(screen.getByRole('status').textContent).toBe('Oferta borrada.');
+  });
+
+  it('EC-41 un título con HTML se ve como texto y no crea ningún elemento', async () => {
+    const hostile = '<img src=x onerror=alert(1)>';
+    mockFetch({ 'GET /api/jobs': ok(page([item(5, hostile)])) });
+
+    const { container } = render(<JobListScreen />);
+
+    const link = await screen.findByRole('link', { name: hostile });
+    expect(link.textContent).toBe(hostile);
+    expect(link.getAttribute('href')).toBe('/jobs/5');
+    expect(container.querySelectorAll('table img')).toHaveLength(0);
+    expect(container.querySelectorAll('img')).toHaveLength(0);
+  });
+
+  it('EC-40 un 200 con forma inesperada muestra el error de respuesta no válida y ninguna fila', async () => {
+    mockFetch({ 'GET /api/jobs': { status: 200, json: { items: 'x' } } });
+
+    render(<JobListScreen />);
+
+    expect((await screen.findByRole('alert')).textContent).toBe(BAD_RESPONSE_MESSAGE);
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.queryAllByRole('row')).toHaveLength(0);
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeDefined();
   });
 });

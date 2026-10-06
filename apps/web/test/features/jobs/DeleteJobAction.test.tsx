@@ -100,4 +100,42 @@ describe('DeleteJobAction', () => {
     expect(confirm.disabled).toBe(false);
     expect(window.location.pathname).toBe('/jobs/7');
   });
+
+  it('EC-33 doble clic en «Borrar oferta» con el DELETE pendiente = 1 fetch y botones deshabilitados', () => {
+    const mock = mockFetch({ 'DELETE /api/jobs/7': { hang: true } });
+    render(<DeleteJobAction id={7} title={TITLE} />);
+    openDialog();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Borrar oferta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Borrar oferta' }));
+
+    const cancel = screen.getByRole('button', { name: 'Cancelar' }) as HTMLButtonElement;
+    const confirm = screen.getByRole('button', { name: 'Borrar oferta' }) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(true);
+    expect(confirm.disabled).toBe(true);
+    expect(mock.calls).toHaveLength(1);
+    expect(mock.calls[0]).toMatchObject({ method: 'DELETE', url: '/api/jobs/7' });
+    expect(window.location.pathname).toBe('/jobs/7');
+  });
+
+  it('CA-14 un 404 al borrar muestra «Esta oferta ya no existe.» y el enlace al listado', async () => {
+    const mock = mockFetch({
+      'DELETE /api/jobs/7': {
+        status: 404,
+        json: { error: { code: 'NOT_FOUND', message: 'No existe esa oferta.' } },
+      },
+    });
+    render(<DeleteJobAction id={7} title={TITLE} />);
+    openDialog();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Borrar oferta' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Esta oferta ya no existe.');
+    const back = screen.getByRole('link', { name: 'Volver a las ofertas' });
+    expect(back.getAttribute('href')).toBe('/jobs');
+    expect(screen.queryByRole('button', { name: 'Borrar' })).toBeNull();
+    expect(mock.calls).toHaveLength(1);
+    expect(window.location.pathname).toBe('/jobs/7');
+  });
 });
