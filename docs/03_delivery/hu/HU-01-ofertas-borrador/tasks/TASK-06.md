@@ -3,7 +3,7 @@
 ## Metadata
 - **HU:** HU-01 · **Feature:** FEAT-01
 - **Scope:** test (backend)
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must
 - **Complejidad:** M (1–2 h; estimada 2 h)
 
