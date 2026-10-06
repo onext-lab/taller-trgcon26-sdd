@@ -89,3 +89,51 @@ describe('GET /api/jobs — listado (camino feliz y fronteras)', () => {
     expect(new Set(page.items.map((item) => item.referenceDate))).toEqual(new Set([NOW]));
   });
 });
+
+describe('GET /api/jobs — adversarial', () => {
+  it.each([
+    ['?page=2', 'page'],
+    ['?q=x', 'q'],
+  ])('EC-34 cualquier parámetro %s → 400', async (query, field) => {
+    await createDrafts(1);
+
+    const response = await app.inject({ method: 'GET', url: `/api/jobs${query}` });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Hay campos con errores.',
+        details: [{ field, message: 'Campo no permitido.' }],
+      },
+    });
+  });
+
+  it('EC-41 el título con HTML se devuelve literal', async () => {
+    const title = '<img src=x onerror=alert(1)>';
+    await createJob(app, { title });
+
+    const page = await listJobs();
+
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]?.title).toBe(title);
+  });
+
+  it('RF-05 los items solo traen id, title, status y referenceDate', async () => {
+    await createJob(app, {
+      title: 'Oferta completa',
+      description: 'Descripción inventada',
+      location: 'Valencia',
+      workMode: 'híbrida',
+      salaryMin: 28000,
+      salaryMax: 34000,
+    });
+
+    const page = await listJobs();
+
+    expect(page.items).toHaveLength(1);
+    for (const item of page.items) {
+      expect(Object.keys(item).sort()).toEqual(['id', 'referenceDate', 'status', 'title']);
+    }
+  });
+});

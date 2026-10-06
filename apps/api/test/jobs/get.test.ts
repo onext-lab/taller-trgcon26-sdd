@@ -75,3 +75,43 @@ describe('GET /api/jobs/:id — ficha (camino feliz)', () => {
     }
   });
 });
+
+describe('GET /api/jobs/:id — adversarial', () => {
+  it('CA-20 ID inexistente → 404 sin datos', async () => {
+    await createJob(app, { title: 'Otra oferta inventada' });
+
+    const response = await getJob(999999999);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({
+      error: { code: 'NOT_FOUND', message: 'La oferta no existe.' },
+    });
+  });
+
+  it.each(['abc', '1.5', '0', '007'])('EC-43 ID no entero %s → 400', async (id) => {
+    const response = await app.inject({ method: 'GET', url: `/api/jobs/${id}` });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Hay campos con errores.',
+        details: [{ field: 'id', message: 'Formato no válido.' }],
+      },
+    });
+  });
+
+  it('EC-46 GET tras borrado → 404', async () => {
+    const created = await createJob(app, { title: 'Oferta efímera' });
+
+    expect(
+      (await app.inject({ method: 'DELETE', url: `/api/jobs/${created.id}` })).statusCode,
+    ).toBe(204);
+    const response = await getJob(created.id);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({
+      error: { code: 'NOT_FOUND', message: 'La oferta no existe.' },
+    });
+  });
+});
