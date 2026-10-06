@@ -21,8 +21,10 @@ e2e/ (Playwright, Chromium) ── levanta api :3101 + web :5174 ─────
 | Pieza | Ruta | Responsabilidad |
 |---|---|---|
 | API | `apps/api/src/` | Rutas REST bajo `/api`, validación con JSON Schema, reglas de negocio y acceso a datos |
-| Arranque de la API | `apps/api/src/app.ts`, `apps/api/src/server.ts`, `apps/api/src/listen-options.ts` | `buildApp({ db, logger?, now? })` para tests (`fastify.inject`); `server.ts` escucha donde dice `listen-options.ts` (`127.0.0.1:3001` salvo `API_HOST`/`API_PORT`) |
-| Errores y validación | `apps/api/src/http/`, `apps/api/src/errors.ts` | Manejador único del envelope, opciones de Ajv y recorte previo (DEC-11); `AppError` de los servicios |
+| Arranque de la API | `apps/api/src/app.ts`, `apps/api/src/server.ts`, `apps/api/src/listen-options.ts` | `buildApp({ db, logger?, now?, jobApplications? })` para tests (`fastify.inject`); `server.ts` escucha donde dice `listen-options.ts` (`127.0.0.1:3001` salvo `API_HOST`/`API_PORT`) |
+| Errores y validación | `apps/api/src/http/`, `apps/api/src/errors.ts` | Manejador único del envelope, opciones de Ajv, recorte previo y `rejectBody` para las acciones sin cuerpo (DEC-11); `AppError` de los servicios |
+| Guarda entre sitios | `apps/api/src/http/cross-site.ts` | Hook `onRequest` global: 403 `CROSS_SITE_REQUEST` a toda petición que no sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` no es `same-origin` ni `none` (DEC-12) |
+| Búsqueda de texto | `apps/api/src/db/text-search.ts` | `foldSearchText` y la función SQL `fold_search`, que cada repositorio registra en su conexión: búsqueda sin mayúsculas ni tildes (DEC-10) |
 | Reloj y transacciones | `apps/api/src/clock.ts`, `apps/api/src/db/transaction.ts` | `Clock` inyectado (DEC-09) y `withTransaction`, que se une a una en curso (DEC-06) |
 | Base de datos | `apps/api/src/db/` | `connection.ts`, `schema.sql`, `migrations/`, `migrate.ts`, `seed.ts`, `reset.ts` |
 | Web | `apps/web/src/` | Pantallas por feature; router y cliente HTTP propios y componentes compartidos en `apps/web/src/components/` |
@@ -45,8 +47,8 @@ Las carpetas de módulo se crean con la primera HU que las necesite. El mapa viv
   `repository.ts` (SQL con sentencias preparadas). Las rutas no tocan SQL; los repositorios no conocen HTTP.
 - **Errores:** envelope uniforme `{ error: { code, message, details? } }` con códigos estables: los de DEC-07
   (`VALIDATION_ERROR`, `NOT_FOUND`, `DUPLICATE`, `INVALID_TRANSITION`, `STAGE_MISMATCH`…) y los de DEC-11
-  (`INTERNAL_ERROR`, `PAYLOAD_TOO_LARGE`, `UNSUPPORTED_MEDIA_TYPE`, `BAD_REQUEST`). Nunca *stack traces* ni datos
-  personales en la respuesta.
+  (`INTERNAL_ERROR`, `PAYLOAD_TOO_LARGE`, `UNSUPPORTED_MEDIA_TYPE`, `BAD_REQUEST`) y el de DEC-12
+  (`CROSS_SITE_REQUEST`, 403). Nunca *stack traces* ni datos personales en la respuesta.
 - **Fechas:** ISO 8601 en UTC (`2026-10-22T09:30:00.000Z`) en la API y en SQLite.
 - **IDs:** enteros autoincrementales de SQLite.
 - **Esquema:** cada cambio de modelo es una migración nueva en `apps/api/src/db/migrations/` (DEC-03).

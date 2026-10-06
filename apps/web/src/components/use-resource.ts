@@ -8,7 +8,11 @@ export type ResourceResult<T> =
   | { state: 'success'; data: T; error: undefined }
   | { state: 'error'; data: undefined; error: unknown };
 
-export type Resource<T> = ResourceResult<T> & { retry: () => void };
+export type Resource<T> = ResourceResult<T> & {
+  retry: () => void;
+  /** Puts the resource in `success` with this data, without a request (DD-05). */
+  setData: (data: T) => void;
+};
 
 const LOADING = { state: 'loading', data: undefined, error: undefined } as const;
 
@@ -50,5 +54,9 @@ export function useResource<T>(
     setAttempt((value) => value + 1);
   }
 
-  return { ...result, retry };
+  function setData(data: T): void {
+    setResult({ state: 'success', data, error: undefined });
+  }
+
+  return { ...result, retry, setData };
 }

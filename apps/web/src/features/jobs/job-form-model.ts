@@ -44,6 +44,8 @@ const MESSAGES = {
   workMode: 'Elige presencial, híbrida o remota.',
   salary: 'Escribe un número entero mayor que 0, sin puntos ni espacios.',
   salaryOrder: 'El salario mínimo no puede ser mayor que el máximo.',
+  // Same text as the API (DD-08): it lives in two places.
+  requiredPublished: 'Obligatorio en una oferta publicada.',
 } as const;
 
 // Length in code points (EC-04): `text.length` counts UTF-16 units and would reject valid emoji titles.
@@ -89,8 +91,28 @@ function salaryErrors(values: JobFormValues): JobFormErrors {
   return errors;
 }
 
-/** Errors by field, with the messages of RF-02; an empty object means the form is valid. */
-export function validateJobForm(values: JobFormValues): JobFormErrors {
+export type ValidateOptions = {
+  /** Editing a published job: description, location and work mode become required (RF-03, DD-08). */
+  published?: boolean;
+};
+
+// Description, location and work mode cannot be left empty (or in spaces) on a published job.
+function publishedErrors(values: JobFormValues): JobFormErrors {
+  const errors: JobFormErrors = {};
+  if (values.description.trim() === '') errors.description = MESSAGES.requiredPublished;
+  if (values.location.trim() === '') errors.location = MESSAGES.requiredPublished;
+  if (values.workMode === '') errors.workMode = MESSAGES.requiredPublished;
+  return errors;
+}
+
+/**
+ * Errors by field, with the messages of RF-02 (and RF-03 with `{ published: true }`); an empty object
+ * means the form is valid.
+ */
+export function validateJobForm(
+  values: JobFormValues,
+  options: ValidateOptions = {},
+): JobFormErrors {
   const errors: JobFormErrors = {};
   const title = titleError(values.title);
   if (title) errors.title = title;
@@ -99,7 +121,8 @@ export function validateJobForm(values: JobFormValues): JobFormErrors {
   const location = locationError(values.location);
   if (location) errors.location = location;
   if (values.workMode !== '' && !isWorkMode(values.workMode)) errors.workMode = MESSAGES.workMode;
-  return { ...errors, ...salaryErrors(values) };
+  const required = options.published ? publishedErrors(values) : {};
+  return { ...required, ...errors, ...salaryErrors(values) };
 }
 
 /**

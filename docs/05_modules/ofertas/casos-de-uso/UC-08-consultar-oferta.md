@@ -3,7 +3,7 @@ id: UC-08
 titulo: "Consultar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-01, HU-02]
 ---
@@ -58,7 +58,7 @@ Ninguno.
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
 | P | HU-01 | CA-19 | `apps/web/test/features/jobs/JobDetailScreen.test.tsx:69` |
-| A1 | HU-02 | | |
+| A1 | HU-02 | CA-22 | `apps/web/test/features/jobs/JobDetailScreen.states.test.tsx:82` |
 | E1 | HU-01 | CA-20 | `apps/api/test/jobs/get.test.ts:80` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -1,6 +1,6 @@
 # Módulo `ofertas` (código `jobs`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-01** (2026-10-06). Lo mantiene `/module-sync`; la foto técnica está en
+Estado de `main` sincronizado hasta **HU-02** (2026-10-06). Lo mantiene `/module-sync`; la foto técnica está en
 [technical.md](technical.md).
 
 ## Propósito
@@ -27,20 +27,18 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Capacidad | UC | Estado | HU | Qué hay hoy |
 |---|---|---|---|---|
 | Crear una oferta como borrador | UC-01 | ✅ | HU-01 | Alta con solo el título o completa; recorte y validación junto al campo |
-| Editar una oferta | UC-02 | 🚧 | HU-01, HU-02 | Edición de borradores con última escritura; falta `published`/`closed` (E1, E3, E4) |
-| Publicar una oferta | UC-03 | ⬜ | HU-02 | — |
-| Cerrar una oferta | UC-04 | ⬜ | HU-02, HU-05 | — (A1, rechazo de inscripciones activas: HU-05) |
-| Borrar un borrador | UC-05 | 🚧 | HU-01, HU-02 | Borrado físico con confirmación; falta rechazar las no `draft` (E1) |
-| Duplicar una oferta como borrador | UC-06 | ⬜ | HU-02 | — |
-| Listar y buscar ofertas | UC-07 | 🚧 | HU-01, HU-02 | Primera página de 20, ordenada, con vacío y error; faltan filtros y paginación |
-| Consultar una oferta | UC-08 | 🚧 | HU-01, HU-02 | Ficha completa con «Editar» y «Borrar»; falta la ficha de una cerrada (A1) |
+| Editar una oferta | UC-02 | ✅ | HU-01, HU-02 | Edición de borradores y publicadas con última escritura; una publicada mantiene los obligatorios; una cerrada da 409 |
+| Publicar una oferta | UC-03 | ✅ | HU-02 | Publica un borrador completo, o avisa de los campos pendientes; repetir da 200 sin cambios |
+| Cerrar una oferta | UC-04 | 🚧 | HU-02, HU-05 | Cierra con diálogo y en una transacción, con el puerto de inscripciones (stub); falta A1, el rechazo de inscripciones activas (HU-05) |
+| Borrar un borrador | UC-05 | ✅ | HU-01, HU-02 | Borrado físico con confirmación; una publicada o cerrada da 409 |
+| Duplicar una oferta como borrador | UC-06 | ✅ | HU-02 | Copia los campos editables de una oferta de cualquier estado como borrador nuevo |
+| Listar y buscar ofertas | UC-07 | ✅ | HU-01, HU-02 | Filtros por estado y título (sin tildes ni mayúsculas), paginación y tamaño 20, 50 o 100, con vacío y error |
+| Consultar una oferta | UC-08 | ✅ | HU-01, HU-02 | Ficha con las acciones de su estado; una cerrada es de solo lectura y solo se duplica |
 
 ## Alcance no implementado
 
-- **HU-02:** publicar, cerrar y duplicar; editar y borrar ofertas `published` o `closed` con sus 409; filtros por
-  estado y título, cambio de página y de tamaño; ficha de una oferta cerrada; las acciones «Publicar», «Cerrar» y
-  «Duplicar»; las 6 ofertas restantes del seed (4 `published` y 2 `closed`).
-- **HU-05:** UC-04 · A1, el rechazo de las inscripciones activas al cerrar, cuando exista UC-19.
+- **HU-05:** UC-04 · A1, el rechazo de las inscripciones activas al cerrar, cuando exista UC-19 (hoy el puerto
+  `JobApplicationsPort` es el stub `noJobApplications`).
 
 ## Reglas de negocio
 
@@ -52,37 +50,48 @@ Las de FEAT-01, con su estado real en `main`.
   desconocido o de solo lectura. Además, los caracteres de control dan 400 (EC-50, DEC-11.8).
 - **RN-04** — extremos de la banda opcionales e independientes, enteros > 0, mínimo ≤ máximo si vienen los dos.
 - **RN-12** — fechas en UTC (ISO 8601) mostradas en Europe/Madrid como `dd/mm/aaaa`.
+- **RN-02** — publicar exige título, descripción, ubicación y modalidad; si faltan, 400 con la lista.
+- **RN-05** — se editan `draft` y `published` (una publicada mantiene los obligatorios), con última escritura; una
+  `closed` da 409.
+- **RN-06** — transiciones `draft → published → closed`; cualquier otra da 409 `INVALID_TRANSITION`.
+- **RN-07** — repetir una transición ya aplicada da 200 sin cambios ni nueva fecha.
+- **RN-09** — solo se borra un `draft` (físico); una publicada o cerrada da 409.
+- **RN-10** — duplicar copia los campos editables como borrador, sin fechas, sin inscripciones y sin enlace.
+- **RN-11** — orden por fecha de referencia descendente con desempate por ID, filtros en Y por estado y título, página
+  de 20 por defecto y tope de 100.
+- **RN-13** — la oferta no tiene vacantes: solo la cierra el reclutador.
 
 **Parciales**
-- **RN-05** — la edición con última escritura funciona para borradores; las reglas de `published` (mantener los
-  obligatorios) y `closed` (no se edita) llegan con HU-02.
-- **RN-09** — el borrado es físico; «solo se borra un `draft`» no se comprueba todavía porque no hay otros estados.
-- **RN-11** — orden por fecha de referencia descendente con desempate por ID y primera página de 20; filtros,
-  paginación y tope de 100: HU-02.
+- **RN-08** — el cierre es una transacción (estado, fecha y llamada al puerto), pero hoy el puerto no rechaza nada:
+  falta el rechazo de las inscripciones activas (UC-19, HU-05).
 
-**Pendientes**
-- **RN-02** (obligatorios para publicar), **RN-06** (transiciones `draft → published → closed`), **RN-07** (repetir
-  una transición da 200 sin cambios), **RN-08** (cierre en una transacción con UC-19), **RN-10** (duplicar) y
-  **RN-13** (la oferta no tiene vacantes; la cierra el reclutador): HU-02, salvo la parte de UC-19 de RN-08 (HU-05).
-  INV-01, INV-04 e INV-05 ya están defendidas en la base por adelantado (ver [technical.md](technical.md)).
+INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001 (ver [technical.md](technical.md)).
 
 ## Dependencias entre módulos
 
-- **Hoy, ninguna real:** `jobs` no importa otros módulos ni lo importa nadie.
-- **Latentes (DEC-06):** `ofertas` implementará el puerto «estado de la oferta» que define `inscripciones` (HU-04) e
-  invocará en el cierre la operación interna de UC-19 (HU-05). Dirección: `ofertas → inscripciones → candidatos`.
+- **Hoy, ninguna real:** `jobs` no importa otros módulos ni lo importa nadie. Hacia `inscripciones` solo hay un puerto
+  propio, `JobApplicationsPort` (`apps/api/src/modules/jobs/applications-port.ts`), que `buildApp` inyecta con el stub
+  `noJobApplications` (`jobApplications?`): cuenta 0 y no rechaza nada.
+- **Latentes (DEC-06):** HU-05 aporta la implementación real del puerto (UC-19, dentro de la transacción del cierre);
+  `ofertas` implementará además el puerto «estado de la oferta» que define `inscripciones` (HU-04). Dirección:
+  `ofertas → inscripciones → candidatos`.
 
 ## Cuestiones abiertas
 
-Ninguna funcional. Avisos de la review de HU-01 para las siguientes: HU-02 comprueba el estado en `service.update` y
-`service.remove`; HU-03 reutiliza `NO_CONTROL_CHARS*`.
+- **Ventana tolerada de INV-05 hasta HU-05:** mientras el puerto sea el stub, una oferta cerrada puede tener
+  inscripciones en etapa no final. Hoy no existen inscripciones; el test de EC-14
+  (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-05 lo sustituye al conectar UC-19.
+- Avisos de la review de HU-02: HU-03 cierra el `details` sin tope (SEC-03) y reutiliza `NO_CONTROL_CHARS*` y
+  `foldSearchText`; HU-05 conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores no llevan
+  datos del candidato al log.
 
 ## Estado vivo del MVP
 
-- **% MVP:** ~38 % — `round((1 + 0,5 · 4) / 8 · 100)`.
-- **Conteo:** 1 ✅ / 4 🚧 / 3 ⬜ (8 capacidades).
-- **Backlog:** HU-02 (ciclo de vida, filtros y paginación) y HU-05 (UC-04 · A1).
+- **% MVP:** ~94 % — `round((7 + 0,5 · 1) / 8 · 100)`.
+- **Conteo:** 7 ✅ / 1 🚧 / 0 ⬜ (8 capacidades).
+- **Backlog:** HU-05 (UC-04 · A1, el rechazo de las inscripciones activas al cerrar).
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|
 | 2026-10-06 | HU-01 | Crear, editar, borrar, listar y consultar borradores (API, web, migración 001 y seed de 4) | ~38 % |
+| 2026-10-06 | HU-02 | Publicar, cerrar, duplicar, editar y borrar según el estado, listado con filtros y paginación, guarda DEC-12 y seed de 10 | ~94 % |

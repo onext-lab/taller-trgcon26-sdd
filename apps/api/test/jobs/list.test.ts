@@ -92,9 +92,9 @@ describe('GET /api/jobs — listado (camino feliz y fronteras)', () => {
 
 describe('GET /api/jobs — adversarial', () => {
   it.each([
-    ['?page=2', 'page'],
-    ['?q=x', 'q'],
-  ])('EC-34 cualquier parámetro %s → 400', async (query, field) => {
+    ['?sort=title', 'sort'],
+    ['?foo=1', 'foo'],
+  ])('EC-34 (HU-01) parámetro desconocido %s → 400', async (query, field) => {
     await createDrafts(1);
 
     const response = await app.inject({ method: 'GET', url: `/api/jobs${query}` });

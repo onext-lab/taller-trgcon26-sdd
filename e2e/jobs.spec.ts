@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 // Flows of HU-01 against the real API and web, on a database regenerated at start (playwright.config.ts).
 // Each test that writes creates its own jobs with a fixed title that no other test (nor the seed) uses, so
-// the tests do not depend on each other. Other tests create newer jobs: never check absolute positions.
+// the tests do not depend on each other. Other tests (and the lifecycle and list specs, which run first) create
+// newer jobs: never check absolute positions, and check the list with a filter or `pageSize=100` (DD-09).
 
 const SEED_TITLES = [
   // Order of the list (most recent first); update together with apps/api/src/db/seed.ts.
@@ -53,7 +54,7 @@ function mainNavigation(page: Page) {
 test('RF-05/RF-07 el listado muestra los borradores del seed en su orden, con estado y fecha', async ({
   page,
 }) => {
-  await page.goto('/jobs');
+  await page.goto('/jobs?status=draft&pageSize=100');
   await expect(page.getByRole('table')).toBeVisible();
 
   const shown = await page.getByRole('table').getByRole('link').allTextContents();
@@ -84,6 +85,7 @@ test('CA-01 alta solo con título: ficha con aviso y aparece en el listado', asy
 
   await mainNavigation(page).getByRole('link', { name: 'Ofertas' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Ofertas' })).toBeVisible();
+  await page.goto('/jobs?pageSize=100');
   await expect(listLink(page, title).first()).toBeVisible();
 });
 
@@ -182,7 +184,13 @@ test('CA-11/EC-23 dos páginas editan el mismo borrador: gana la última en guar
 
 test('CA-13 borrar pide confirmación: Escape cancela y confirmar borra', async ({ page }) => {
   const title = 'Auxiliar administrativo/a';
-  await createJob(page, { title });
+  const draftsView = '/jobs?status=draft&pageSize=100';
+  const id = await createJob(page, { title });
+
+  // The job is in this view before deleting, so its absence afterwards means something.
+  await page.goto(draftsView);
+  await expect(listLink(page, title)).toHaveCount(1);
+  await page.goto(`/jobs/${id}`);
 
   await page.getByRole('button', { name: 'Borrar', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -198,6 +206,8 @@ test('CA-13 borrar pide confirmación: Escape cancela y confirmar borra', async 
 
   await expect(page).toHaveURL(/\/jobs$/);
   await expect(page.getByText('Oferta borrada.')).toBeVisible();
+  await page.goto(draftsView);
+  await expect(page.getByRole('table')).toBeVisible();
   await expect(listLink(page, title)).toHaveCount(0);
 });
 
@@ -235,7 +245,7 @@ test('EC-08 un título con SQL se guarda y se ve literal; el listado sigue carga
   await createJob(page, { title });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
 
-  await mainNavigation(page).getByRole('link', { name: 'Ofertas' }).click();
+  await page.goto('/jobs?pageSize=100');
   await expect(page.getByRole('table')).toBeVisible();
   await expect(listLink(page, title).first()).toBeVisible();
   await expect(listLink(page, 'Analista de datos junior')).toBeVisible();

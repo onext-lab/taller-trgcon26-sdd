@@ -95,8 +95,8 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 ## Cómo se preparan los e2e
 
 `npm run e2e` usa su propia base, `data/e2e.db`, y sus propios puertos (3101 la API y 5174 la web), así que se puede
-lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y seed de 4
-borradores) en el comando del `webServer` de la API, en `playwright.config.ts`
+lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y seed de 10
+ofertas: 4 borradores, 4 publicadas y 2 cerradas) en el comando del `webServer` de la API, en `playwright.config.ts`
 (`npm run db:reset -w apps/api && npm run start -w apps/api`). No va en un `globalSetup` porque en Playwright 1.63 el
 `webServer` arranca **antes** que `globalSetup`: borrar la base entonces dejaría a la API escribiendo en ficheros ya
 borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones seguidas dan el mismo resultado.

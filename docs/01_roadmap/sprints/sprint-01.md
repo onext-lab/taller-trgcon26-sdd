@@ -17,8 +17,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 1 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-06 17:40 (HU-01 aprobada con observaciones en la ronda 2, mergeada y sincronizada)
+- HU: hechas 2 / total 5 · bloqueadas 0
+- Última actualización: 2026-10-06 19:45 (HU-02 aprobada con observaciones en la ronda 2, mergeada y sincronizada)
 
 ## Historias de usuario
 
@@ -32,15 +32,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-02 · Publicar, cerrar, duplicar y listar ofertas con filtros · estado: pendiente
+### HU-02 · Publicar, cerrar, duplicar y listar ofertas con filtros · estado: hecha
 - **Origen:** FEAT-01 · **Depende de:** HU-01 · **Rama:** `hu/HU-02-ciclo-vida-ofertas`
-- [ ] prd-writer
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
 
 ### HU-03 · Alta, edición y búsqueda de candidatos, con consentimiento · estado: pendiente
 - **Origen:** FEAT-02 · **Depende de:** nada · **Rama:** `hu/HU-03-candidatos-consentimiento`

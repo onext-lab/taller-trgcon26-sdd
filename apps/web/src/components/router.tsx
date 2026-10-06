@@ -3,9 +3,15 @@ import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent } from
 // Minimal router on top of the History API (DD-01). Never put personal data in the URL or in history.state:
 // the only thing that travels in history.state is one of the fixed notices below.
 
-export type NoticeText = 'Oferta creada.' | 'Cambios guardados.' | 'Oferta borrada.';
+export type NoticeText =
+  'Oferta creada.' | 'Cambios guardados.' | 'Oferta borrada.' | 'Oferta duplicada.';
 
-const NOTICES: readonly NoticeText[] = ['Oferta creada.', 'Cambios guardados.', 'Oferta borrada.'];
+const NOTICES: readonly NoticeText[] = [
+  'Oferta creada.',
+  'Cambios guardados.',
+  'Oferta borrada.',
+  'Oferta duplicada.',
+];
 const NAVIGATE_EVENT = 'ats:navigate';
 
 export type NavigateOptions = { replace?: boolean; notice?: NoticeText };
@@ -23,6 +29,10 @@ function getPath(): string {
   return window.location.pathname;
 }
 
+function getSearch(): string {
+  return window.location.search;
+}
+
 export function readNotice(): NoticeText | null {
   const state: unknown = window.history.state;
   if (typeof state !== 'object' || state === null || !('notice' in state)) return null;
@@ -32,6 +42,11 @@ export function readNotice(): NoticeText | null {
 
 export function usePath(): string {
   return useSyncExternalStore(subscribe, getPath);
+}
+
+/** Query string of the current URL (with the leading `?`, or `''`); it follows `navigate` and «Atrás». */
+export function useSearch(): string {
+  return useSyncExternalStore(subscribe, getSearch);
 }
 
 export function useNotice(): NoticeText | null {

@@ -3,7 +3,7 @@ id: UC-05
 titulo: "Borrar un borrador"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-01, HU-02]
 ---
@@ -53,7 +53,7 @@ Ninguno. Un borrador no tiene inscripciones, porque solo se inscribe en ofertas 
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
 | P | HU-01 | CA-13 | `apps/api/test/jobs/delete.test.ts:26` |
-| E1 | HU-02 | | |
+| E1 | HU-02 | CA-13 | `apps/api/test/jobs/status-rules.test.ts:150` |
 | E2 | HU-01 | CA-14 | `apps/api/test/jobs/delete.test.ts:103` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

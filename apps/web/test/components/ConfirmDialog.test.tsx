@@ -4,9 +4,21 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { ConfirmDialog } from '../../src/components/ConfirmDialog.tsx';
 import { installDialogPolyfill, simulateCancel } from '../helpers/dialog.ts';
 
-type HarnessProps = { busy?: boolean; error?: string; onConfirm?: () => void };
+type HarnessProps = {
+  busy?: boolean;
+  confirmDisabled?: boolean;
+  error?: string;
+  extra?: string;
+  onConfirm?: () => void;
+};
 
-function Harness({ busy = false, error, onConfirm = () => {} }: HarnessProps) {
+function Harness({
+  busy = false,
+  confirmDisabled,
+  error,
+  extra,
+  onConfirm = () => {},
+}: HarnessProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -19,10 +31,13 @@ function Harness({ busy = false, error, onConfirm = () => {} }: HarnessProps) {
         description="Vas a borrar «Desarrollador backend». No se puede deshacer."
         confirmLabel="Borrar oferta"
         busy={busy}
+        confirmDisabled={confirmDisabled}
         error={error}
         onConfirm={onConfirm}
         onCancel={() => setOpen(false)}
-      />
+      >
+        {extra === undefined ? null : <p role="status">{extra}</p>}
+      </ConfirmDialog>
     </>
   );
 }
@@ -105,6 +120,52 @@ describe('ConfirmDialog', () => {
     );
     act(() => simulateCancel(getDialog()));
     expect(getDialog().hasAttribute('open')).toBe(true);
+  });
+
+  it('con confirmDisabled deshabilita solo el botón de confirmar y «Cancelar» sigue activo', () => {
+    const onConfirm = vi.fn();
+    render(<Harness confirmDisabled onConfirm={onConfirm} />);
+    openDialog();
+
+    const confirm = screen.getByRole('button', { name: 'Borrar oferta' });
+    expect(confirm.hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Cancelar' }).hasAttribute('disabled')).toBe(false);
+    fireEvent.click(confirm);
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    act(() => simulateCancel(getDialog()));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('confirmDisabled={false} deja el botón de confirmar activo', () => {
+    render(<Harness confirmDisabled={false} />);
+    openDialog();
+
+    expect(screen.getByRole('button', { name: 'Borrar oferta' }).hasAttribute('disabled')).toBe(
+      false,
+    );
+  });
+
+  it('children se pinta entre la descripción y el error', () => {
+    render(<Harness extra="Comprobando las inscripciones activas…" error="Algo ha fallado." />);
+    openDialog();
+
+    const description = document.getElementById(getDialog().getAttribute('aria-describedby') ?? '');
+    const status = screen.getByRole('status');
+    const alert = screen.getByRole('alert');
+    expect(status.textContent).toBe('Comprobando las inscripciones activas…');
+    expect(description?.compareDocumentPosition(status)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(status.compareDocumentPosition(alert)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('sin children ni confirmDisabled se comporta como antes (sin role="status")', () => {
+    render(<Harness />);
+    openDialog();
+
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Borrar oferta' }).hasAttribute('disabled')).toBe(
+      false,
+    );
   });
 
   it('pinta el error con role="alert" dentro del diálogo', () => {

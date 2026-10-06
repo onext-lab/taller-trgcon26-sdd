@@ -25,6 +25,11 @@ export function notFound(message: string): AppError {
   return new AppError('NOT_FOUND', 404, message);
 }
 
+/** 409 de estado (DEC-07): la transición pedida no es posible desde el estado actual. Sin `details`. */
+export function invalidTransition(message: string): AppError {
+  return new AppError('INVALID_TRANSITION', 409, message);
+}
+
 export function validationError(details: ErrorDetail[]): AppError {
   return new AppError('VALIDATION_ERROR', 400, 'Hay campos con errores.', details);
 }

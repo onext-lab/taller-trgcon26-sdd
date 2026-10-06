@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { userMessage } from '../../components/http.ts';
 import { Link, matchPath, navigate, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
 import { useResource } from '../../components/use-resource.ts';
 import { createJob, getJob, updateJob } from './api.ts';
 import { isNotFound, NotFound } from './JobDetailScreen.tsx';
 import { JobForm } from './JobForm.tsx';
+import { focusFirstError, splitServerError } from './job-form-errors.ts';
 import {
   EMPTY_FORM,
-  FIELD_ORDER,
-  isFieldName,
   jobToForm,
   toCreateInput,
   toPatch,
@@ -23,42 +22,20 @@ import type { Job } from './types.ts';
 const APP_NAME = 'ATS';
 const CREATE_TITLE = 'Nueva oferta';
 const EDIT_TITLE = 'Editar oferta';
-const GONE_MESSAGE = 'Esta oferta ya no existe.';
-
-type ServerErrors = { fields: JobFormErrors; form?: string; gone?: boolean };
-
-// A 400 puts each `details[i]` next to its field with the API message; the rest (unknown field, `body`,
-// no details) goes to the form alert. A 404 on save means the job was deleted elsewhere (EC-24).
-// Anything else shows the message of the error (EC-05, EC-10).
-function splitServerError(error: unknown): ServerErrors {
-  if (error instanceof ApiError && error.status === 404) {
-    return { fields: {}, form: GONE_MESSAGE, gone: true };
-  }
-  if (!(error instanceof ApiError) || error.status !== 400) {
-    return { fields: {}, form: userMessage(error) };
-  }
-  const fields: JobFormErrors = {};
-  const others: string[] = [];
-  for (const detail of error.details ?? []) {
-    if (isFieldName(detail.field)) fields[detail.field] ??= detail.message;
-    else others.push(detail.message);
-  }
-  const hasFields = Object.keys(fields).length > 0;
-  if (others.length === 0 && hasFields) return { fields };
-  return { fields, form: others[0] ?? error.message };
-}
-
-function focusFirstError(form: HTMLFormElement, errors: JobFormErrors): void {
-  const first = FIELD_ORDER.find((field) => errors[field] !== undefined);
-  const control = first ? form.elements.namedItem(first) : null;
-  if (control instanceof HTMLElement) control.focus();
-}
+const CLOSED_MESSAGE = 'Esta oferta está cerrada y no se puede editar.';
 
 type Submit = (values: JobFormValues) => Promise<void>;
 
+type SubmissionOptions = {
+  /** Editing a published job: the four required fields are validated (RF-03). */
+  published: boolean;
+  /** 409 on save: the container shows the API message and reloads the job (DD-06). */
+  onConflict?: (message: string) => void;
+};
+
 // Submission state: validates on submit, runs `submit` once (the ref guard keeps a double click from
 // sending two, EC-06) and keeps the server errors. `submit` navigates on success and throws on failure.
-function useJobSubmission(values: JobFormValues, submit: Submit) {
+function useJobSubmission(values: JobFormValues, submit: Submit, options: SubmissionOptions) {
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [formError, setFormError] = useState<string | undefined>(undefined);
   const [gone, setGone] = useState(false);
@@ -70,6 +47,10 @@ function useJobSubmission(values: JobFormValues, submit: Submit) {
       await submit(values);
     } catch (caught) {
       const server = splitServerError(caught);
+      if (server.conflict && options.onConflict) {
+        options.onConflict(server.form ?? CLOSED_MESSAGE);
+        return;
+      }
       setErrors(server.fields);
       setFormError(server.form);
       setGone(server.gone === true);
@@ -81,7 +62,7 @@ function useJobSubmission(values: JobFormValues, submit: Submit) {
     event.preventDefault();
     if (inFlight.current) return;
     const form = event.currentTarget;
-    const found = validateJobForm(values);
+    const found = validateJobForm(values, { published: options.published });
     setErrors(found);
     setFormError(undefined);
     setGone(false);
@@ -102,15 +83,22 @@ function useJobSubmission(values: JobFormValues, submit: Submit) {
   return { errors, formError, gone, busy, handleSubmit };
 }
 
-function JobFormContainer(props: {
+type ContainerProps = {
   heading: string;
   initial: JobFormValues;
   cancelTo: string;
   submit: Submit;
-}) {
-  const { heading, initial, cancelTo, submit } = props;
+  published?: boolean;
+  onConflict?: (message: string) => void;
+};
+
+function JobFormContainer(props: ContainerProps) {
+  const { heading, initial, cancelTo, submit, published = false, onConflict } = props;
   const [values, setValues] = useState<JobFormValues>(initial);
-  const { errors, formError, gone, busy, handleSubmit } = useJobSubmission(values, submit);
+  const { errors, formError, gone, busy, handleSubmit } = useJobSubmission(values, submit, {
+    published,
+    onConflict,
+  });
 
   useEffect(() => {
     document.title = `${heading} · ${APP_NAME}`;
@@ -120,6 +108,7 @@ function JobFormContainer(props: {
     <>
       <JobForm
         heading={heading}
+        published={published}
         values={values}
         errors={errors}
         formError={formError}
@@ -133,6 +122,31 @@ function JobFormContainer(props: {
           <Link to={jobPaths.list}>Volver a las ofertas</Link>
         </p>
       ) : null}
+    </>
+  );
+}
+
+// A closed job has no form (CA-10, DD-06): the message of the 409 when we come from saving, or the fixed
+// one when the URL was opened directly. After a 409 the form is gone, so the focus goes to the heading.
+function ClosedJobNotice({ id, message }: { id: number; message: string | null }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    document.title = `${EDIT_TITLE} · ${APP_NAME}`;
+    if (message !== null) headingRef.current?.focus();
+  }, [message]);
+
+  return (
+    <>
+      <h1 ref={headingRef} tabIndex={-1}>
+        {EDIT_TITLE}
+      </h1>
+      <p role="alert" className="error-text">
+        {message ?? CLOSED_MESSAGE}
+      </p>
+      <p>
+        <Link to={jobPaths.detail(id)}>Ver la oferta</Link>
+      </p>
     </>
   );
 }
@@ -153,8 +167,10 @@ async function updateAndShow(original: Job, values: JobFormValues): Promise<void
   }
 }
 
+// The alert of a 409 lives here, above the resource, so it survives the reload of the job (DD-06).
 function EditJobLoader({ id }: { id: number }) {
   const job = useResource((signal) => getJob(id, signal), [id]);
+  const [conflict, setConflict] = useState<string | null>(null);
 
   if (job.state === 'error' && isNotFound(job.error)) return <NotFound />;
   if (job.state === 'loading') return <LoadingMessage>Cargando la oferta…</LoadingMessage>;
@@ -162,6 +178,7 @@ function EditJobLoader({ id }: { id: number }) {
     return <ErrorMessage message={userMessage(job.error)} onRetry={job.retry} />;
   }
   const original = job.data;
+  if (original.status === 'closed') return <ClosedJobNotice id={id} message={conflict} />;
   return (
     <JobFormContainer
       key={original.id}
@@ -169,6 +186,11 @@ function EditJobLoader({ id }: { id: number }) {
       initial={jobToForm(original)}
       cancelTo={jobPaths.detail(original.id)}
       submit={(values) => updateAndShow(original, values)}
+      published={original.status === 'published'}
+      onConflict={(message) => {
+        setConflict(message);
+        job.retry();
+      }}
     />
   );
 }

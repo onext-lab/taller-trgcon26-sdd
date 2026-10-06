@@ -1,25 +1,29 @@
 # Módulo `ofertas` (código `jobs`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-01** (2026-10-06, review «Aprobado con observaciones», ronda 2). Lo mantiene
+Estado de `main` sincronizado hasta **HU-02** (2026-10-06, review «Aprobado con observaciones», ronda 2). Lo mantiene
 `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo condicionan:
-DEC-01, DEC-03, DEC-06 a DEC-11 de [DECISIONS.md](../../07_architecture_principles/DECISIONS.md).
+DEC-01, DEC-03, DEC-06 a DEC-12 de [DECISIONS.md](../../07_architecture_principles/DECISIONS.md).
 
-**Hoy solo hay borradores (`draft`).** Lo que el modelo ya prevé para `published` y `closed` está marcado como
-**latente**: existe en la migración o en el contrato, pero ningún código lo usa hasta HU-02.
+**El ciclo de vida completo (`draft → published → closed`) está implementado.** Lo único **latente** es el puerto
+hacia `inscripciones`: `noJobApplications` (cuenta 0 y no rechaza nada) hasta que HU-05 lo sustituya en `app.ts`.
 
 ## Estructura de código
 
 | Capa | Ruta | Contenido |
 |---|---|---|
-| Rutas | `apps/api/src/modules/jobs/routes.ts` | Plugin `jobsRoutes` (prefijo `/api/jobs`), JSON Schema por ruta, `preValidation` con `trimTextFields`, sin `try/catch` |
-| Servicio | `apps/api/src/modules/jobs/service.ts` | `createJobsService({ repository, now, transaction })`: `create`, `get`, `update`, `remove`, `list`; regla mínimo ≤ máximo |
-| Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado, `toJob(row)` (`snake_case` → `camelCase`) |
-| Esquemas | `apps/api/src/modules/jobs/schemas.ts` | Tipos (`Job`, `JobInput`, `JobPatch`, `JobListItem`, `JobPage`) y JSON Schema (`jobFieldsSchema`…) |
-| Composición | `apps/api/src/app.ts` | `buildApp` crea el servicio y registra el plugin (DD-09); ningún otro módulo importa `jobs` |
-| Migración · seed | `apps/api/src/db/migrations/001-create-job-openings.sql` · `apps/api/src/db/seed.ts` | Tabla `job_openings`; 4 borradores inventados |
-| Web | `apps/web/src/features/jobs/` | `api.ts`, `types.ts`, `paths.ts`, `labels.ts`, `job-form-model.ts` y las pantallas |
-| Tests API | `apps/api/test/jobs/` | `create`, `create-adversarial`, `control-chars`, `update`, `delete`, `get`, `list`, `enumeration`, `migration`, `seed`, `performance` |
-| Tests web · e2e | `apps/web/test/features/jobs/` · `e2e/jobs.spec.ts` | Testing Library con `fetch` simulado · Playwright sobre `data/e2e.db` |
+| Rutas | `apps/api/src/modules/jobs/routes.ts` | Plugin `jobsRoutes` (prefijo `/api/jobs`), JSON Schema por ruta, `preValidation` con `trimTextFields` (cuerpo y `q`) y `rejectBody` en las acciones, sin `try/catch` |
+| Servicio | `apps/api/src/modules/jobs/service.ts` | `createJobsService({ repository, now, transaction, applications })`: `create`, `get`, `update`, `remove`, `publish`, `close`, `closePreview`, `duplicate` y `list(query)` |
+| Reglas | `apps/api/src/modules/jobs/rules.ts` | Sin HTTP ni SQL: tabla acción × estado (`checkAction`: `apply`, `noop` o 409), obligatorios (`missingRequiredDetails`) y banda (`salaryRangeDetails`) |
+| Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) y el stub `noJobApplications`; HU-05 lo conectará en `app.ts` |
+| Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado (`markPublished`, `markClosed` con guarda de estado, `listPage`, `count`), `toJob(row)` (`snake_case` → `camelCase`) |
+| Esquemas | `apps/api/src/modules/jobs/schemas.ts` | Tipos (`Job`, `JobInput`, `JobPatch`, `JobListItem`, `JobPage`, `JobListQuery`, `ClosePreview`) y JSON Schema (`jobFieldsSchema`, `listQuerySchema`…) |
+| Búsqueda | `apps/api/src/db/text-search.ts` | `foldSearchText` y `fold_search(texto)`, función SQL que el repositorio registra en su conexión |
+| Guarda entre sitios | `apps/api/src/http/cross-site.ts` | Hook `onRequest` global (DEC-12): 403 `CROSS_SITE_REQUEST` a las escrituras desde otro sitio |
+| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications? })` crea el servicio y registra el plugin (DD-09); ningún otro módulo importa `jobs` |
+| Migración · seed | `apps/api/src/db/migrations/001-create-job-openings.sql` · `apps/api/src/db/seed.ts` | Tabla `job_openings` (sin migración nueva en HU-02); 10 ofertas inventadas: 4 `draft`, 4 `published` y 2 `closed` |
+| Web | `apps/web/src/features/jobs/` | `api.ts`, `types.ts`, `paths.ts`, `labels.ts`, `job-form-model.ts`, `list-query.ts` (URL del listado), `job-form-errors.ts`, `use-job-actions.ts` y las pantallas y componentes |
+| Tests API | `apps/api/test/jobs/` · `apps/api/test/http/cross-site.test.ts` | `create`, `create-adversarial`, `control-chars`, `update`, `delete`, `get`, `list`, `list-filters`, `list-filters-adversarial`, `publish`, `close`, `duplicate`, `status-rules`, `status-rules-adversarial`, `enumeration`, `migration`, `seed`, `performance` · guarda DEC-12 |
+| Tests web · e2e | `apps/web/test/features/jobs/` · `e2e/jobs.spec.ts`, `e2e/jobs-lifecycle.spec.ts`, `e2e/jobs-list.spec.ts` | Testing Library con `fetch` simulado · Playwright sobre `data/e2e.db` (ciclo de vida y listado filtrado) |
 
 Piezas transversales que usa (de HU-01, DEC-11): `apps/api/src/http/`, `apps/api/src/errors.ts`,
 `apps/api/src/clock.ts`, `apps/api/src/db/transaction.ts`, `apps/api/test/helpers/test-app.ts` y, en la web,
@@ -38,51 +42,68 @@ Piezas transversales que usa (de HU-01, DEC-11): `apps/api/src/http/`, `apps/api
 | `salary_min` · `salary_max` | `INTEGER` | Nulo o `typeof = 'integer'` y > 0; mínimo ≤ máximo (INV-07) |
 | `status` | `TEXT NOT NULL DEFAULT 'draft'` | `draft`, `published`, `closed` |
 | `created_at` | `TEXT NOT NULL` | Lo pone el servicio con el reloj inyectado |
-| `published_at` · `closed_at` | `TEXT` | **Latentes**: siempre `NULL` hasta HU-02 |
+| `published_at` · `closed_at` | `TEXT` | Nulo o fecha en el mismo formato; los fija el servicio: `published_at` al publicar y `closed_at` al cerrar |
 
-- `CHECK` de coherencia estado-fechas (INV-01, INV-05) y de obligatorios fuera de `draft` (INV-04): **latentes**, ya
-  defendidos en la base (DD-08 del diseño backend de HU-01) porque SQLite no deja añadir un `CHECK` a una tabla
-  existente.
+- `CHECK` de coherencia estado-fechas (INV-01, INV-05) y de obligatorios fuera de `draft` (INV-04): desde HU-02 los
+  ejercen `publish`, `close` y `update` (DD-08 del diseño backend de HU-01 los adelantó porque SQLite no deja añadir un
+  `CHECK` a una tabla existente). Sin migración nueva en HU-02.
 - Índice `job_openings_reference_date_idx` sobre `COALESCE(published_at, created_at) DESC, id DESC`; el listado usa la
   misma expresión.
-- No están en la base: las transiciones de estado ni «solo se borra un `draft`» (INV-03). Las comprobará el servicio
-  de HU-02 dentro de la transacción (DEC-08).
+- No están en la base: las transiciones de estado ni «solo se borra un `draft`» (INV-03). Las comprueba `checkAction`
+  (`apps/api/src/modules/jobs/rules.ts`) en el servicio, dentro de la transacción (DEC-08); `markPublished` y
+  `markClosed` llevan además la guarda de estado en el `UPDATE`.
 
 ## Endpoints
 
 | Método y ruta | Entrada | Éxito | Errores |
 |---|---|---|---|
-| `POST /api/jobs` | `title` obligatorio; resto de `jobFieldsSchema` opcional | 201 `Job` en `draft` | 400 · 413 · 415 · 500 |
-| `GET /api/jobs` | Sin parámetros (cualquiera da 400 hasta HU-02) | 200 `{ items, total, page: 1, pageSize: 20 }` | 400 · 500 |
+| `POST /api/jobs` | `title` obligatorio; resto de `jobFieldsSchema` opcional | 201 `Job` en `draft` | 400 · 403 · 413 · 415 · 500 |
+| `GET /api/jobs` | `status`, `q`, `page`, `pageSize` (abajo); cualquier otro parámetro da 400 | 200 `{ items, total, page, pageSize }`; `total` es el del resultado filtrado | 400 · 500 |
 | `GET /api/jobs/:id` | `id` texto `^[1-9][0-9]{0,14}$` | 200 `Job` | 400 · 404 · 500 |
-| `PATCH /api/jobs/:id` | Al menos un campo; ausente = sin cambios; `null` = sin valor | 200 `Job` fusionado | 400 · 404 · 413 · 415 · 500 |
-| `DELETE /api/jobs/:id` | Sin cuerpo ni `Content-Type` | 204 | 400 · 404 · 500 |
+| `PATCH /api/jobs/:id` | Al menos un campo; ausente = sin cambios; `null` = sin valor | 200 `Job` fusionado | 400 · 403 · 404 · 409 (cerrada) · 413 · 415 · 500 |
+| `DELETE /api/jobs/:id` | Sin cuerpo ni `Content-Type` | 204 | 400 · 403 · 404 · 409 (publicada o cerrada) · 500 |
+| `POST /api/jobs/:id/publish` | Sin cuerpo | 200 `Job` publicado; ya publicada: 200 igual, misma fecha | 400 (cuerpo, o `details` con los obligatorios que faltan) · 403 · 404 · 409 (cerrada) · 500 |
+| `POST /api/jobs/:id/close` | Sin cuerpo | 200 `Job` cerrado, en una transacción con el puerto; ya cerrada: 200 igual | 400 · 403 · 404 · 409 (borrador) · 500 |
+| `GET /api/jobs/:id/close-preview` | — | 200 `{ activeApplications }`, en cualquier estado | 400 · 404 · 500 |
+| `POST /api/jobs/:id/duplicate` | Sin cuerpo | 201 `Job` nuevo en `draft` con los 6 campos editables; no es idempotente | 400 · 403 · 404 · 500 |
 
-- `Job` lleva siempre los 11 campos; los opcionales sin valor salen `null`, nunca ausentes. `publishedAt` y `closedAt`
-  van ya en el contrato (latentes).
+- `Job` lleva siempre los 11 campos; los opcionales sin valor salen `null`, nunca ausentes.
 - `JobListItem` = `{ id, title, status, referenceDate }`, con `referenceDate = publishedAt ?? createdAt`.
-- **Latente hasta HU-02:** `PATCH` y `DELETE` no comprueban el estado (no existen ofertas `published` ni `closed`).
-  HU-02 añade el 409 `INVALID_TRANSITION` en `service.update` y `service.remove` (aviso de la review).
+- **Parámetros del listado** (`listQuerySchema`): `status` (`draft`, `published` o `closed`), `q` (se recorta; ≤ 100
+  caracteres, sin controles; contenido en el título, sin mayúsculas ni tildes), `page` (por defecto 1) y `pageSize`
+  (1 a 100, por defecto 20). `status` y `q` se combinan en Y; una página más allá de la última da `items: []`.
+- Las acciones sin cuerpo rechazan cualquier cuerpo (también `{}`) con 400 `details: [{ field: 'body' }]`.
+- `PATCH` y `DELETE` comprueban el estado en el servicio (`INVALID_TRANSITION`, 409); una publicada solo se edita si
+  conserva título, descripción, ubicación y modalidad.
 
 ## Pantallas y componentes
 
 | Ruta | Contenedor → presentacionales | Notas |
 |---|---|---|
-| `/jobs` (entrada; `/` redirige) | `JobListScreen` → `JobTable` | Cargando, vacío, error con «Reintentar»; aviso si `total` > 20 |
-| `/jobs/new` · `/jobs/:id/edit` | `JobFormScreen` → `JobForm` | Un formulario para alta y edición; la edición envía solo lo cambiado (`toPatch`) |
-| `/jobs/:id` | `JobDetailScreen` → `JobDetails`, `DeleteJobAction` | Acciones por estado en `JobActions`: hoy, solo «Editar» y «Borrar» en `draft` |
+| `/jobs` (entrada; `/` redirige) | `JobListScreen` → `JobFilters`, `JobTable`, `JobPagination` | Filtros y página en la URL (`?status=&q=&page=&pageSize=`, `list-query.ts`); cargando, vacío (con o sin filtros), error con «Reintentar» (un 400 muestra el parámetro y «Quitar filtros»); «Por página» ofrece 20, 50 y 100 |
+| `/jobs/new` · `/jobs/:id/edit` | `JobFormScreen` → `JobForm` | Un formulario para alta y edición; la edición envía solo lo cambiado (`toPatch`); en una publicada marca los obligatorios; un 409 o un 404 al guardar recarga la oferta (`job-form-errors.ts`) |
+| `/jobs/:id` | `JobDetailScreen` → `JobDetails`, `JobActions` (`CloseJobAction`, `DeleteJobAction`) | Acciones por estado en `JobActions`: `draft` edita, publica, borra y duplica; `published` edita, cierra (diálogo con las inscripciones activas) y duplica; `closed` solo duplica (ficha de solo lectura). Publicar y duplicar van en `use-job-actions.ts` |
 
 Cliente de la feature en `apps/web/src/features/jobs/api.ts` sobre `requestJson` (`apps/web/src/components/http.ts`).
-Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta borrada.») viajan en `history.state`.
+Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta borrada.», «Oferta duplicada.») viajan en
+`history.state`; los de publicar y cerrar los muestra la propia ficha.
 
 ## Validación y errores
 
 - Esquema estricto con Ajv sin coerción ni `removeAdditional` (DEC-11.1); recorte previo en `preValidation` y
   opcionales vacíos → `null` (DEC-11.3); caracteres de control → 400 (`NO_CONTROL_CHARS`, DEC-11.8).
-- Orden de comprobación: JSON Schema (400) → existencia (404) → reglas del servicio (400, mínimo > máximo en
-  `salaryMin`, sobre los valores fusionados en `PATCH`).
-- Códigos que emite hoy: `VALIDATION_ERROR`, `NOT_FOUND`, `PAYLOAD_TOO_LARGE`, `UNSUPPORTED_MEDIA_TYPE`,
-  `BAD_REQUEST`, `INTERNAL_ERROR`. Todos los construye `apps/api/src/http/error-handler.ts`.
+- Orden de comprobación: guarda entre sitios (403, antes de parsear el cuerpo) → `rejectBody` en las acciones (400) →
+  JSON Schema de `params`, `body` y `querystring` (400) → existencia (404) → estado (409) → reglas de campos (400:
+  obligatorios de publicar o de una publicada y, detrás, mínimo > máximo en `salaryMin`, sobre los valores fusionados en
+  `PATCH`). Todo lo posterior al esquema, dentro de la transacción (DEC-08).
+- Repetir una transición da 200 sin cambios: `checkAction` devuelve `noop` y no se llama a `now()` ni al puerto.
+- Códigos que emite hoy: `VALIDATION_ERROR`, `NOT_FOUND`, `INVALID_TRANSITION` (409, DEC-07), `CROSS_SITE_REQUEST`
+  (403, DEC-12), `PAYLOAD_TOO_LARGE`, `UNSUPPORTED_MEDIA_TYPE`, `BAD_REQUEST`, `INTERNAL_ERROR`. Los construye
+  `apps/api/src/http/error-handler.ts`; `INVALID_TRANSITION` sale de `apps/api/src/errors.ts` y `CROSS_SITE_REQUEST`
+  de `apps/api/src/http/cross-site.ts`.
+- **Guarda entre sitios (DEC-12):** hook `onRequest` global. Los métodos seguros (`GET`, `HEAD`, `OPTIONS`) pasan; el
+  resto da 403 si `Sec-Fetch-Site` (en minúsculas y recortado) no es `same-origin` ni `none`. Sin cabecera pasa
+  (`inject`, clientes que no son navegador). `same-site` se rechaza. El 403 va sin `details`.
 
 ## Convenciones del módulo
 
@@ -90,13 +111,18 @@ Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta bo
 - `UPDATE` con lista fija de 6 columnas; el `PATCH` es lectura-fusión-escritura en `withTransaction` (DD-05).
 - `status` y las fechas solo las fija el servicio; cualquier campo de solo lectura en la entrada da 400.
 - El listado devuelve solo los 4 campos de `JobListItem` (DEC-10).
-- La web decide las acciones de la ficha por estado en `JobActions`: HU-02 solo añade las suyas.
+- La web decide las acciones de la ficha por estado en `JobActions`.
+- Las reglas de estado viven en `rules.ts` (tabla acción × estado); el servicio las aplica dentro de la transacción y,
+  en el cierre, llama al puerto después del `UPDATE`: si lanza, se deshace todo (DEC-06).
+- Las acciones sin cuerpo (`publish`, `close`, `duplicate`) llevan `rejectBody` y devuelven el `Job` resultante.
+- El listado filtra con `fold_search(title)` sobre el texto plegado con `foldSearchText` y `instr` (sin comodines).
 
 ## Gotchas
 
 - **Ajv de Fastify por defecto quita campos y convierte tipos** (`removeAdditional: true`, `coerceTypes: 'array'`): un
   `status` se descartaría en silencio y `"40000"` pasaría por entero. Lo corrige `ajvOptions` (DEC-11). Consecuencia:
-  los numéricos de `params` y `querystring` (el `page`/`pageSize` de HU-02) se declaran como texto con `pattern`.
+  los numéricos de `params` y `querystring` (`page` y `pageSize` del listado) se declaran como texto con `pattern`.
+  Efecto: `pageSize=101` o `0` da 400 «Formato no válido.» en `pageSize`, no un «máximo 100» (`apps/api/test/jobs/list-filters-adversarial.test.ts:73`).
 - **NUL y `length()` de SQLite**: Ajv cuenta puntos de código, pero `length()` corta en el primer NUL; un título con
   NUL embebido daba 500 y uno con NUL final se guardaba (sonda de la review ronda 1). EC-50 / DEC-11.8 lo rechaza con
   400; HU-03 reutiliza `NO_CONTROL_CHARS*`.
@@ -108,22 +134,35 @@ Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta bo
 - **`GET` y `DELETE` sin `Content-Type`**: con `application/json` y cuerpo vacío Fastify responde 400; `requestJson`
   solo lo pone si hay cuerpo.
 - **Longitudes en puntos de código**: la web cuenta con `Array.from()` y no usa `maxLength` nativo (cortaría emojis).
+- **Publicar, cerrar y duplicar son `POST` sin cuerpo**: para el navegador son peticiones «simples», sin *preflight* de
+  CORS, y sin login nada las frena; por eso existe la guarda de DEC-12. Con la API en `127.0.0.1`, otra aplicación en
+  otro puerto de loopback llega como `same-site`: la guarda también lo rechaza (SEC-01 de la ronda 1; tests en
+  `apps/api/test/http/cross-site.test.ts`). La web pasa porque va por el proxy de Vite (`same-origin`).
+- **La búsqueda pliega con NFD**: `q=Pena` encuentra «Peña» (la `ñ` pierde la tilde, EC-48) y «Gestión» da igual en NFC
+  o NFD (`apps/api/src/db/text-search.ts:4-6`). `fold_search` se registra **por conexión** en `createJobsRepository`:
+  cualquier otra conexión que ejecute esas consultas debe llamar a `registerTextSearch(db)` o SQLite responde «no such
+  function».
 
 ## Deuda técnica
 
 | Deuda | Estado | Origen |
 |---|---|---|
 | Sin cabeceras de endurecimiento (`nosniff`, `frame-ancestors`) en `apps/api/src/app.ts` ni en `apps/web/index.html` | Abierta (auditoría de sprint) | SEC-01 |
-| `details` sin tope y con el nombre de la clave sobrante (`apps/api/src/http/error-handler.ts`) | Abierta: limitar antes de HU-03 | SEC-04 / DP-01 |
-| `apps/api/test/http/error-handler.test.ts` a 299 líneas | Abierta: el siguiente test va en un fichero hermano | Review ronda 2 |
-| Surrogates sueltos sin test | Abierta (el auditor infiere que no hay desajuste) | Review ronda 2, §8 |
+| `details` sin tope y con el nombre de la clave sobrante (`apps/api/src/http/error-handler.ts`) | Abierta: HU-03 la cierra (DT-10 de su PRD) | SEC-04 / DP-01 (HU-01), SEC-03 (HU-02) |
+| `apps/api/test/http/error-handler.test.ts` a 299 líneas | Abierta: el siguiente test va en un fichero hermano | Review ronda 2 de HU-01 |
+| Surrogates sueltos sin test | Abierta (el auditor infiere que no hay desajuste) | Review ronda 2 de HU-01, §8 |
+| `UPDATE` y `DELETE` sin guarda de estado en el SQL (`apps/api/src/modules/jobs/repository.ts`); sí la tienen `markPublished` y `markClosed` | Abierta: defensa en profundidad para HU-05 | HU-02 §9.1 (SEC-02) |
+| Sin lista de `Host` permitidos en `apps/api/src/app.ts`: un DNS rebinding llegaría como `same-origin` | Abierta (teórica, anterior a HU-02) | HU-02 §9.2 (SEC-04/SEC-05) |
+| Tras un error de publicar o duplicar, el foco vuelve al botón con `document.activeElement` (`apps/web/src/features/jobs/use-job-actions.ts:62-63`); en Safari los botones no reciben foco al clic | Abierta | HU-02 §9.3 |
+| `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` en 300 líneas | Abierta: el siguiente test va en un fichero hermano | HU-02 §9.4 |
+| El puerto de inscripciones solo expone un recuento; HU-05 necesita un test de que sus errores no llevan datos del candidato al log, y no copiar `SELECT *` de `findById` en candidatos | Aviso para HU-05 | HU-02 §9.5 (DP-01/DP-02) |
 
 ## Requisitos no funcionales
 
 | RNF | Métrica | Test |
 |---|---|---|
-| Lecturas | `GET /api/jobs` y `/:id` < 200 ms con 100 ofertas (`inject`, local) | `apps/api/test/jobs/performance.test.ts` |
-| Acciones | `POST`, `PATCH`, `DELETE` < 500 ms con 100 ofertas | `apps/api/test/jobs/performance.test.ts` |
+| Lecturas | `GET /api/jobs` (también filtrado), `/:id` y `/:id/close-preview` < 200 ms con 100 ofertas (`inject`, local) | `apps/api/test/jobs/performance.test.ts` |
+| Acciones | `POST` (alta, publicar, cerrar, duplicar), `PATCH`, `DELETE` < 500 ms con 100 ofertas | `apps/api/test/jobs/performance.test.ts` |
 | Errores | 100 % en el envelope, sin *stack traces* | `apps/api/test/http/error-handler.test.ts` |
 | HTML | Título y descripción siempre como texto (sin `dangerouslySetInnerHTML`) | `apps/web/test/features/jobs/JobDetailScreen.test.tsx` |
 | Accesibilidad | Controles con `<label>`; estados con `role="status"`/`"alert"` | Tests de `apps/web/test/features/jobs/` |

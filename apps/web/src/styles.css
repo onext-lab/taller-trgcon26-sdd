@@ -97,3 +97,41 @@ dialog {
   gap: 0.5rem;
   justify-content: flex-end;
 }
+
+.job-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: flex-end;
+  margin-block-end: 1rem;
+}
+
+.job-filters form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: flex-end;
+}
+
+.job-filters .form-field {
+  margin-block-end: 0;
+}
+
+.job-filters form > button {
+  align-self: flex-end;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-block-start: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
