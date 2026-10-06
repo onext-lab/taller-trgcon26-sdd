@@ -61,12 +61,12 @@ se registra en los logs (RGPD §6).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
-| A1 | HU-03 | | |
-| A2 | HU-03 | | |
-| A3 | HU-03 | | |
-| A4 | HU-03 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
+| P | HU-03 | CA-15 | |
+| A1 | HU-03 | CA-16 | |
+| A2 | HU-03 | CA-17 | |
+| A3 | HU-03 | CA-18 | |
+| A4 | HU-03 | CA-19 | |
+| E1 | HU-03 | CA-20, CA-32 | |
+| E2 | HU-03 | CA-21 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

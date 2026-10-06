@@ -58,9 +58,9 @@ Lee todos los datos del candidato (RGPD §1). La ficha completa solo se muestra 
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
+| P | HU-03 | CA-22 | |
 | A1 | HU-04 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
+| E1 | HU-03 | CA-23 | |
+| E2 | HU-03 | CA-24 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

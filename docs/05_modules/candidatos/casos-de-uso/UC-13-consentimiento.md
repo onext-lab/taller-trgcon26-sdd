@@ -69,11 +69,11 @@ retirada es el ejercicio del art. 7.3 (RGPD §4).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
-| A1 | HU-03 | | |
-| A2 | HU-03 | | |
-| A3 | HU-03 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
+| P | HU-03 | CA-25, CA-31 | |
+| A1 | HU-03 | CA-26, CA-31 | |
+| A2 | HU-03 | CA-27 | |
+| A3 | HU-03 | CA-28 | |
+| E1 | HU-03 | CA-29 | |
+| E2 | HU-03 | CA-30 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

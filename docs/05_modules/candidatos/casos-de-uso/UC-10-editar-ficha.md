@@ -64,13 +64,13 @@ Lee y escribe nombre y apellidos, email, teléfono, resumen y skills (RGPD §1).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
-| A1 | HU-03 | | |
-| A2 | HU-03 | | |
-| A3 | HU-03 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
-| E3 | HU-03 | | |
-| E4 | HU-03 | | |
+| P | HU-03 | CA-07 | |
+| A1 | HU-03 | CA-08 | |
+| A2 | HU-03 | CA-09 | |
+| A3 | HU-03 | CA-10 | |
+| E1 | HU-03 | CA-11 | |
+| E2 | HU-03 | CA-12 | |
+| E3 | HU-03 | CA-13 | |
+| E4 | HU-03 | CA-14 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

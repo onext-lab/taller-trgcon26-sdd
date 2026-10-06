@@ -67,10 +67,10 @@ jurídica: medidas precontractuales y, si se marca, consentimiento (RGPD §2); c
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
-| A1 | HU-03 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
-| E3 | HU-03 | | |
+| P | HU-03 | CA-01, CA-02 | |
+| A1 | HU-03 | CA-03 | |
+| E1 | HU-03 | CA-04, CA-32 | |
+| E2 | HU-03 | CA-05, CA-32 | |
+| E3 | HU-03 | CA-06, CA-32 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
