@@ -7,7 +7,12 @@ import { jobPaths } from './paths.ts';
 
 const GONE_MESSAGE = 'Esta oferta ya no existe.';
 
-type Props = { id: number; title: string };
+type Props = {
+  id: number;
+  title: string;
+  /** Disables only «Borrar» while another action of the detail is in flight. */
+  disabled?: boolean;
+};
 
 // State and API call of the delete flow. Confirming sends one DELETE (the ref guard keeps a double click
 // from sending two) and returns to the list with a notice.
@@ -48,7 +53,7 @@ function useDeleteJob(id: number) {
 }
 
 // «Borrar» button + confirmation dialog (DT-02, DD-05). Cancelling never calls the API.
-export function DeleteJobAction({ id, title }: Props) {
+export function DeleteJobAction({ id, title, disabled = false }: Props) {
   const { open, setOpen, busy, error, gone, close, confirm } = useDeleteJob(id);
 
   if (gone) {
@@ -64,7 +69,7 @@ export function DeleteJobAction({ id, title }: Props) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)}>
+      <button type="button" onClick={() => setOpen(true)} disabled={disabled}>
         Borrar
       </button>
       <ConfirmDialog
