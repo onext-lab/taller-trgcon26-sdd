@@ -13,6 +13,9 @@ Lo que necesitas antes del taller y cómo comprobarlo. Hazlo en casa: el día de
 | Claude Code | la última | ejecutar el flujo (skills, agentes y hooks del repo) |
 | Puertos libres | 3001 (API) y 5173 (web) para `npm run dev`; 3101 (API) y 5174 (web) para los e2e | desarrollo y `npm run e2e` |
 
+La API escucha en `API_HOST`:`API_PORT`, por defecto `127.0.0.1:3001`; un `API_HOST` vacío también cae a `127.0.0.1`
+(`apps/api/src/listen-options.ts`). No la expongas a la red: no tiene login (DEC-04).
+
 No hace falta Docker, ni Python, ni base de datos instalada, ni ninguna clave: la base de datos es un fichero SQLite que
 crea el propio Node.
 
