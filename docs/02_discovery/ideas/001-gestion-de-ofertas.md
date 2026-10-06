@@ -1,12 +1,12 @@
 ---
 id: IDEA-001
 titulo: "Gestión de ofertas de empleo"
-estado: idea            # idea | aceptada | descartada | completada
+estado: aceptada        # idea | aceptada | descartada | completada
 fecha: 2026-10-06
 autor: "equipo del taller"
 modulos_afectados: [ofertas]
 prioridad: null         # alta | media | baja (la fija la persona)
-feature: null           # FEAT-NN cuando se acepte
+feature: FEAT-01        # FEAT-NN cuando se acepte
 completada_en: null
 ---
 
@@ -29,4 +29,4 @@ Módulo `ofertas` (API y web). Toca a `inscripciones` en un punto: qué pasa con
 - Ejemplo inventado: «Desarrollador/a backend (Node.js)», híbrida, Valencia, 32 000-40 000 €/año.
 
 ## Decisión
-<Se rellena al aceptar (con su FEAT-NN) o al descartar (con el motivo).>
+Promovida a FEAT-01 el 2026-10-06.
