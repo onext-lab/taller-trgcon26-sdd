@@ -1,0 +1,102 @@
+<!doctype html>
+<!--
+  Plantilla del informe de /qa-e2e. Se copia a docs/10_audits/qa/sprint-NN-AAAA-MM-DD/index.html y se rellenan los
+  marcadores {{…}}. Las capturas viven en la misma carpeta (./E{i}-{n}.png). Todo es LOCAL: npm run dev contra
+  data/ats.db, sin login ni servicios externos. Datos de prueba inventados y limpiados al final.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QA e2e · sprint-{{NN}}</title>
+  <style>
+    :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --text:#e6e8ee; --muted:#9aa3b2;
+            --pass:#3fb950; --fail:#f85149; --blocked:#d29922; --mono: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 17px; margin: 32px 0 12px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+    .muted { color: var(--muted); }
+    .tiles { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; }
+    .tile { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; }
+    .tile b { display:block; font-size:24px; }
+    table { width:100%; border-collapse:collapse; background:var(--panel); }
+    th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+    pre { background:#0b0d11; border:1px solid var(--line); border-radius:6px; padding:10px; overflow-x:auto; font:13px/1.4 var(--mono); }
+    .badge { display:inline-block; padding:1px 8px; border-radius:999px; font-weight:600; font-size:12px; }
+    .PASS { background:rgba(63,185,80,.15); color:var(--pass); } .FAIL { background:rgba(248,81,73,.15); color:var(--fail); }
+    .BLOCKED { background:rgba(210,153,34,.15); color:var(--blocked); }
+    .scenario { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin:12px 0; }
+    .scenario h3 { margin:0 0 8px; font-size:15px; }
+    .layer { margin:10px 0; } .layer > span { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+    .layer img { max-width:100%; border:1px solid var(--line); border-radius:6px; margin-top:6px; }
+    .verdict-line { font:600 15px var(--mono); margin-top:32px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>QA e2e · sprint-{{NN}}</h1>
+  <p class="muted">{{FECHA}} · commit <code>{{SHA}}</code> · ejecutado en local contra <code>npm run dev</code></p>
+
+  <h2>1. Resumen ejecutivo</h2>
+  <div class="tiles">
+    <div class="tile"><span class="muted">Escenarios</span><b>{{N}}</b></div>
+    <div class="tile"><span class="muted">PASS</span><b style="color:var(--pass)">{{n_pass}}</b></div>
+    <div class="tile"><span class="muted">FAIL</span><b style="color:var(--fail)">{{n_fail}}</b></div>
+    <div class="tile"><span class="muted">BLOCKED</span><b style="color:var(--blocked)">{{n_blocked}}</b></div>
+    <div class="tile"><span class="muted">Latencia p95 (API)</span><b>{{p95}} ms</b></div>
+  </div>
+  <table style="margin-top:12px">
+    <thead><tr><th>HU</th><th>Título</th><th>Escenarios</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>HU-NN</td><td>{{titulo}}</td><td>E1, E2</td><td><span class="badge PASS">PASS</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. Entorno y preflight local</h2>
+  <pre>{{salida de npm run check:env, npm run db:reset y GET /api/health}}</pre>
+  <p class="muted">Node {{version}} · Chromium de Playwright {{version}} · base <code>data/ats.db</code> regenerada antes de empezar.</p>
+
+  <h2>3. Alcance derivado del sprint</h2>
+  <table>
+    <thead><tr><th>Escenario</th><th>HU</th><th>Criterio de aceptación de origen</th></tr></thead>
+    <tbody><tr><td>E1</td><td>HU-NN</td><td>{{criterio}}</td></tr></tbody>
+  </table>
+
+  <h2>4. Ejecución por escenario</h2>
+  <section class="scenario" id="E1">
+    <h3>E1 · {{título del escenario}} <span class="badge PASS">PASS</span></h3>
+    <p class="muted">Pasos como reclutador: {{1) … 2) … 3) …}}</p>
+    <div class="layer"><span>UI</span><br /><img src="./E1-1.png" alt="E1, paso 1: {{qué se ve}}" /></div>
+    <div class="layer"><span>HTTP</span><pre>{{MÉTODO /api/… → estado · latencia ms
+request: {…}
+response: {…}}}</pre></div>
+    <div class="layer"><span>SQLite</span><pre>{{consulta de solo lectura sobre data/ats.db y filas resultantes}}</pre></div>
+    <div class="layer"><span>Log de la API</span><pre>{{líneas del log de Fastify con el reqId del escenario}}</pre></div>
+    <p><b>Evidencia del resultado:</b> {{qué se esperaba y qué se observó; sin suponer la causa de un fallo}}</p>
+  </section>
+
+  <h2>5. Datos creados y limpieza</h2>
+  <table>
+    <thead><tr><th>Entidad</th><th>ID</th><th>Creado en</th><th>Limpieza</th></tr></thead>
+    <tbody><tr><td>{{Candidate}}</td><td>{{id}}</td><td>E1</td><td>{{borrado / npm run db:reset}}</td></tr></tbody>
+  </table>
+
+  <h2>6. No ejercitado e2e</h2>
+  <ul><li>{{criterio}} — {{por qué no se pudo ejercitar en el navegador}}</li></ul>
+
+  <h2>7. Hallazgos</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Escenario</th><th>Severidad</th><th>Observado</th><th>Esperado</th><th>Evidencia</th></tr></thead>
+    <tbody><tr><td>QA-01</td><td>E1</td><td>{{alta}}</td><td>{{…}}</td><td>{{…}}</td><td><a href="#E1">E1</a></td></tr></tbody>
+  </table>
+
+  <h2>8. Anexos</h2>
+  <pre>{{comandos ejecutados y salidas completas relevantes}}</pre>
+
+  <p class="verdict-line">
+VERDICT: {{PASS | FAIL | BLOCKED}} — {{n}} PASS / {{f}} FAIL / {{b}} BLOCKED sobre {{N}} escenarios
+  </p>
+</main>
+</body>
+</html>
