@@ -70,35 +70,32 @@ function fieldOf({ keyword, params, instancePath }: FastifySchemaValidationError
   return instancePath.split('/')[1] || context;
 }
 
+type Params = FastifySchemaValidationError['params'];
+
+const DEFAULT_MESSAGE = 'Valor no válido.';
+const INVALID_FORMAT = 'Formato no válido.';
+
+/** Mensaje en castellano por keyword de Ajv (DD-03); cualquier keyword ausente usa `DEFAULT_MESSAGE`. */
+const MESSAGE_BY_KEYWORD: Record<string, (params: Params) => string> = {
+  required: () => 'Es obligatorio.',
+  additionalProperties: () => 'Campo no permitido.',
+  minLength: (params) => `Debe tener al menos ${String(params.limit)} caracteres.`,
+  maxLength: (params) => `Debe tener como máximo ${String(params.limit)} caracteres.`,
+  enum: (params) => `Debe ser uno de estos valores: ${allowedValues(params.allowedValues)}.`,
+  type: (params) => typeMessage(params.type),
+  exclusiveMinimum: (params) => `Debe ser mayor que ${String(params.limit)}.`,
+  minimum: (params) => `Debe ser mayor o igual que ${String(params.limit)}.`,
+  maximum: (params) => `Debe ser menor o igual que ${String(params.limit)}.`,
+  minProperties: () => 'Envía al menos un campo.',
+  pattern: () => INVALID_FORMAT,
+  format: () => INVALID_FORMAT,
+};
+
 function messageOf({ keyword, params }: FastifySchemaValidationError): string {
-  const limit = String(params.limit);
-  switch (keyword) {
-    case 'required':
-      return 'Es obligatorio.';
-    case 'additionalProperties':
-      return 'Campo no permitido.';
-    case 'minLength':
-      return `Debe tener al menos ${limit} caracteres.`;
-    case 'maxLength':
-      return `Debe tener como máximo ${limit} caracteres.`;
-    case 'enum':
-      return `Debe ser uno de estos valores: ${allowedValues(params.allowedValues)}.`;
-    case 'type':
-      return typeMessage(params.type);
-    case 'exclusiveMinimum':
-      return `Debe ser mayor que ${limit}.`;
-    case 'minimum':
-      return `Debe ser mayor o igual que ${limit}.`;
-    case 'maximum':
-      return `Debe ser menor o igual que ${limit}.`;
-    case 'minProperties':
-      return 'Envía al menos un campo.';
-    case 'pattern':
-    case 'format':
-      return 'Formato no válido.';
-    default:
-      return 'Valor no válido.';
-  }
+  const build = Object.hasOwn(MESSAGE_BY_KEYWORD, keyword)
+    ? MESSAGE_BY_KEYWORD[keyword]
+    : undefined;
+  return build ? build(params) : DEFAULT_MESSAGE;
 }
 
 function allowedValues(values: unknown): string {
@@ -109,17 +106,15 @@ function allowedValues(values: unknown): string {
     .join(', ');
 }
 
+const TYPE_MESSAGES: Record<string, string> = {
+  integer: 'Debe ser un número entero.',
+  string: 'Debe ser un texto.',
+  object: 'Debe ser un objeto JSON.',
+};
+
 /** Con `type: ["integer", "null"]` Ajv da el tipo como lista (array o texto con comas): manda el primero no nulo. */
 function typeMessage(expected: unknown): string {
   const types = Array.isArray(expected) ? expected.map(String) : String(expected).split(',');
-  switch (types.find((type) => type !== 'null')) {
-    case 'integer':
-      return 'Debe ser un número entero.';
-    case 'string':
-      return 'Debe ser un texto.';
-    case 'object':
-      return 'Debe ser un objeto JSON.';
-    default:
-      return 'Tipo de dato no válido.';
-  }
+  const first = types.find((type) => type !== 'null') ?? '';
+  return Object.hasOwn(TYPE_MESSAGES, first) ? TYPE_MESSAGES[first]! : 'Tipo de dato no válido.';
 }

@@ -90,3 +90,31 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (sin ciclos de arreglo)
 - **Commit:** el de esta tarea (`[HU-01 TASK-01]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** `messageOf` (`apps/api/src/http/error-handler.ts:73`) tiene unas 13 ramas y el umbral es 10: pásalo a una tabla de mensajes por *keyword* (un objeto de funciones o plantillas) más un único caso por defecto, sin cambiar ningún mensaje. Sin tocar `apps/api/test/http/error-handler.test.ts` (299 líneas): sus tests son la red de seguridad del refactor.
+- **Ficheros:** `apps/api/src/http/error-handler.ts`
+- **Verificación que debes pegar:** `npm test -w apps/api -- error-handler create update` en verde con el mismo número de tests que antes (`error-handler.test.ts` sin cambios); `npm run typecheck`; `npx eslint` del fichero; ninguna función de `error-handler.ts` pasa de 10 ramas ni de 50 líneas (justifícalo).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- error-handler create update
+ Test Files  4 passed (4)
+      Tests  60 passed (60)
+exit=0
+$ npm run typecheck
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/src/http/error-handler.ts
+exit=0
+$ wc -l (ficheros tocados)
+     120 apps/api/src/http/error-handler.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; messageOf y typeMessage pasan a tablas por keyword con un caso por defecto (3 ramas cada una); mensajes idénticos; 60 tests antes y después, error-handler.test.ts sin cambios
+
