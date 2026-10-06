@@ -103,3 +103,30 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (web-builder); suite web completa 3 veces seguidas en verde, lo que descarta el rojo transitorio que vio TASK-13 mientras esta tarea escribía
 - **Commit:** el de esta tarea (`[HU-02 TASK-11]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** `splitServerError` (`apps/web/src/features/jobs/job-form-errors.ts:18`) tiene unas 14 ramas y el umbral es 10: pásalo a funciones pequeñas o a una tabla de clasificación (404, 409, 400 con details, resto) sin cambiar su comportamiento ni sus textos.
+- **Ficheros:** `apps/web/src/features/jobs/job-form-errors.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/web -- JobFormScreen job-form` en verde con el mismo número de tests que antes; `npm run typecheck -w @ats/web`; `npx eslint` del fichero; ninguna función pasa de 10 ramas (justifícalo).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- JobFormScreen job-form
+ Test Files  6 passed (6)
+      Tests  90 passed (90)
+exit=0
+$ npm run typecheck -w @ats/web
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/src/features/jobs/job-form-errors.ts
+exit=0
+$ wc -l (ficheros tocados)
+      41 apps/web/src/features/jobs/job-form-errors.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; splitServerError (5 ramas) delega el 400 en splitValidationError (6); 90 tests antes y después
+

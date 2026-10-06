@@ -16,23 +16,21 @@ export type ServerErrors = {
 // 409 that it was closed elsewhere (EC-44): the container shows the message and reloads the job.
 // Anything else shows the message of the error (EC-05, EC-10).
 export function splitServerError(error: unknown): ServerErrors {
-  if (error instanceof ApiError && error.status === 404) {
-    return { fields: {}, form: GONE_MESSAGE, gone: true };
-  }
-  if (error instanceof ApiError && error.status === 409) {
-    return { fields: {}, form: error.message, conflict: true };
-  }
-  if (!(error instanceof ApiError) || error.status !== 400) {
-    return { fields: {}, form: userMessage(error) };
-  }
+  if (!(error instanceof ApiError)) return { fields: {}, form: userMessage(error) };
+  if (error.status === 404) return { fields: {}, form: GONE_MESSAGE, gone: true };
+  if (error.status === 409) return { fields: {}, form: error.message, conflict: true };
+  if (error.status === 400) return splitValidationError(error);
+  return { fields: {}, form: userMessage(error) };
+}
+
+function splitValidationError(error: ApiError): ServerErrors {
   const fields: JobFormErrors = {};
   const others: string[] = [];
   for (const detail of error.details ?? []) {
     if (isFieldName(detail.field)) fields[detail.field] ??= detail.message;
     else others.push(detail.message);
   }
-  const hasFields = Object.keys(fields).length > 0;
-  if (others.length === 0 && hasFields) return { fields };
+  if (others.length === 0 && Object.keys(fields).length > 0) return { fields };
   return { fields, form: others[0] ?? error.message };
 }
 
