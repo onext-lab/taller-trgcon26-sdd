@@ -64,13 +64,13 @@ Lee y escribe nombre y apellidos, email, teléfono, resumen y skills (RGPD §1).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | CA-07 | |
-| A1 | HU-03 | CA-08 | |
-| A2 | HU-03 | CA-09 | |
-| A3 | HU-03 | CA-10 | |
-| E1 | HU-03 | CA-11 | |
-| E2 | HU-03 | CA-12 | |
-| E3 | HU-03 | CA-13 | |
-| E4 | HU-03 | CA-14 | |
+| P | HU-03 | CA-07 | `apps/api/test/candidates/update.test.ts:41`, `e2e/candidates.spec.ts:185` |
+| A1 | HU-03 | CA-08 | `apps/api/test/candidates/update.test.ts:65`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:95` |
+| A2 | HU-03 | CA-09 | `apps/api/test/candidates/update.test.ts:74`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:112` |
+| A3 | HU-03 | CA-10 | `apps/api/test/candidates/update.test.ts:83`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:141` |
+| E1 | HU-03 | CA-11 | `apps/api/test/candidates/update.test.ts:144`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:151` |
+| E2 | HU-03 | CA-12 | `apps/api/test/candidates/update.test.ts:161`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:174` |
+| E3 | HU-03 | CA-13 | `apps/api/test/candidates/update.test.ts:176`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:228` |
+| E4 | HU-03 | CA-14 | `apps/api/test/candidates/update-adversarial.test.ts:107`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:246` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
