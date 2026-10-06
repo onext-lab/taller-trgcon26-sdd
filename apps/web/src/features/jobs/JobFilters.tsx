@@ -2,10 +2,8 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { FormField } from '../../components/FormField.tsx';
 import { navigate } from '../../components/router.tsx';
 import { jobStatusLabel } from './labels.ts';
-import { listPath, listView, readListQuery, validateSearchText } from './list-query.ts';
+import { listPath, listView, PAGE_SIZES, readListQuery, validateSearchText } from './list-query.ts';
 import { JOB_STATUSES } from './types.ts';
-
-const PAGE_SIZES: readonly number[] = [20, 50, 100];
 
 // State of the search form. It starts from the URL and is resynchronized when the URL changes (e.g. «Atrás»),
 // adjusting the state during render (as `useResource` does), not in an effect.
@@ -41,9 +39,6 @@ function useFilterForm(search: string) {
 }
 
 function PageSizeSelect({ view }: { view: ReturnType<typeof listView> }) {
-  // A valid size from the URL that is not offered (e.g. 7) goes first, so the control never lies.
-  const sizes = PAGE_SIZES.includes(view.pageSize) ? PAGE_SIZES : [view.pageSize, ...PAGE_SIZES];
-
   function change(event: ChangeEvent<HTMLSelectElement>): void {
     const pageSize = Number(event.target.value);
     navigate(listPath({ status: view.status, q: view.q, pageSize }));
@@ -53,7 +48,7 @@ function PageSizeSelect({ view }: { view: ReturnType<typeof listView> }) {
     <FormField id="page-size" label="Por página">
       {(control) => (
         <select {...control} name="pageSize" value={view.pageSize} onChange={change}>
-          {sizes.map((size) => (
+          {PAGE_SIZES.map((size) => (
             <option key={size} value={size}>
               {size}
             </option>

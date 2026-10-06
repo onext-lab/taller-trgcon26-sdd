@@ -10,6 +10,7 @@ import { JobTable } from './JobTable.tsx';
 import {
   clearFiltersPath,
   hasFilters,
+  listRequest,
   pagePath,
   readListQuery,
   type ListQuery,
@@ -127,7 +128,7 @@ export function JobListScreen() {
   const notice = useNotice();
   const search = useSearch();
   const query = readListQuery(search);
-  const jobs = useResource((signal) => listJobs(query, signal), [search]);
+  const jobs = useResource((signal) => listJobs(listRequest(query), signal), [search]);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const focusAfterLoad = useRef(false);
 

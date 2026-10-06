@@ -120,16 +120,17 @@ describe('JobListScreen · filtros, paginación y estados', () => {
     ).toEqual(['Todos', 'Borrador', 'Publicada', 'Cerrada']);
   });
 
-  it('CA-18 un tamaño válido de la URL que no se ofrece se añade delante en «Por página»', async () => {
+  it('CA-18 un tamaño válido de la URL que no se ofrece (7) usa 20 en el selector y en la petición', async () => {
     open('/jobs?pageSize=7');
-    mockFetch({ 'GET /api/jobs?pageSize=7': pageOf(manyItems(3), 3, 1, 7) });
+    const mock = mockFetch({ 'GET /api/jobs?pageSize=20': pageOf(manyItems(3)) });
 
     render(<JobListScreen />);
     await screen.findByRole('table', { name: 'Ofertas' });
 
     const options = within(select('Por página')).getAllByRole('option');
-    expect(options.map((option) => option.textContent)).toEqual(['7', '20', '50', '100']);
-    expect(select('Por página').value).toBe('7');
+    expect(options.map((option) => option.textContent)).toEqual(['20', '50', '100']);
+    expect(select('Por página').value).toBe('20');
+    expect(mock.calls.map((call) => call.url)).toEqual(['/api/jobs?pageSize=20']);
   });
 
   it('vacío con filtros muestra «Ninguna oferta cumple los filtros.» y «Quitar filtros» lleva a /jobs', async () => {

@@ -92,3 +92,39 @@ INTEGRACION rc=0
 - **Resultado:** verde tras 1 ciclo de arreglo: con total 1 la paginación decía «(1 ofertas)»; ahora «(1 oferta)», con test. Hermano JobListScreen.pagination.test.tsx por el umbral de 300 líneas
 - **Commit:** el de esta tarea (`[HU-02 TASK-08]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** CA-18 (decisión de quien aprueba el PRD): la web ofrece solo 20, 50 y 100 en «Por página», alineada con el PRD. Quita la opción extra que hoy añade `apps/web/src/features/jobs/JobFilters.tsx:45` cuando la URL trae un `pageSize` válido distinto de esos tres: en ese caso la interfaz usa 20 (selector y petición). La API sigue aceptando 1-100. Ajusta el test de `apps/web/test/features/jobs/JobListScreen.filters.test.tsx:123` (o donde esté el de `pageSize=7`) para fijar el comportamiento nuevo.
+- **Ficheros:** `apps/web/src/features/jobs/JobFilters.tsx` (y `list-query.ts` si la normalización vive ahí), `apps/web/test/features/jobs/JobListScreen.filters.test.tsx`
+- **Verificación que debes pegar:** `npm test -w @ats/web -- JobListScreen list-query` en verde; `npm run typecheck -w @ats/web`; `npx eslint` de los ficheros tocados.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- JobListScreen list-query
+ Test Files  5 passed (5)
+      Tests  61 passed (61)
+exit=0
+$ npm test -w apps/web   (suite completa del workspace)
+ Test Files  25 passed (25)
+      Tests  307 passed (307)
+exit=0
+$ npm run typecheck -w @ats/web
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/src/features/jobs/list-query.ts apps/web/src/features/jobs/JobFilters.tsx apps/web/src/features/jobs/JobListScreen.tsx apps/web/test/features/jobs/JobListScreen.filters.test.tsx apps/web/test/features/jobs/list-query.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+     104 apps/web/src/features/jobs/JobFilters.tsx
+     139 apps/web/src/features/jobs/list-query.ts
+     162 apps/web/src/features/jobs/JobListScreen.tsx
+     217 apps/web/test/features/jobs/list-query.test.ts
+     284 apps/web/test/features/jobs/JobListScreen.filters.test.tsx
+     906 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; «Por página» solo 20/50/100 (CA-18 alineado con el PRD); un pageSize válido no ofrecido se pide como 20 y la URL no se reescribe. Fuera de la tabla: JobListScreen.tsx (usa listRequest) y list-query.test.ts
+

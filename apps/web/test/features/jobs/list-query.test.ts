@@ -4,6 +4,7 @@ import {
   clearFiltersPath,
   hasFilters,
   listPath,
+  listRequest,
   listView,
   pagePath,
   readListQuery,
@@ -95,6 +96,15 @@ describe('toSearch', () => {
   });
 });
 
+describe('listRequest', () => {
+  it('CA-18 un pageSize válido no ofrecido (7) se pide como 20; los ofrecidos y los inválidos pasan en bruto', () => {
+    expect(listRequest([['pageSize', '7']])).toEqual([['pageSize', '20']]);
+    expect(listRequest([['pageSize', '50']])).toEqual([['pageSize', '50']]);
+    expect(listRequest([['pageSize', '101']])).toEqual([['pageSize', '101']]);
+    expect(listRequest([['q', 'x']])).toEqual([['q', 'x']]);
+  });
+});
+
 describe('listView', () => {
   it('valores por defecto sin parámetros', () => {
     expect(listView([])).toEqual({ status: '', q: '', pageSize: 20 });
@@ -105,10 +115,10 @@ describe('listView', () => {
     expect(listView([['status', 'closed']]).status).toBe('closed');
   });
 
-  it('pageSize válido distinto de 20/50/100 se respeta; uno inválido vuelve a 20', () => {
-    expect(listView([['pageSize', '7']]).pageSize).toBe(7);
+  it('CA-18 solo se ofrecen 20, 50 y 100; cualquier otro valor, válido o no, vuelve a 20', () => {
+    expect(listView([['pageSize', '50']]).pageSize).toBe(50);
     expect(listView([['pageSize', '100']]).pageSize).toBe(100);
-    for (const bad of ['101', '0', '007', 'abc', '']) {
+    for (const bad of ['7', '101', '0', '007', 'abc', '']) {
       expect(listView([['pageSize', bad]]).pageSize).toBe(20);
     }
   });

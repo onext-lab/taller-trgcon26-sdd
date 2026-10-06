@@ -114,3 +114,9 @@ bruto (DD-01) y no normaliza ni filtra en el cliente.
 ofertas», `combobox` «Estado» y «Por página», `searchbox` «Buscar por título», `navigation` «Paginación», `link`
 «Anterior»/«Siguiente»/«Quitar filtros»/«Ir a la primera página»). Títulos inventados. `JobTable` no cambia; el texto
 sigue siendo interpolación JSX (RNF-04).
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** CA-18 (decisión de quien aprueba el PRD): la web ofrece solo 20, 50 y 100 en «Por página», alineada con el PRD. Quita la opción extra que hoy añade `apps/web/src/features/jobs/JobFilters.tsx:45` cuando la URL trae un `pageSize` válido distinto de esos tres: en ese caso la interfaz usa 20 (selector y petición). La API sigue aceptando 1-100. Ajusta el test de `apps/web/test/features/jobs/JobListScreen.filters.test.tsx:123` (o donde esté el de `pageSize=7`) para fijar el comportamiento nuevo.
+- **Ficheros:** `apps/web/src/features/jobs/JobFilters.tsx` (y `list-query.ts` si la normalización vive ahí), `apps/web/test/features/jobs/JobListScreen.filters.test.tsx`
+- **Criterios de done:** `npm test -w @ats/web -- JobListScreen list-query` en verde; `npm run typecheck -w @ats/web`; `npx eslint` de los ficheros tocados.

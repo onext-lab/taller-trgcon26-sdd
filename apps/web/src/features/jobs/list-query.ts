@@ -10,6 +10,8 @@ export type ListQueryKey = (typeof LIST_QUERY_KEYS)[number];
 export type ListQuery = ReadonlyArray<readonly [ListQueryKey, string]>;
 
 export const DEFAULT_PAGE_SIZE = 20;
+/** The only sizes the web offers (CA-18); the API accepts 1 to 100. */
+export const PAGE_SIZES: readonly number[] = [20, 50, 100];
 export const MAX_SEARCH_LENGTH = 100;
 export const SEARCH_TOO_LONG_TEXT = 'La búsqueda no puede pasar de 100 caracteres.';
 export const SEARCH_CONTROL_TEXT = 'La búsqueda no puede tener caracteres de control.';
@@ -52,15 +54,31 @@ function firstValue(query: ListQuery, key: ListQueryKey): string | undefined {
   return query.find(([pairKey]) => pairKey === key)?.[1];
 }
 
-/** Tolerant values for the controls: whatever the URL says, they always show something valid. */
+function isOfferedSize(size: string): boolean {
+  return PAGE_SIZE_PATTERN.test(size) && PAGE_SIZES.includes(Number(size));
+}
+
+/** Tolerant values for the controls: whatever the URL says, they always show something offered (20, 50, 100). */
 export function listView(query: ListQuery): ListView {
   const status = firstValue(query, 'status');
   const size = firstValue(query, 'pageSize');
   return {
     status: JOB_STATUSES.find((value) => value === status) ?? '',
     q: firstValue(query, 'q') ?? '',
-    pageSize: size !== undefined && PAGE_SIZE_PATTERN.test(size) ? Number(size) : DEFAULT_PAGE_SIZE,
+    pageSize: size !== undefined && isOfferedSize(size) ? Number(size) : DEFAULT_PAGE_SIZE,
   };
+}
+
+/**
+ * The query the screen sends: a valid `pageSize` that the web does not offer (e.g. 7) becomes 20, as in the
+ * selector (CA-18). Invalid values go raw (the API answers 400, DD-01).
+ */
+export function listRequest(query: ListQuery): ListQuery {
+  return query.map(([key, value]) =>
+    key === 'pageSize' && PAGE_SIZE_PATTERN.test(value) && !isOfferedSize(value)
+      ? ([key, String(DEFAULT_PAGE_SIZE)] as const)
+      : ([key, value] as const),
+  );
 }
 
 export interface ListChange {
