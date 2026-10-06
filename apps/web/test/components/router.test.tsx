@@ -105,7 +105,7 @@ describe('router', () => {
   });
 
   it('ignora en history.state un aviso que no es uno de los textos fijos', () => {
-    window.history.replaceState({ notice: 'Ana Pérez' }, '', '/jobs');
+    window.history.replaceState({ notice: 'Nombre Inventado' }, '', '/jobs');
     render(<Probe />);
     expect(screen.queryByRole('status')).toBeNull();
   });

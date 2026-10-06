@@ -14,20 +14,10 @@ export type ConfirmDialogProps = {
   onCancel: () => void;
 };
 
-export function ConfirmDialog({
-  open,
-  title,
-  description,
-  confirmLabel,
-  busy = false,
-  error,
-  onConfirm,
-  onCancel,
-}: ConfirmDialogProps) {
+// Open/close lifecycle: showModal() on open, initial focus on «Cancelar», focus back to the trigger on close.
+function useModalDialog(open: boolean, busy: boolean, onCancel: () => void) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const titleId = useId();
-  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -51,6 +41,27 @@ export function ConfirmDialog({
   function handleCloseEvent(): void {
     if (open) onCancel();
   }
+
+  return { dialogRef, cancelRef, handleCancelEvent, handleCloseEvent };
+}
+
+export function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel,
+  busy = false,
+  error,
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
+  const { dialogRef, cancelRef, handleCancelEvent, handleCloseEvent } = useModalDialog(
+    open,
+    busy,
+    onCancel,
+  );
+  const titleId = useId();
+  const descriptionId = useId();
 
   return (
     <dialog

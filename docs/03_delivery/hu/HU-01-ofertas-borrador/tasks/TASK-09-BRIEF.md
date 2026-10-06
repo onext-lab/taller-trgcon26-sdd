@@ -89,3 +89,33 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (sin ciclos de arreglo)
 - **Commit:** el de esta tarea (`[HU-01 TASK-09]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** (1) `ConfirmDialog` (`apps/web/src/components/ConfirmDialog.tsx:17`) tiene 66 líneas y el umbral es 50: pártelo (p. ej., un hook para abrir/cerrar y el foco, y el JSX) sin cambiar su API ni su comportamiento. (2) DP-02: en `apps/web/test/components/router.test.tsx:108` el fixture `'Ana Pérez'` es un nombre corriente sin marca de ficción; cámbialo por un valor inequívocamente inventado (p. ej. `'Nombre Inventado'`).
+- **Ficheros:** `apps/web/src/components/ConfirmDialog.tsx`, `apps/web/test/components/router.test.tsx`
+- **Verificación que debes pegar:** `npm test -w apps/web -- ConfirmDialog router DeleteJobAction` en verde con 3 ficheros y el mismo número de tests que antes; `npm run typecheck`; `npx eslint` de los 2 ficheros; ninguna función de `ConfirmDialog.tsx` pasa de 50 líneas (pega su recuento).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- ConfirmDialog router DeleteJobAction
+ Test Files  3 passed (3)
+      Tests  25 passed (25)
+exit=0
+$ npm run typecheck
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/src/components/ConfirmDialog.tsx apps/web/test/components/router.test.tsx
+exit=0
+$ wc -l (ficheros tocados)
+      93 apps/web/src/components/ConfirmDialog.tsx
+     126 apps/web/test/components/router.test.tsx
+     219 total
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; ConfirmDialog pasa a useModalDialog (29 líneas) + componente (46); fixture DP-02 cambiado a «Nombre Inventado»; API de ConfirmDialog sin cambios
+
