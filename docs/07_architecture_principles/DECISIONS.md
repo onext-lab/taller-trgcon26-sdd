@@ -170,3 +170,30 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
 - **Consecuencias.** Los dos listados comparten forma de respuesta y tests de frontera (página vacía, 20 y 21
   elementos, `pageSize` 100 y 101).
 - **Estado.** Aceptada (2026-10-06).
+
+## DEC-11 · Convenciones de validación y errores de la API
+
+- **Contexto.** DEC-07 pide un esquema estricto (un campo desconocido o de solo lectura da 400) y S-03 pide recortar
+  los espacios antes de validar. **La configuración de Ajv que Fastify 5 trae por defecto no lo cumple, y en
+  silencio**: con `removeAdditional: true` quita los campos desconocidos sin dar error (un `status: "published"` en el
+  alta desaparecería y se crearía el borrador), y con `coerceTypes: 'array'` acepta `"40000"` como entero. Lo comprobó
+  el diseño de HU-01 ejecutando Fastify 5.12.5 en Node 24: sin cambiarla, EC-02, EC-11 y EC-34 de su PRD fallarían.
+  Además, la web muestra el `message` de la API junto a cada campo.
+- **Decisión.**
+  1. Ajv con `coerceTypes: false`, `removeAdditional: false` y `allErrors: true`.
+  2. Los numéricos de `params` y `querystring` se declaran como `string` con `pattern` y se convierten en la ruta.
+  3. Los textos se recortan en el hook `preValidation`; un texto opcional que queda vacío pasa a `null`.
+  4. `details` es `[{ field, message }]`, un elemento por campo, con mensajes en castellano por *keyword* y **sin
+     repetir el valor recibido**.
+  5. Códigos adicionales a los de DEC-07: `INTERNAL_ERROR` (500), `PAYLOAD_TOO_LARGE` (413),
+     `UNSUPPORTED_MEDIA_TYPE` (415) y `BAD_REQUEST` (otros 4xx). Todos en el envelope de DEC-01, sin *stack traces*.
+  6. Reloj `Clock = () => Date` inyectado en `buildApp({ now })` (concreta DEC-09).
+  7. Transacciones con `withTransaction(db, fn)`, que se une a una en curso (concreta DEC-06).
+- **Alternativas.** Compilar los validadores con `ajv` como dependencia directa, o `ajv-errors` para los mensajes (una
+  dependencia más en los dos casos, DEC-05); validar en los servicios (duplica las reglas del esquema).
+- **Consecuencias.** Toda ruta nueva declara sus numéricos de `params` y `querystring` como texto con `pattern` (p. ej.,
+  `page` y `pageSize` en HU-02). Ningún servicio construye respuestas de error: lanza un error tipado y un único
+  manejador lo traduce. Las HU siguientes reutilizan el manejador de errores, el recorte, `withTransaction` y las
+  utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
+  texto → 400».
+- **Estado.** Aceptada (2026-10-06), en el diseño de HU-01.
