@@ -98,3 +98,34 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (api-builder)
 - **Commit:** el de esta tarea (`[HU-02 TASK-05]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** Bajo de la review: `apps/api/test/jobs/performance.test.ts` tiene dos tests casi homónimos de RNF-02 (el de HU-01 «RNF-02 POST, PATCH y DELETE…» y el nuevo de HU-02). Quita el duplicado conservando la medición de `POST /api/jobs` (del alta) dentro del test de HU-02, para no perder cobertura.
+- **Ficheros:** `apps/api/test/jobs/performance.test.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/api -- performance` en verde; `npm run typecheck -w @ats/api`; `npx eslint` del fichero; ninguna medición de RNF-01 ni RNF-02 se pierde (lista cuáles quedan).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- performance
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+exit=0
+$ npm test -w apps/api   (suite completa del workspace)
+ Test Files  24 passed (24)
+      Tests  309 passed (309)
+exit=0
+$ npm run typecheck -w @ats/api
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/test/jobs/performance.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+     110 apps/api/test/jobs/performance.test.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; quitado el test RNF-02 duplicado de HU-01; POST /api/jobs se mide dentro del ciclo de HU-02; no se pierde ninguna medición
+

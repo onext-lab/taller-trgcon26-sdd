@@ -146,3 +146,9 @@ SELECT id, title, status, COALESCE(published_at, created_at) AS reference_date
 - `performance.test.ts`: «RNF-01 listado con filtros y pageSize=100, ficha y close-preview < 200 ms con 100 ofertas» y
   «RNF-02 publicar, cerrar, duplicar, PATCH y DELETE < 500 ms con 100 ofertas» (calentamiento previo y
   `performance.now()`, como los de HU-01).
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** Bajo de la review: `apps/api/test/jobs/performance.test.ts` tiene dos tests casi homónimos de RNF-02 (el de HU-01 «RNF-02 POST, PATCH y DELETE…» y el nuevo de HU-02). Quita el duplicado conservando la medición de `POST /api/jobs` (del alta) dentro del test de HU-02, para no perder cobertura.
+- **Ficheros:** `apps/api/test/jobs/performance.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- performance` en verde; `npm run typecheck -w @ats/api`; `npx eslint` del fichero; ninguna medición de RNF-01 ni RNF-02 se pierde (lista cuáles quedan).

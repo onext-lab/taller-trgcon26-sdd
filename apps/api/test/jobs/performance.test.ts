@@ -48,26 +48,9 @@ async function timed(
   return { response, elapsedMs: performance.now() - start };
 }
 
-/** POST, PATCH y DELETE de una oferta nueva; devuelve los tres tiempos con sus códigos. */
-async function writeCycle(n: number) {
-  const post = await timed({
-    method: 'POST',
-    url: '/api/jobs',
-    payload: { title: `Oferta de escritura ${n}`, location: 'Toledo' },
-  });
-  const { id } = post.response.json<{ id: number }>();
-  const patch = await timed({
-    method: 'PATCH',
-    url: `/api/jobs/${id}`,
-    payload: { description: 'Descripción inventada editada.', salaryMin: 25000 },
-  });
-  const del = await timed({ method: 'DELETE', url: `/api/jobs/${id}` });
-  return { post, patch, del };
-}
-
-/** Publicar, cerrar, duplicar, PATCH y DELETE de una oferta nueva (HU-02); devuelve cada tiempo con su respuesta. */
+/** Alta, publicar, cerrar, duplicar, PATCH y DELETE de una oferta nueva; devuelve cada tiempo con su respuesta. */
 async function lifecycleCycle(n: number) {
-  const draft = await timed({
+  const create = await timed({
     method: 'POST',
     url: '/api/jobs',
     payload: {
@@ -77,7 +60,7 @@ async function lifecycleCycle(n: number) {
       workMode: 'remota',
     },
   });
-  const { id } = draft.response.json<{ id: number }>();
+  const { id } = create.response.json<{ id: number }>();
   const publish = await timed({ method: 'POST', url: `/api/jobs/${id}/publish` });
   const close = await timed({ method: 'POST', url: `/api/jobs/${id}/close` });
   const duplicate = await timed({ method: 'POST', url: `/api/jobs/${id}/duplicate` });
@@ -88,7 +71,7 @@ async function lifecycleCycle(n: number) {
     payload: { description: 'Descripción inventada editada.' },
   });
   const del = await timed({ method: 'DELETE', url: `/api/jobs/${copyId}` });
-  return { publish, close, duplicate, patch, del };
+  return { create, publish, close, duplicate, patch, del };
 }
 
 describe('rendimiento de la API de ofertas', () => {
@@ -112,27 +95,16 @@ describe('rendimiento de la API de ofertas', () => {
 
   it('RNF-02 publicar, cerrar, duplicar, PATCH y DELETE < 500 ms con 100 ofertas', async () => {
     await lifecycleCycle(0); // calentamiento
-    const { publish, close, duplicate, patch, del } = await lifecycleCycle(1);
+    const { create, publish, close, duplicate, patch, del } = await lifecycleCycle(1);
 
+    expect(create.response.statusCode).toBe(201);
     expect(publish.response.statusCode).toBe(200);
     expect(close.response.statusCode).toBe(200);
     expect(duplicate.response.statusCode).toBe(201);
     expect(patch.response.statusCode).toBe(200);
     expect(del.response.statusCode).toBe(204);
-    for (const { elapsedMs } of [publish, close, duplicate, patch, del]) {
+    for (const { elapsedMs } of [create, publish, close, duplicate, patch, del]) {
       expect(elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
     }
-  });
-
-  it('RNF-02 POST, PATCH y DELETE < 500 ms con 100 ofertas', async () => {
-    await writeCycle(0); // calentamiento
-    const { post, patch, del } = await writeCycle(1);
-
-    expect(post.response.statusCode).toBe(201);
-    expect(post.elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
-    expect(patch.response.statusCode).toBe(200);
-    expect(patch.elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
-    expect(del.response.statusCode).toBe(204);
-    expect(del.elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
   });
 });
