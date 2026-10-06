@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, userMessage, type ApiErrorDetail } from '../../components/http.ts';
 import { navigate } from '../../components/router.tsx';
+import { useLifetimeSignal } from '../../components/use-lifetime-signal.ts';
 import { duplicateJob, publishJob } from './api.ts';
 import type { PendingAction } from './JobActions.tsx';
 import { missingFieldsText } from './labels.ts';
@@ -66,18 +67,6 @@ function useReturnFocus(pending: PendingAction | null) {
       wanted.current = true;
     },
   };
-}
-
-// One AbortController for the life of the screen: leaving it cancels a request in flight, so a late
-// duplicate never navigates from somewhere else. Re-created on each mount (StrictMode runs the effect twice).
-function useLifetimeSignal(): () => AbortSignal | undefined {
-  const controller = useRef<AbortController | null>(null);
-  useEffect(() => {
-    const own = new AbortController();
-    controller.current = own;
-    return () => own.abort();
-  }, []);
-  return () => controller.current?.signal;
 }
 
 /**

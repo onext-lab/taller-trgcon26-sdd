@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import { ApiError, userMessage } from '../../components/http.ts';
 import { Link, matchPath, useNotice, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage, Notice } from '../../components/StatusMessages.tsx';
+import { useDocumentTitle } from '../../components/use-document-title.ts';
 import { useResource, type Resource } from '../../components/use-resource.ts';
 import { getJob } from './api.ts';
 import { JobActions } from './JobActions.tsx';
@@ -10,17 +11,10 @@ import { jobPaths, parseJobId } from './paths.ts';
 import type { Job } from './types.ts';
 import { useJobActions } from './use-job-actions.ts';
 
-const APP_NAME = 'ATS';
 const NOT_FOUND_TITLE = 'Oferta no encontrada';
 const GONE_MESSAGE = 'Esta oferta ya no existe.';
 const CLOSED_NOTICE = 'Oferta cerrada.';
 const PUBLISHED_NOTICE = 'Oferta publicada.';
-
-function useDocumentTitle(title: string | null): void {
-  useEffect(() => {
-    if (title !== null) document.title = `${title} · ${APP_NAME}`;
-  }, [title]);
-}
 
 // 404 and 400 from the API show the same as an invalid ID (EC-43); `status` is never 400/404 unless the
 // API said so in its envelope.

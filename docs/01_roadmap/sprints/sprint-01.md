@@ -86,6 +86,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   plantilla de TASK, en `/task-planner` y en el brief decide cuál lanza `/implementar-hu` (R4.0 de
   `docs/IMPLEMENTATION-RULE.md`). Decisión de la persona responsable tras cerrar HU-01.
 
+### T-03 · Tests web de ofertas intermitentes bajo carga · estado: pendiente (bloquea el cierre del sprint)
+- **Tipo:** deuda de tests (HU-01/HU-02)
+- `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` (foco en el h1),
+  `apps/web/test/features/jobs/JobListScreen.pagination.test.tsx` (CA-18) y
+  `apps/web/test/features/jobs/JobFormScreen.published.test.tsx` (EC-19) fallan a veces con varias suites o e2e en
+  paralelo y pasan sueltos. Se arreglan esperando por estado (`findBy`/`waitFor`), sin tiempos fijos ni timeouts
+  subidos. Hecho: la suite web completa 5 veces seguidas en verde con carga en paralelo. Origen: implementación de
+  HU-03; decisión del responsable del taller (los portátiles de los asistentes serán más lentos).
+
 ## Orden de ejecución
 1. HU-01 (sin dependencias)
 2. HU-02 (depende de HU-01)
@@ -101,3 +110,6 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 ## Notas
 - Ventana tolerada en `main` (HU-02): entre el merge de HU-04 y el de HU-05, cerrar una oferta con inscripciones
   activas la cierra sin rechazarlas; INV-05 se cumple al entrar HU-05.
+- Para HU-04 (review de HU-03): un test que ate `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API, y
+  unificar los teléfonos del seed y de los tests en la serie `+34 600 000 0xx` (`docs/RGPD.md` §6).
+- Los candidatos con la retención vencida siguen en el listado sin marca hasta la feature A (supresión y retención).

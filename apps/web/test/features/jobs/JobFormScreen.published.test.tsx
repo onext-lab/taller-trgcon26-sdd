@@ -137,7 +137,7 @@ describe('JobFormScreen · edición de una publicada', () => {
     expect(await screen.findByText('Cambios guardados.')).toBeDefined();
     expect(patches(mock)).toEqual([{ salaryMin: 35000 }]);
     expect(window.location.pathname).toBe('/jobs/7');
-    expect(screen.getByText('Publicada')).toBeDefined();
+    expect(await screen.findByText('Publicada')).toBeDefined();
   });
 
   it('EC-20 un 500 al guardar una publicada muestra la alerta y conserva lo escrito', async () => {

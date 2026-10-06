@@ -69,11 +69,11 @@ retirada es el ejercicio del art. 7.3 (RGPD §4).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-03 | | |
-| A1 | HU-03 | | |
-| A2 | HU-03 | | |
-| A3 | HU-03 | | |
-| E1 | HU-03 | | |
-| E2 | HU-03 | | |
+| P | HU-03 | CA-25, CA-31 | `apps/api/test/candidates/consent.test.ts:49`, `apps/api/test/candidates/retention.test.ts:92`, `e2e/candidates.spec.ts:253` |
+| A1 | HU-03 | CA-26, CA-31 | `apps/api/test/candidates/consent.test.ts:125`, `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx:176` |
+| A2 | HU-03 | CA-27 | `apps/api/test/candidates/consent.test.ts:65`, `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx:219` |
+| A3 | HU-03 | CA-28 | `apps/api/test/candidates/consent.test.ts:144` |
+| E1 | HU-03 | CA-29 | `apps/api/test/candidates/consent-adversarial.test.ts:135` |
+| E2 | HU-03 | CA-30 | `apps/api/test/candidates/consent-adversarial.test.ts:149`, `apps/web/test/features/candidates/CandidateDetailScreen.adversarial.test.tsx:162` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

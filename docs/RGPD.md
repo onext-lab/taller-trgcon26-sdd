@@ -29,6 +29,9 @@ origen, religión, afiliación…). Un PRD que quiera añadir un dato nuevo tien
   tenga alguna inscripción abierta.
 - **Conservación para futuros procesos**: **consentimiento** explícito del candidato (art. 6.1.a), registrado con fecha
   y alcance. Sin consentimiento, al cerrarse su último proceso empieza a contar la retención corta.
+- **Prueba del consentimiento (art. 7.1)**: la ficha guarda la fecha y la **versión** del texto (`v1`). El texto de cada
+  versión `vN` se conserva en el repositorio (`apps/web/src/features/candidates/consent.ts` y su historial de git);
+  cambiar el texto obliga a subir la versión, nunca a reescribir la anterior.
 
 ## 3. Retención
 
@@ -79,6 +82,7 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
    registran cuerpos de petición, y el serializador de `apps/api/src/logger.ts` quita la query de la URL (`?q=` puede
    llevar un nombre o un email) y la IP de origen; lo comprueba `apps/api/test/logger.test.ts`.
 2. **Minimización** en las respuestas: un listado devuelve lo justo para la lista, no la ficha entera.
-3. **Seeds, fixtures y tests con datos inventados**; nunca CVs ni personas reales.
+3. **Seeds, fixtures y tests con datos inventados**; nunca CVs ni personas reales. Emails en `example.com` o
+   `example.org`; teléfonos de ficción de la serie `+34 600 000 0xx`.
 4. **Toda feature que toque datos de candidatos** declara en su PRD qué datos, para qué y cuánto tiempo.
 5. **Exportaciones e importaciones** (CSV) validan y no dejan copias temporales con datos personales.

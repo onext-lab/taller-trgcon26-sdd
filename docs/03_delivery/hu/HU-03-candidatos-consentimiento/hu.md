@@ -2,10 +2,10 @@
 id: HU-03
 feature: FEAT-02
 titulo: "Alta, edición y búsqueda de candidatos, con consentimiento"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [candidatos]
-sprint: null             # sprint-NN
+sprint: sprint-01        # sprint-NN
 rama: "hu/HU-03-candidatos-consentimiento"
 ---
 
@@ -137,9 +137,9 @@ Flujos de esos UC que **no** cubre esta HU:
   fórmula (RV-26).
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
-- [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
-- [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
-- [ ] Implementación + integración — `/implementar-hu`
-- [ ] Review (`review/REVIEW.md`) — `/reviewer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `-frontend.md`) — `/tech-design`
+- [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
+- [x] Implementación + integración — `/implementar-hu`
+- [x] Review (`review/REVIEW.md`) — `/reviewer`
 - [ ] Sync de módulos + merge local a `main` — `/module-sync`

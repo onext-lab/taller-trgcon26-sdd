@@ -4,6 +4,7 @@ import {
   Link,
   matchPath,
   navigate,
+  parseRouteId,
   useNotice,
   usePath,
   useSearch,
@@ -144,6 +145,15 @@ describe('router', () => {
     expect(window.history.state).toEqual({ notice: 'Oferta duplicada.' });
   });
 
+  it('CA-01 el aviso «Candidato creado.» viaja en history.state y se lee en destino', () => {
+    render(<Probe />);
+
+    act(() => navigate('/candidates/12', { notice: 'Candidato creado.' }));
+
+    expect(screen.getByRole('status').textContent).toBe('Candidato creado.');
+    expect(window.history.state).toEqual({ notice: 'Candidato creado.' });
+  });
+
   it('ignora en history.state un aviso que no es uno de los textos fijos', () => {
     window.history.replaceState({ notice: 'Nombre Inventado' }, '', '/jobs');
     render(<Probe />);
@@ -162,5 +172,30 @@ describe('matchPath', () => {
     expect(matchPath('/jobs/:id', '/jobs/7/edit')).toBeNull();
     expect(matchPath('/jobs/:id/edit', '/jobs//edit')).toBeNull();
     expect(matchPath('/jobs/new', '/jobs/7')).toBeNull();
+  });
+});
+
+describe('parseRouteId', () => {
+  it('devuelve el entero positivo seguro escrito solo con dígitos', () => {
+    expect(parseRouteId('7')).toBe(7);
+    expect(parseRouteId('999999999999999')).toBe(999999999999999);
+  });
+
+  it('EC-35 rechaza ceros a la izquierda, signo, decimales, texto y más de 15 dígitos', () => {
+    for (const text of [
+      '',
+      '0',
+      '007',
+      '-1',
+      '+1',
+      '1.5',
+      '1e3',
+      'abc',
+      '7 ',
+      ' 7',
+      '1000000000000000',
+    ]) {
+      expect(parseRouteId(text)).toBeNull();
+    }
   });
 });

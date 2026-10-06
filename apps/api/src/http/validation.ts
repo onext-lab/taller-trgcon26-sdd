@@ -17,6 +17,17 @@ export const idParamsSchema = {
   properties: { id: { type: 'string', pattern: '^[1-9][0-9]{0,14}$' } },
 } as const;
 
+/**
+ * Campos de solo lectura que la API nombra (DEC-11.4): un esquema `false` por nombre. Ajv da `false schema` con
+ * `instancePath` `/<nombre>`, y el manejador lo muestra con su nombre y «Campo no permitido.». Cualquier otra clave no
+ * declarada sale agrupada en «Hay campos no permitidos.», sin nombre.
+ */
+export function forbiddenFields<const T extends readonly string[]>(
+  names: T,
+): { [K in T[number]]: false } {
+  return Object.fromEntries(names.map((name) => [name, false])) as { [K in T[number]]: false };
+}
+
 export type IdParams = { id: string };
 
 /**

@@ -50,7 +50,11 @@ function toAppError(error: FastifyError): AppError {
   return new AppError('INTERNAL_ERROR', 500, 'Error interno. Inténtalo de nuevo.');
 }
 
-/** Un elemento por campo: el primer error de Ajv de ese campo. */
+/**
+ * Un elemento por campo declarado: el primer error de Ajv de ese campo (DEC-11.4). Las claves no declaradas
+ * (`additionalProperties`) no se nombran: `fieldOf` las agrupa todas bajo el contexto (`body`, `querystring` o `params`),
+ * así que `details` tiene como mucho «propiedades declaradas + 1» elementos, entren las claves que entren.
+ */
 function toDetails(issues: FastifySchemaValidationError[], context: string): ErrorDetail[] {
   const byField = new Map<string, string>();
   for (const issue of issues) {
@@ -61,9 +65,6 @@ function toDetails(issues: FastifySchemaValidationError[], context: string): Err
 }
 
 function fieldOf({ keyword, params, instancePath }: FastifySchemaValidationError, context: string) {
-  if (keyword === 'additionalProperties' && typeof params.additionalProperty === 'string') {
-    return params.additionalProperty;
-  }
   if (keyword === 'required' && typeof params.missingProperty === 'string') {
     return params.missingProperty;
   }
@@ -78,9 +79,11 @@ const INVALID_FORMAT = 'Formato no válido.';
 /** Mensaje en castellano por keyword de Ajv (DD-03); cualquier keyword ausente usa `DEFAULT_MESSAGE`. */
 const MESSAGE_BY_KEYWORD: Record<string, (params: Params) => string> = {
   required: () => 'Es obligatorio.',
-  additionalProperties: () => 'Campo no permitido.',
+  additionalProperties: () => 'Hay campos no permitidos.',
+  'false schema': () => 'Campo no permitido.',
   minLength: (params) => `Debe tener al menos ${String(params.limit)} caracteres.`,
   maxLength: (params) => `Debe tener como máximo ${String(params.limit)} caracteres.`,
+  maxItems: (params) => `Debe tener como máximo ${String(params.limit)} elementos.`,
   enum: (params) => `Debe ser uno de estos valores: ${allowedValues(params.allowedValues)}.`,
   type: (params) => typeMessage(params.type),
   exclusiveMinimum: (params) => `Debe ser mayor que ${String(params.limit)}.`,
@@ -110,6 +113,8 @@ const TYPE_MESSAGES: Record<string, string> = {
   integer: 'Debe ser un número entero.',
   string: 'Debe ser un texto.',
   object: 'Debe ser un objeto JSON.',
+  boolean: 'Debe ser verdadero o falso.',
+  array: 'Debe ser una lista.',
 };
 
 /** Con `type: ["integer", "null"]` Ajv da el tipo como lista (array o texto con comas): manda el primero no nulo. */

@@ -1,6 +1,10 @@
 import { useEffect, useRef, type ReactElement, type RefObject } from 'react';
 import { ApiHealth } from './components/ApiHealth.tsx';
 import { Link, matchPath, navigate, usePath } from './components/router.tsx';
+import { CandidateDetailScreen } from './features/candidates/CandidateDetailScreen.tsx';
+import { CandidateFormScreen } from './features/candidates/CandidateFormScreen.tsx';
+import { CandidateListScreen } from './features/candidates/CandidateListScreen.tsx';
+import { candidatePaths } from './features/candidates/paths.ts';
 import { JobDetailScreen } from './features/jobs/JobDetailScreen.tsx';
 import { JobFormScreen } from './features/jobs/JobFormScreen.tsx';
 import { JobListScreen } from './features/jobs/JobListScreen.tsx';
@@ -25,19 +29,35 @@ function NotFoundScreen() {
   );
 }
 
-// Route table. `null` means «redirect to the list» (`/`).
+interface Route extends Screen {
+  pattern: string;
+}
+
+// Route table, in match order: `/jobs/new` and `/candidates/new` also match their `/:id` and must go first.
+const ROUTES: readonly Route[] = [
+  { pattern: jobPaths.list, title: 'Ofertas', element: <JobListScreen /> },
+  { pattern: jobPaths.create, title: 'Nueva oferta', element: <JobFormScreen mode="create" /> },
+  { pattern: '/jobs/:id/edit', title: 'Editar oferta', element: <JobFormScreen mode="edit" /> },
+  { pattern: '/jobs/:id', title: 'Oferta', element: <JobDetailScreen /> },
+  { pattern: candidatePaths.list, title: 'Candidatos', element: <CandidateListScreen /> },
+  {
+    pattern: candidatePaths.create,
+    title: 'Nuevo candidato',
+    element: <CandidateFormScreen mode="create" />,
+  },
+  {
+    pattern: '/candidates/:id/edit',
+    title: 'Editar candidato',
+    element: <CandidateFormScreen mode="edit" />,
+  },
+  { pattern: '/candidates/:id', title: 'Ficha de candidato', element: <CandidateDetailScreen /> },
+];
+
+// `null` means «redirect to the list» (`/`).
 function resolveScreen(path: string): Screen | null {
   if (matchPath('/', path)) return null;
-  if (matchPath(jobPaths.list, path)) return { title: 'Ofertas', element: <JobListScreen /> };
-  // `/jobs/new` also matches `/jobs/:id`: it must be declared first.
-  if (matchPath(jobPaths.create, path)) {
-    return { title: 'Nueva oferta', element: <JobFormScreen mode="create" /> };
-  }
-  if (matchPath('/jobs/:id/edit', path)) {
-    return { title: 'Editar oferta', element: <JobFormScreen mode="edit" /> };
-  }
-  if (matchPath('/jobs/:id', path)) return { title: 'Oferta', element: <JobDetailScreen /> };
-  return { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
+  const route = ROUTES.find(({ pattern }) => matchPath(pattern, path));
+  return route ?? { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
 }
 
 function RedirectToList() {
@@ -71,6 +91,7 @@ export function App() {
   const mainRef = useRef<HTMLElement>(null);
   useNavigationFocus(path, screen?.title ?? null, mainRef);
   const onList = matchPath(jobPaths.list, path) !== null;
+  const onCandidates = matchPath(candidatePaths.list, path) !== null;
 
   return (
     <>
@@ -79,6 +100,9 @@ export function App() {
         <nav aria-label="Principal">
           <Link to={jobPaths.list} aria-current={onList ? 'page' : undefined}>
             Ofertas
+          </Link>
+          <Link to={candidatePaths.list} aria-current={onCandidates ? 'page' : undefined}>
+            Candidatos
           </Link>
         </nav>
       </header>

@@ -1,5 +1,5 @@
 import { Link } from '../../components/router.tsx';
-import { totalPages } from './list-query.ts';
+import { Pagination } from '../../components/Pagination.tsx';
 
 export interface JobPaginationProps {
   /** `page`, `pageSize` and `total` of the API response, not of the URL. */
@@ -12,22 +12,21 @@ export interface JobPaginationProps {
   onNavigate: () => void;
 }
 
+const NOUN = { singular: 'oferta', plural: 'ofertas' };
+
 // Presentational pagination (RF-05, DD-03): real links, none at the edges.
 export function JobPagination({ page, pageSize, total, pathFor, onNavigate }: JobPaginationProps) {
-  const pages = totalPages(total, pageSize);
   return (
-    <nav aria-label="Paginación" className="pagination">
-      {page > 1 ? (
-        <Link to={pathFor(page - 1)} onClick={onNavigate}>
-          Anterior
+    <Pagination
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      noun={NOUN}
+      renderStep={(target, label) => (
+        <Link to={pathFor(target)} onClick={onNavigate}>
+          {label}
         </Link>
-      ) : null}
-      <span>{`Página ${page} de ${pages} (${total} ${total === 1 ? 'oferta' : 'ofertas'})`}</span>
-      {page < pages ? (
-        <Link to={pathFor(page + 1)} onClick={onNavigate}>
-          Siguiente
-        </Link>
-      ) : null}
-    </nav>
+      )}
+    />
   );
 }

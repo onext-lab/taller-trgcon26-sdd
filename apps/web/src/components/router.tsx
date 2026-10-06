@@ -4,13 +4,18 @@ import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent } from
 // the only thing that travels in history.state is one of the fixed notices below.
 
 export type NoticeText =
-  'Oferta creada.' | 'Cambios guardados.' | 'Oferta borrada.' | 'Oferta duplicada.';
+  | 'Oferta creada.'
+  | 'Cambios guardados.'
+  | 'Oferta borrada.'
+  | 'Oferta duplicada.'
+  | 'Candidato creado.';
 
 const NOTICES: readonly NoticeText[] = [
   'Oferta creada.',
   'Cambios guardados.',
   'Oferta borrada.',
   'Oferta duplicada.',
+  'Candidato creado.',
 ];
 const NAVIGATE_EVENT = 'ats:navigate';
 
@@ -80,6 +85,14 @@ export function Link({ to, onClick, ...rest }: LinkProps) {
 function splitPath(path: string): string[] {
   const trimmed = path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
   return trimmed.split('/');
+}
+
+/** Same rule as the API (`apps/api/src/http/validation.ts`): no leading zeros, at most 15 digits. */
+const ROUTE_ID_PATTERN = /^[1-9][0-9]{0,14}$/;
+
+/** Returns the ID written in a route segment (positive safe integer, digits only), or `null`. */
+export function parseRouteId(text: string): number | null {
+  return ROUTE_ID_PATTERN.test(text) ? Number(text) : null;
 }
 
 // matchPath('/jobs/:id', '/jobs/7') → { id: '7' }. Parameters stay as text; callers convert them.

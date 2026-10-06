@@ -1,4 +1,26 @@
+import {
+  DEFAULT_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
+  PAGE_SIZES,
+  SEARCH_CONTROL_TEXT,
+  SEARCH_TOO_LONG_TEXT,
+  totalPages,
+  validateSearchText,
+  type SearchTextResult,
+} from '../../components/list-controls.ts';
 import { JOB_STATUSES, type JobStatus } from './types.ts';
+
+// Moved to `components/list-controls.ts` (HU-03, DD-03); the public names stay here.
+export {
+  DEFAULT_PAGE_SIZE,
+  MAX_SEARCH_LENGTH,
+  PAGE_SIZES,
+  SEARCH_CONTROL_TEXT,
+  SEARCH_TOO_LONG_TEXT,
+  totalPages,
+  validateSearchText,
+};
+export type { SearchTextResult };
 
 // URL of the job list (DD-01). Only `status`, `q`, `page` and `pageSize` are read (repeated ones too) and
 // they go to the API raw, without validating: the API decides. Everything else in the URL is ignored.
@@ -8,13 +30,6 @@ export type ListQueryKey = (typeof LIST_QUERY_KEYS)[number];
 
 /** `[key, value]` pairs; `toSearch` writes them in canonical order. `[]` is the plain list. */
 export type ListQuery = ReadonlyArray<readonly [ListQueryKey, string]>;
-
-export const DEFAULT_PAGE_SIZE = 20;
-/** The only sizes the web offers (CA-18); the API accepts 1 to 100. */
-export const PAGE_SIZES: readonly number[] = [20, 50, 100];
-export const MAX_SEARCH_LENGTH = 100;
-export const SEARCH_TOO_LONG_TEXT = 'La búsqueda no puede pasar de 100 caracteres.';
-export const SEARCH_CONTROL_TEXT = 'La búsqueda no puede tener caracteres de control.';
 
 const LIST_PATH = '/jobs';
 // Same rule as the API for `pageSize`: 1 to 100, no leading zeros.
@@ -113,27 +128,4 @@ export function clearFiltersPath(_query: ListQuery): string {
 /** There is a `status` or a `q` with some value. */
 export function hasFilters(query: ListQuery): boolean {
   return query.some(([key, value]) => (key === 'status' || key === 'q') && value !== '');
-}
-
-export type SearchTextResult = { ok: true; value: string } | { ok: false; error: string };
-
-function hasControlCharacter(text: string): boolean {
-  return Array.from(text).some((char) => {
-    const code = char.codePointAt(0) ?? 0;
-    return code <= 0x1f || code === 0x7f;
-  });
-}
-
-/** Trims `q`; at most 100 code points and no C0 control or DEL (as the API). Empty means no filter. */
-export function validateSearchText(raw: string): SearchTextResult {
-  const value = raw.trim();
-  if (Array.from(value).length > MAX_SEARCH_LENGTH) {
-    return { ok: false, error: SEARCH_TOO_LONG_TEXT };
-  }
-  if (hasControlCharacter(value)) return { ok: false, error: SEARCH_CONTROL_TEXT };
-  return { ok: true, value };
-}
-
-export function totalPages(total: number, pageSize: number): number {
-  return Math.max(1, Math.ceil(total / pageSize));
 }

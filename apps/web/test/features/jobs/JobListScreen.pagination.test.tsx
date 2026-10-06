@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { JobListScreen } from '../../../src/features/jobs/JobListScreen.tsx';
 import type { JobListItem, JobPage } from '../../../src/features/jobs/types.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 import { mockFetch, type MockReply } from '../../helpers/fetch.ts';
 
 // Invented data only.
@@ -56,7 +57,7 @@ describe('JobListScreen · paginación', () => {
 
     expect(await screen.findByText('Página 2 de 2 (25 ofertas)')).toBeDefined();
     expect(currentUrl()).toBe('/jobs?status=published&page=2');
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Ofertas' }));
+    await expectFocusOn(() => screen.getByRole('heading', { name: 'Ofertas' }));
     expect(screen.queryByRole('link', { name: 'Siguiente' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Anterior' }).getAttribute('href')).toBe(
       '/jobs?status=published',
@@ -117,6 +118,6 @@ describe('JobListScreen · paginación', () => {
     fireEvent.click(link);
 
     expect(await screen.findByRole('table', { name: 'Ofertas' })).toBeDefined();
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Ofertas' }));
+    await expectFocusOn(() => screen.getByRole('heading', { name: 'Ofertas' }));
   });
 });
