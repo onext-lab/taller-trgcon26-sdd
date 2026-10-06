@@ -197,14 +197,14 @@ test('CA-07 editar teléfono, resumen y skills: la ficha muestra los valores nor
 
   await page.getByRole('link', { name: 'Editar' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Editar candidato' })).toBeVisible();
-  await page.getByLabel('Teléfono').fill('  +34 611 222 333  ');
+  await page.getByLabel('Teléfono').fill('  +34 600 000 033  ');
   await page.getByLabel('Resumen').fill('  Resumen nuevo.  ');
   await page.getByLabel('Skills').fill('Docker,  Node.js , docker');
   await page.getByRole('button', { name: 'Guardar' }).click();
 
   await expect(page).toHaveURL(`/candidates/${created.id}`);
   await expect(page.getByText('Cambios guardados.')).toBeVisible();
-  await expect(detailValue(page, 'Teléfono')).toHaveText('+34 611 222 333');
+  await expect(detailValue(page, 'Teléfono')).toHaveText('+34 600 000 033');
   await expect(detailValue(page, 'Resumen')).toHaveText('Resumen nuevo.');
   await expect(detailValue(page, 'Skills')).toHaveText('docker, node.js');
   await expect(detailValue(page, 'Fin de retención')).toHaveText(retention);

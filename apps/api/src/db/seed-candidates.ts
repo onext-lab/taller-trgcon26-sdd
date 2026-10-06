@@ -24,7 +24,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Lucía Fernández Prieto',
     email: 'lucia.fernandez@example.com',
-    phone: '+34 600 111 201',
+    phone: '+34 600 000 001',
     summary: 'Desarrolladora con tres años de experiencia en interfaces web.',
     skills: ['typescript', 'react'],
   },
@@ -32,7 +32,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Irene Campos Vidal',
     email: 'irene.campos@example.com',
-    phone: '600 111 203',
+    phone: '600 000 003',
     skills: ['figma'],
   },
   {
@@ -45,7 +45,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Álvaro Iglesias Mora',
     email: 'alvaro.iglesias@example.com',
-    phone: '+34 600 111 206',
+    phone: '+34 600 000 006',
     skills: ['node.js', 'typescript', 'docker', 'aws'],
   },
   { fullName: 'Nerea Sandoval Pons', email: 'nerea.sandoval@example.com', skills: ['scrum'] },
@@ -58,7 +58,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Paula Ferrer Aguirre',
     email: 'paula.ferrer@example.com',
-    phone: '(34) 600 111 209',
+    phone: '(34) 600 000 009',
     skills: ['java'],
   },
   { fullName: 'Sergio Lozano Vera', email: 'sergio.lozano@example.com', skills: ['docker', 'aws'] },
@@ -72,7 +72,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Elena Navarro Ibáñez',
     email: 'elena.navarro@example.com',
-    phone: '600 111 213',
+    phone: '600 000 013',
     skills: ['typescript', 'node.js'],
   },
   { fullName: 'Javier Peña Duarte', email: 'javier.pena@example.com', skills: [] },
@@ -85,7 +85,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Adrián Molina Cano',
     email: 'adrian.molina@example.com',
-    phone: '+34 600 111 216',
+    phone: '+34 600 000 016',
     skills: ['python', 'sql', 'aws'],
   },
   { fullName: 'Claudia Ramos Ortega', email: 'claudia.ramos@example.com', skills: ['ventas'] },
@@ -98,7 +98,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Alba Rivas Núñez',
     email: 'alba.rivas@example.com',
-    phone: '600 111 219',
+    phone: '600 000 019',
     skills: [],
   },
   {
@@ -115,7 +115,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Gonzalo Vargas Mena',
     email: 'gonzalo.vargas@example.com',
-    phone: '+34 600 111 222',
+    phone: '+34 600 000 022',
     skills: ['node.js', 'typescript', 'react', 'docker'],
   },
   {
@@ -127,7 +127,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Valeria Sáez Montoya',
     email: 'valeria.saez@example.com',
-    phone: '600 111 225',
+    phone: '600 000 025',
     summary: 'Perfil junior con prácticas en análisis de datos.',
     skills: ['python', 'sql'],
   },
@@ -140,7 +140,7 @@ const SEED_CANDIDATES: readonly SeedCandidate[] = [
   {
     fullName: 'Marcos Duque Calvo',
     email: 'marcos.duque@example.com',
-    phone: '+34 600 111 228',
+    phone: '+34 600 000 028',
     skills: ['java', 'scrum'],
   },
   {

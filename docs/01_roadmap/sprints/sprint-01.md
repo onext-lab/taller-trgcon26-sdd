@@ -95,6 +95,13 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   subidos. Hecho: la suite web completa 5 veces seguidas en verde con carga en paralelo. Origen: implementación de
   HU-03; decisión del responsable del taller (los portátiles de los asistentes serán más lentos).
 
+### T-04 · Versión del consentimiento atada entre web y API, y teléfonos de ficción · estado: hecha
+- **Tipo:** deuda de datos y tests (review de HU-03)
+- Un test que falla si `CONSENT_VERSION` (`apps/web/src/features/candidates/consent.ts`) y `CONSENT_TEXT_VERSION`
+  (`apps/api/src/modules/candidates/schemas.ts`) dejan de coincidir; y los teléfonos del seed y de los tests en la
+  serie de ficción `+34 600 000 0xx` (`docs/RGPD.md` §6). Sale del PRD de HU-04 (era su RF-13) para adelgazarla;
+  la copia local de `CandidateNotFound` sigue como deuda en `docs/05_modules/candidatos/technical.md`.
+
 ## Orden de ejecución
 1. HU-01 (sin dependencias)
 2. HU-02 (depende de HU-01)

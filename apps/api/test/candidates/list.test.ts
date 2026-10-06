@@ -88,14 +88,14 @@ describe('GET /api/candidates — búsqueda y forma (CA-15, CA-17, CA-18, RNF-04
     await createCandidate(app, {
       fullName: 'Marta Olmedo',
       email: 'marta.olmedo@example.com',
-      phone: '600 111 222',
+      phone: '600 000 022',
       summary: 'Resumen inventado.',
       consent: true,
     });
 
     const response = await app.inject({ method: 'GET', url: '/api/candidates' });
 
-    expect(response.body).not.toMatch(/phone|summary|consent|retention|createdAt|600 111 222/);
+    expect(response.body).not.toMatch(/phone|summary|consent|retention|createdAt|600 000 022/);
   });
 });
 
