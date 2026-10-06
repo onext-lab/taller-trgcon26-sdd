@@ -18,6 +18,17 @@ export const idParamsSchema = {
 
 export type IdParams = { id: string };
 
+/**
+ * Caracteres de control (DEC-11.8, EC-50). Ajv compila `pattern` con el flag `u`, así que `\uXXXX` basta; se escriben
+ * como secuencias de escape para no llevar caracteres crudos en el código.
+ * - `NO_CONTROL_CHARS`: ni C0 (U+0000-U+001F) ni DEL (U+007F). Para textos de una línea (título, ubicación).
+ * - `NO_CONTROL_CHARS_EXCEPT_WHITESPACE`: lo mismo salvo tabulador (U+0009), salto de línea (U+000A) y retorno de
+ *   carro (U+000D). Para textos largos (descripción de una oferta, resumen de un candidato).
+ */
+export const NO_CONTROL_CHARS = '^[^\\u0000-\\u001F\\u007F]*$';
+export const NO_CONTROL_CHARS_EXCEPT_WHITESPACE =
+  '^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]*$';
+
 export interface TrimOptions {
   trim: readonly string[];
   emptyToNull: readonly string[];

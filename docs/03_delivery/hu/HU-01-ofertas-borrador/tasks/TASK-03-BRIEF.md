@@ -90,3 +90,42 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (sin ciclos de arreglo)
 - **Commit:** el de esta tarea (`[HU-01 TASK-03]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** EC-50 (nuevo en el PRD v1.1, DT-05; regla común en DEC-11 punto 8): rechazar con 400 `VALIDATION_ERROR` los caracteres de control C0 (U+0000-U+001F) y DEL (U+007F) en `title` y `location`, y en `description` todos salvo `\n`, `\r` y `\t`, en el alta y en la edición, sin guardar nada. Hazlo en el JSON Schema (`pattern` en `JobFields` de `apps/api/src/modules/jobs/schemas.ts`; Ajv con `unicode`), de forma que `details` lleve el campo y el mensaje de *keyword* `pattern` («Formato no válido.»), o con un mensaje propio si lo justificas. Reutilizable por candidatos (exporta los patrones desde `apps/api/src/http/validation.ts` si encaja). Tests en un fichero nuevo `apps/api/test/jobs/control-chars.test.ts`, con nombres «EC-50»: NUL al principio, en medio y al final; U+0001, U+001F y U+007F; tabulador y salto de línea en la descripción aceptados y en el título rechazados; alta y edición; y que tras cada rechazo no hay filas nuevas ni cambios.
+- **Ficheros:** `apps/api/src/modules/jobs/schemas.ts`, `apps/api/src/http/validation.ts` (si exportas los patrones), `apps/api/test/jobs/control-chars.test.ts` (crear)
+- **Verificación que debes pegar:** `npm test -w apps/api` completo en verde; `npm test -w apps/api -- control-chars` con 1 fichero; `npm run typecheck`; `npx eslint` de los ficheros tocados; repetir la sonda: `"a\u0000bcdef"` → 400.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- control-chars
+ Test Files  1 passed (1)
+      Tests  35 passed (35)
+exit=0
+$ npm test -w apps/api   (suite completa del workspace)
+ Test Files  15 passed (15)
+      Tests  165 passed (165)
+exit=0
+$ npm run typecheck
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/src/http/validation.ts apps/api/src/modules/jobs/schemas.ts apps/api/test/jobs/control-chars.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+      54 apps/api/src/http/validation.ts
+     158 apps/api/src/modules/jobs/schemas.ts
+     192 apps/api/test/jobs/control-chars.test.ts
+     404 total
+INTEGRACION rc=0
+"a\u0000bcdef" 400 {"error":{"code":"VALIDATION_ERROR","message":"Hay campos con errores.","details":[{"field":"title","message":"Formato n
+"abcdef\u0000" 400 {"error":{"code":"VALIDATION_ERROR","message":"Hay campos con errores.","details":[{"field":"title","message":"Formato n
+"\u0000\u0000\u0000" 400 {"error":{"code":"VALIDATION_ERROR","message":"Hay campos con errores.","details":[{"field":"title","message":"Formato n
+"ok título" 201 {"id":1,"title":"ok título","description":null,"location":null,"workMode":null,"salaryMin":null,"salaryMax":null,"status
+```
+
+- **Resultado:** verde; EC-50 con pattern en JobFields (patrones NO_CONTROL_CHARS y NO_CONTROL_CHARS_EXCEPT_WHITESPACE exportados desde validation.ts para candidatos); 35 tests EC-50; la sonda de la review pasa de 500 a 400
+

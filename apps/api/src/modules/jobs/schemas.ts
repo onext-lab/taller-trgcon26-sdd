@@ -1,6 +1,8 @@
 // Contrato del módulo jobs (TECHNICAL_DOC-backend § Esquemas compartidos). Longitudes en puntos de código: Ajv cuenta
 // con `unicode: true` (su valor por defecto), igual que `length()` de SQLite.
 
+import { NO_CONTROL_CHARS, NO_CONTROL_CHARS_EXCEPT_WHITESPACE } from '../../http/validation.ts';
+
 export const WORK_MODES = ['presencial', 'híbrida', 'remota'] as const;
 export const JOB_STATUSES = ['draft', 'published', 'closed'] as const;
 
@@ -52,11 +54,23 @@ export interface JobPage {
 /** DD-12: sin `maximum`, `1e300` pasaría por entero, SQLite lo guardaría como REAL, fallaría el CHECK y daría 500. */
 const MAX_SALARY = Number.MAX_SAFE_INTEGER;
 
-/** Reglas de entrada por campo (alta y edición). */
+/**
+ * Reglas de entrada por campo (alta y edición). `pattern` rechaza los caracteres de control (EC-50, DEC-11.8): título
+ * y ubicación, todos; descripción, todos salvo `\n`, `\r` y `\t`.
+ */
 export const jobFieldsSchema = {
-  title: { type: 'string', minLength: 3, maxLength: 120 },
-  description: { type: ['string', 'null'], maxLength: 5000 },
-  location: { type: ['string', 'null'], minLength: 2, maxLength: 120 },
+  title: { type: 'string', minLength: 3, maxLength: 120, pattern: NO_CONTROL_CHARS },
+  description: {
+    type: ['string', 'null'],
+    maxLength: 5000,
+    pattern: NO_CONTROL_CHARS_EXCEPT_WHITESPACE,
+  },
+  location: {
+    type: ['string', 'null'],
+    minLength: 2,
+    maxLength: 120,
+    pattern: NO_CONTROL_CHARS,
+  },
   workMode: { type: ['string', 'null'], enum: [...WORK_MODES, null] },
   salaryMin: { type: ['integer', 'null'], exclusiveMinimum: 0, maximum: MAX_SALARY },
   salaryMax: { type: ['integer', 'null'], exclusiveMinimum: 0, maximum: MAX_SALARY },
