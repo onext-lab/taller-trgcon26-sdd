@@ -94,6 +94,39 @@ export const jobSchema = {
   },
 } as const;
 
+/** Elemento del listado: solo estos 4 campos (DEC-10, RGPD §6.2); el esquema de respuesta filtra cualquier otro. */
+export const jobListItemSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'title', 'status', 'referenceDate'],
+  properties: {
+    id: { type: 'integer' },
+    title: { type: 'string' },
+    status: { type: 'string', enum: JOB_STATUSES },
+    referenceDate: { type: 'string' },
+  },
+} as const;
+
+/** Página del listado (DEC-10). En esta HU siempre la primera, de 20. */
+export const jobPageSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['items', 'total', 'page', 'pageSize'],
+  properties: {
+    items: { type: 'array', items: jobListItemSchema },
+    total: { type: 'integer' },
+    page: { type: 'integer' },
+    pageSize: { type: 'integer' },
+  },
+} as const;
+
+/** Querystring de `GET /api/jobs`: cualquier parámetro da 400 hasta HU-02. */
+export const listQuerySchema = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {},
+} as const;
+
 /** Cuerpo de `POST /api/jobs`. */
 export const createJobBodySchema = {
   type: 'object',

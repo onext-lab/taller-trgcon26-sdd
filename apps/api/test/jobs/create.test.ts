@@ -44,7 +44,7 @@ async function expectRejected(payload: unknown, field: string): Promise<string |
 }
 
 describe('POST /api/jobs — alta de borradores (camino feliz)', () => {
-  it('CA-01 solo el título → 201 en draft con createdAt del reloj', async () => {
+  it('CA-01 solo el título → 201 en draft con createdAt del reloj y aparece en el listado', async () => {
     const response = await postJob({ title: 'Desarrollador/a backend (Node.js)' });
 
     expect(response.statusCode).toBe(201);
@@ -62,6 +62,17 @@ describe('POST /api/jobs — alta de borradores (camino feliz)', () => {
       closedAt: null,
     });
     expect(countJobs()).toBe(1);
+
+    const list = await app.inject({ method: 'GET', url: '/api/jobs' });
+    expect(list.statusCode).toBe(200);
+    expect(list.json()).toEqual({
+      items: [
+        { id: 1, title: 'Desarrollador/a backend (Node.js)', status: 'draft', referenceDate: NOW },
+      ],
+      total: 1,
+      page: 1,
+      pageSize: 20,
+    });
   });
 
   it('CA-02/EC-03 recorta y guarda todos los campos', async () => {

@@ -1,6 +1,12 @@
 import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
-import { trimTextFields } from '../../http/validation.ts';
-import { createJobBodySchema, jobSchema, type JobInput } from './schemas.ts';
+import { idParamsSchema, trimTextFields, type IdParams } from '../../http/validation.ts';
+import {
+  createJobBodySchema,
+  jobPageSchema,
+  jobSchema,
+  listQuerySchema,
+  type JobInput,
+} from './schemas.ts';
 import type { JobsService } from './service.ts';
 
 /**
@@ -28,5 +34,16 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
       schema: { body: createJobBodySchema, response: { 201: jobSchema } },
     },
     (request, reply) => reply.code(201).send(service.create(request.body)),
+  );
+
+  app.get('/', { schema: { querystring: listQuerySchema, response: { 200: jobPageSchema } } }, () =>
+    service.list(),
+  );
+
+  // Orden: JSON Schema de `params` (400) → existencia en el servicio (404).
+  app.get<{ Params: IdParams }>(
+    '/:id',
+    { schema: { params: idParamsSchema, response: { 200: jobSchema } } },
+    (request) => service.get(Number(request.params.id)),
   );
 };

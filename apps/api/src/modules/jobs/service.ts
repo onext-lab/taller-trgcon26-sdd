@@ -1,7 +1,7 @@
 import type { Clock } from '../../clock.ts';
-import { validationError } from '../../errors.ts';
+import { notFound, validationError } from '../../errors.ts';
 import type { JobsRepository } from './repository.ts';
-import type { Job, JobInput } from './schemas.ts';
+import type { Job, JobInput, JobPage } from './schemas.ts';
 
 /**
  * Casos de uso de las ofertas. Firma final del diseño (TECHNICAL_DOC-backend § Firmas internas); TASK-04 añade `get` y
@@ -9,6 +9,10 @@ import type { Job, JobInput } from './schemas.ts';
  */
 export interface JobsService {
   create(input: JobInput): Job;
+  /** `NOT_FOUND` si no existe. */
+  get(id: number): Job;
+  /** Primera página de 20 (DEC-10); la paginación llega con HU-02. */
+  list(): JobPage;
 }
 
 export interface JobsServiceDeps {
@@ -18,6 +22,10 @@ export interface JobsServiceDeps {
   /** `(fn) => withTransaction(db, fn)` (DEC-06). */
   transaction: <T>(fn: () => T) => T;
 }
+
+const NOT_FOUND_MESSAGE = 'La oferta no existe.';
+const PAGE = 1;
+const PAGE_SIZE = 20;
 
 const SALARY_RANGE_MESSAGE = 'El salario mínimo no puede ser mayor que el máximo.';
 
@@ -35,6 +43,15 @@ export function createJobsService({ repository, now, transaction }: JobsServiceD
       // `status` ('draft') y `created_at` solo los fija el sistema.
       const createdAt = now().toISOString();
       return transaction(() => repository.insert(input, createdAt));
+    },
+    get(id) {
+      const job = repository.findById(id);
+      if (!job) throw notFound(NOT_FOUND_MESSAGE);
+      return job;
+    },
+    list() {
+      const items = repository.listPage(PAGE_SIZE, (PAGE - 1) * PAGE_SIZE);
+      return { items, total: repository.count(), page: PAGE, pageSize: PAGE_SIZE };
     },
   };
 }

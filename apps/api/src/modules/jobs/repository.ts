@@ -1,5 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
-import type { Job, JobInput, JobStatus, WorkMode } from './schemas.ts';
+import type { Job, JobInput, JobListItem, JobStatus, WorkMode } from './schemas.ts';
 
 /** Fila de `job_openings` tal como la devuelve SQLite (los CHECK de la migración 001 garantizan los dominios). */
 interface JobRow {
@@ -37,9 +37,39 @@ const INSERT_SQL = `INSERT INTO job_openings
   VALUES (?, ?, ?, ?, ?, ?, 'draft', ?)
   RETURNING *`;
 
+interface JobListRow {
+  id: number;
+  title: string;
+  status: JobStatus;
+  reference_date: string;
+}
+
+// Misma expresión que el índice `job_openings_reference_date_idx` (migración 001), para que lo use.
+const LIST_PAGE_SQL = `SELECT id, title, status, COALESCE(published_at, created_at) AS reference_date
+  FROM job_openings
+  ORDER BY COALESCE(published_at, created_at) DESC, id DESC
+  LIMIT ? OFFSET ?`;
+
 /** Acceso a `job_openings` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
 export function createJobsRepository(db: DatabaseSync) {
   return {
+    findById(id: number): Job | undefined {
+      const row = db.prepare('SELECT * FROM job_openings WHERE id = ?').get(id);
+      return row ? toJob(row as unknown as JobRow) : undefined;
+    },
+    listPage(limit: number, offset: number): JobListItem[] {
+      const rows = db.prepare(LIST_PAGE_SQL).all(limit, offset) as unknown as JobListRow[];
+      return rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        referenceDate: row.reference_date,
+      }));
+    },
+    count(): number {
+      const row = db.prepare('SELECT COUNT(*) AS total FROM job_openings').get();
+      return Number(row?.total ?? 0);
+    },
     insert(input: JobInput, createdAt: string): Job {
       const row = db
         .prepare(INSERT_SQL)
