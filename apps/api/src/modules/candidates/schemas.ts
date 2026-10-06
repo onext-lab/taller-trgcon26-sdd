@@ -101,6 +101,21 @@ export const createCandidateBodySchema = {
   },
 } as const;
 
+/**
+ * Cuerpo de `PATCH /api/candidates/:id`: al menos un campo; un campo ausente no cambia. `fullName` y `email` no
+ * admiten `null`; `consent` se nombra como campo no permitido: el consentimiento tiene sus propias acciones.
+ */
+export const updateCandidateBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  minProperties: 1,
+  properties: {
+    ...candidateFieldsSchema,
+    ...forbiddenFields(READ_ONLY),
+    ...forbiddenFields(['consent']),
+  },
+} as const;
+
 /** Ficha completa en las respuestas: 11 campos, nunca ausentes. */
 export const candidateSchema = {
   type: 'object',

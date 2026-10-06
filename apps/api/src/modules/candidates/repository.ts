@@ -48,6 +48,21 @@ export interface InitialConsent {
   version: string;
 }
 
+/** Estado de consentimiento de una ficha (`null` en los tres: nunca dado). */
+export interface ConsentState {
+  givenAt: string | null;
+  version: string | null;
+  withdrawnAt: string | null;
+}
+
+const UPDATE_FIELDS_SQL = `UPDATE candidates
+  SET full_name = ?, email = ?, phone = ?, summary = ?, skills = ?
+  WHERE id = ?`;
+
+const SET_CONSENT_SQL = `UPDATE candidates
+  SET consent_given_at = ?, consent_version = ?, consent_withdrawn_at = ?
+  WHERE id = ?`;
+
 // La retención nace `NULL`: solo `recalculateRetention` la escribe (DD-05).
 const INSERT_SQL = `INSERT INTO candidates
   (full_name, email, phone, summary, skills, created_at, consent_given_at, consent_version)
@@ -83,6 +98,21 @@ export function createCandidatesRepository(db: DatabaseSync) {
           consent?.version ?? null,
         );
       return Number(result.lastInsertRowid);
+    },
+    /** Escribe las 5 columnas editables (lista fija: nunca la retención ni el consentimiento, RN-10). */
+    updateFields(id: number, fields: CandidateFields): void {
+      db.prepare(UPDATE_FIELDS_SQL).run(
+        fields.fullName,
+        fields.email,
+        fields.phone,
+        fields.summary,
+        JSON.stringify(fields.skills),
+        id,
+      );
+    },
+    /** Escribe el estado de consentimiento completo (un solo estado, sin historial, DT-03). */
+    setConsent(id: number, consent: ConsentState): void {
+      db.prepare(SET_CONSENT_SQL).run(consent.givenAt, consent.version, consent.withdrawnAt, id);
     },
     /** Único camino de escritura de `retention_ends_at` (DD-05). */
     setRetention(id: number, date: string | null): void {

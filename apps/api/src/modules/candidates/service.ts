@@ -3,17 +3,34 @@ import { duplicate, notFound } from '../../errors.ts';
 import type { CandidateProcessesPort } from './processes-port.ts';
 import type { CandidateFields, CandidatesRepository } from './repository.ts';
 import { computeRetentionEndsAt } from './retention.ts';
-import { CONSENT_TEXT_VERSION, type Candidate, type CandidateInput } from './schemas.ts';
+import {
+  CONSENT_TEXT_VERSION,
+  type Candidate,
+  type CandidateInput,
+  type CandidatePatch,
+} from './schemas.ts';
 
 /**
  * Casos de uso de los candidatos (TECHNICAL_DOC-backend § Firmas internas). No conoce `request` ni `reply`: los
- * errores salen como `AppError`. `update`, `list`, `giveConsent` y `withdrawConsent` llegan en TASK-04 y TASK-05.
+ * errores salen como `AppError`. `list` llega en TASK-05.
  */
 export interface CandidatesService {
   /** Alta con retención calculada, en una transacción. `DUPLICATE` (409) si el email ya existe. */
   create(input: CandidateInput): Candidate;
   /** `NOT_FOUND` si no existe. */
   get(id: number): Candidate;
+  /**
+   * Lectura-fusión-escritura de las 5 columnas editables, en una transacción; nunca toca retención ni consentimiento
+   * (RN-10). Gana la última escritura (DEC-08). `NOT_FOUND` si no existe, `DUPLICATE` si el email es de otro.
+   */
+  update(id: number, patch: CandidatePatch): Candidate;
+  /** Registrar o renovar el consentimiento (ahora, `v1`, sin retirada) y recalcular la retención. `NOT_FOUND` si no existe. */
+  giveConsent(id: number): Candidate;
+  /**
+   * Retirar el consentimiento vigente y recalcular. Sin uno vigente devuelve la ficha tal cual: sin `now()`, sin
+   * escribir y sin recalcular (DD-09). `NOT_FOUND` si no existe.
+   */
+  withdrawConsent(id: number): Candidate;
   /**
    * Operación interna y único escritor de `retention_ends_at` (DD-05): lee los hechos y el puerto de procesos, aplica
    * la fórmula y guarda. Se une a la transacción en curso. `NOT_FOUND` si no existe.
@@ -44,6 +61,17 @@ function toFields(input: CandidateInput): CandidateFields {
   };
 }
 
+/** Campos editables tras aplicar el parche: lo ausente conserva el valor de la ficha. */
+function mergeFields(current: Candidate, patch: CandidatePatch): CandidateFields {
+  return {
+    fullName: patch.fullName ?? current.fullName,
+    email: patch.email ?? current.email,
+    phone: patch.phone === undefined ? current.phone : patch.phone,
+    summary: patch.summary === undefined ? current.summary : patch.summary,
+    skills: patch.skills ?? current.skills,
+  };
+}
+
 function requireCandidate(repository: CandidatesRepository, id: number): Candidate {
   const candidate = repository.findById(id);
   if (!candidate) throw notFound(NOT_FOUND_MESSAGE);
@@ -70,18 +98,53 @@ export function createCandidatesService({
     });
   }
 
-  function insertCandidate(input: CandidateInput): number {
-    const createdAt = now().toISOString();
-    const consent = input.consent ? { givenAt: createdAt, version: CONSENT_TEXT_VERSION } : null;
+  /** Ejecuta una escritura y traduce el choque con el `UNIQUE` del email en `DUPLICATE` (DD-04). */
+  function writeUniqueEmail<T>(email: string, write: () => T): T {
     try {
-      return repository.insert(toFields(input), createdAt, consent);
+      return write();
     } catch (error) {
       if (!repository.isDuplicateEmailError(error)) throw error;
       // La transacción sigue abierta tras el fallo (DD-04): el ID del existente es coherente.
-      const existingId = repository.findIdByEmail(input.email);
+      const existingId = repository.findIdByEmail(email);
       if (existingId === undefined) throw error;
       throw duplicate({ field: 'email', message: DUPLICATE_MESSAGE, existingId });
     }
+  }
+
+  function insertCandidate(input: CandidateInput): number {
+    const createdAt = now().toISOString();
+    const consent = input.consent ? { givenAt: createdAt, version: CONSENT_TEXT_VERSION } : null;
+    return writeUniqueEmail(input.email, () =>
+      repository.insert(toFields(input), createdAt, consent),
+    );
+  }
+
+  function updateCandidate(id: number, patch: CandidatePatch): Candidate {
+    const fields = mergeFields(requireCandidate(repository, id), patch);
+    writeUniqueEmail(fields.email, () => repository.updateFields(id, fields));
+    return requireCandidate(repository, id);
+  }
+
+  function giveConsent(id: number): Candidate {
+    requireCandidate(repository, id);
+    repository.setConsent(id, {
+      givenAt: now().toISOString(),
+      version: CONSENT_TEXT_VERSION,
+      withdrawnAt: null,
+    });
+    return recalculateRetention(id);
+  }
+
+  function withdrawConsent(id: number): Candidate {
+    const candidate = requireCandidate(repository, id);
+    const hasActiveConsent = candidate.consentGivenAt !== null && candidate.consentWithdrawnAt === null;
+    if (!hasActiveConsent) return candidate;
+    repository.setConsent(id, {
+      givenAt: candidate.consentGivenAt,
+      version: candidate.consentVersion,
+      withdrawnAt: now().toISOString(),
+    });
+    return recalculateRetention(id);
   }
 
   return {
@@ -92,6 +155,9 @@ export function createCandidatesService({
     get(id) {
       return requireCandidate(repository, id);
     },
+    update: (id, patch) => transaction(() => updateCandidate(id, patch)),
+    giveConsent: (id) => transaction(() => giveConsent(id)),
+    withdrawConsent: (id) => transaction(() => withdrawConsent(id)),
     recalculateRetention,
   };
 }

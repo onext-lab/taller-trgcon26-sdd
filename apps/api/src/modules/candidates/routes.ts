@@ -1,7 +1,13 @@
 import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
-import { idParamsSchema, type IdParams } from '../../http/validation.ts';
+import { idParamsSchema, rejectBody, type IdParams } from '../../http/validation.ts';
 import { normalizeCandidateBody } from './normalize.ts';
-import { candidateSchema, createCandidateBodySchema, type CandidateInput } from './schemas.ts';
+import {
+  candidateSchema,
+  createCandidateBodySchema,
+  updateCandidateBodySchema,
+  type CandidateInput,
+  type CandidatePatch,
+} from './schemas.ts';
 import type { CandidatesService } from './service.ts';
 
 /**
@@ -32,5 +38,38 @@ export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }
     '/:id',
     { schema: { params: idParamsSchema, response: { 200: candidateSchema } } },
     (request) => service.get(Number(request.params.id)),
+  );
+
+  // Orden: JSON Schema de `params` y `body` (400) → existencia (404) → email de otro (409).
+  app.patch<{ Params: IdParams; Body: CandidatePatch }>(
+    '/:id',
+    {
+      preValidation: normalizeBody,
+      schema: {
+        params: idParamsSchema,
+        body: updateCandidateBodySchema,
+        response: { 200: candidateSchema },
+      },
+    },
+    (request) => service.update(Number(request.params.id), request.body),
+  );
+
+  // Acciones sin cuerpo (DD-01): `rejectBody` → `params` (400) → existencia (404).
+  app.post<{ Params: IdParams }>(
+    '/:id/consent',
+    {
+      preValidation: rejectBody,
+      schema: { params: idParamsSchema, response: { 200: candidateSchema } },
+    },
+    (request) => service.giveConsent(Number(request.params.id)),
+  );
+
+  app.post<{ Params: IdParams }>(
+    '/:id/consent/withdrawal',
+    {
+      preValidation: rejectBody,
+      schema: { params: idParamsSchema, response: { 200: candidateSchema } },
+    },
+    (request) => service.withdrawConsent(Number(request.params.id)),
   );
 };
