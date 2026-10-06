@@ -216,4 +216,85 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(screen.getByRole('alert').textContent).toBe('La oferta ya no es un borrador.');
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
   });
+
+  it('EC-06 [adversarial] un 404 al publicar muestra «Esta oferta ya no existe.» y «Volver a las ofertas», sin acciones', async () => {
+    await renderDraft({
+      'POST /api/jobs/7/publish': failure(404, 'JOB_NOT_FOUND', 'Oferta no encontrada.'),
+    });
+
+    click('Publicar');
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Esta oferta ya no existe.');
+    expect(screen.getByRole('link', { name: 'Volver a las ofertas' }).getAttribute('href')).toBe(
+      '/jobs',
+    );
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Editar' })).toBeNull();
+  });
+
+  it('EC-25 [adversarial] un 404 al duplicar muestra «Esta oferta ya no existe.» y no navega', async () => {
+    await renderDraft({
+      'POST /api/jobs/7/duplicate': failure(404, 'JOB_NOT_FOUND', 'Oferta no encontrada.'),
+    });
+
+    click('Duplicar');
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Esta oferta ya no existe.');
+    expect(window.location.pathname).toBe('/jobs/7');
+    expect(screen.queryByRole('button', { name: 'Duplicar' })).toBeNull();
+  });
+
+  it('EC-43/EC-05 [adversarial] sin red al publicar → alerta, sigue «Borrador» y «Publicar» habilitado con el foco', async () => {
+    await renderDraft({ 'POST /api/jobs/7/publish': { networkError: true } });
+
+    click('Publicar');
+
+    expect((await screen.findByRole('alert')).textContent).toContain('No se ha podido conectar');
+    expect(screen.getByText('Borrador')).toBeDefined();
+    const button = screen.getByRole('button', { name: 'Publicar' }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    expect(document.activeElement).toBe(button);
+  });
+
+  it('EC-27 [adversarial] un 500 al duplicar → alerta, sigue en la ficha original y «Duplicar» habilitado con el foco', async () => {
+    await renderDraft({
+      'POST /api/jobs/7/duplicate': failure(500, 'INTERNAL_ERROR', 'Error interno del servidor.'),
+    });
+
+    click('Duplicar');
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Error interno del servidor.');
+    expect(window.location.pathname).toBe('/jobs/7');
+    expect(screen.getByRole('heading', { level: 1, name: DRAFT.title })).toBeDefined();
+    const button = screen.getByRole('button', { name: 'Duplicar' }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    expect(document.activeElement).toBe(button);
+  });
+
+  it('EC-09 [adversarial] doble clic en Publicar = 1 POST', async () => {
+    const mock = await renderDraft({ 'POST /api/jobs/7/publish': { hang: true } });
+    const button = screen.getByRole('button', { name: 'Publicar' });
+
+    button.focus();
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    await screen.findByRole('button', { name: 'Publicando…' });
+    const posts = mock.calls.filter((call) => call.method === 'POST');
+    expect(posts.map((call) => call.url)).toEqual(['/api/jobs/7/publish']);
+  });
+
+  it('EC-31 [adversarial] doble clic en Duplicar = 1 POST y «Duplicando…»', async () => {
+    const mock = await renderDraft({ 'POST /api/jobs/7/duplicate': { hang: true } });
+    const button = screen.getByRole('button', { name: 'Duplicar' });
+
+    button.focus();
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(await screen.findByRole('button', { name: 'Duplicando…' })).toBeDefined();
+    const posts = mock.calls.filter((call) => call.method === 'POST');
+    expect(posts.map((call) => call.url)).toEqual(['/api/jobs/7/duplicate']);
+    expect(window.location.pathname).toBe('/jobs/7');
+  });
 });

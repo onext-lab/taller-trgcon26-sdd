@@ -74,6 +74,15 @@ describe('toSearch', () => {
     expect(toSearch([['q', 'a b']])).toBe('?q=a%20b');
   });
 
+  it('EC-39 encodeURIComponent por valor: + # ? = / y comillas no cambian la estructura de la URL', () => {
+    expect(toSearch([['q', 'a+b']])).toBe('?q=a%2Bb');
+    expect(toSearch([['q', '#x?y=z']])).toBe('?q=%23x%3Fy%3Dz');
+    expect(toSearch([['q', '"; DROP--']])).toBe('?q=%22%3B%20DROP--');
+    const params = new URLSearchParams(toSearch([['q', 'a&page=9#b']]));
+    expect([...params.keys()]).toEqual(['q']);
+    expect(params.get('q')).toBe('a&page=9#b');
+  });
+
   it('EC-39 [adversarial] la petición a la API lleva ese valor codificado y ningún parámetro extra', async () => {
     const url = '/api/jobs?q=a%26status%3Dclosed';
     const mock = mockFetch({
