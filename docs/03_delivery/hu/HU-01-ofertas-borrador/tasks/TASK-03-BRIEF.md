@@ -92,7 +92,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** EC-50 (nuevo en el PRD v1.1, DT-05; regla común en DEC-11 punto 8): rechazar con 400 `VALIDATION_ERROR` los caracteres de control C0 (U+0000-U+001F) y DEL (U+007F) en `title` y `location`, y en `description` todos salvo `\n`, `\r` y `\t`, en el alta y en la edición, sin guardar nada. Hazlo en el JSON Schema (`pattern` en `JobFields` de `apps/api/src/modules/jobs/schemas.ts`; Ajv con `unicode`), de forma que `details` lleve el campo y el mensaje de *keyword* `pattern` («Formato no válido.»), o con un mensaje propio si lo justificas. Reutilizable por candidatos (exporta los patrones desde `apps/api/src/http/validation.ts` si encaja). Tests en un fichero nuevo `apps/api/test/jobs/control-chars.test.ts`, con nombres «EC-50»: NUL al principio, en medio y al final; U+0001, U+001F y U+007F; tabulador y salto de línea en la descripción aceptados y en el título rechazados; alta y edición; y que tras cada rechazo no hay filas nuevas ni cambios.

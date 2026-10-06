@@ -63,10 +63,10 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-01 | CA-09, CA-10 | |
-| A1 | HU-01 | CA-11 | |
+| P | HU-01 | CA-09, CA-10 | `apps/api/test/jobs/update.test.ts:40` |
+| A1 | HU-01 | CA-11 | `apps/api/test/jobs/update.test.ts:85` |
 | E1 | HU-02 | | |
-| E2 | HU-01 | CA-12 | |
+| E2 | HU-01 | CA-12 | `apps/api/test/jobs/update.test.ts:144` |
 | E3 | HU-02 | | |
 | E4 | HU-02 | | |
 

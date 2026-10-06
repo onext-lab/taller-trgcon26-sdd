@@ -94,4 +94,4 @@ respuesta 200 con la oferta completa; `status` y `createdAt` no cambian.
   escrito se conserva (EC-09).
 
 ## Nota · review ronda 1 (2026-10-06)
-Los tests de edición viven en `apps/web/test/features/jobs/JobFormScreen.edit.test.tsx` (umbral de 300 líneas), no en `JobFormScreen.test.tsx`. El patrón `JobFormScreen` recoge los dos ficheros (y `JobFormScreen.adversarial.test.tsx` de TASK-14).
+Los tests de edición viven en `apps/web/test/features/jobs/JobFormScreen.edit.test.tsx` (umbral de 300 líneas), no en `JobFormScreen.test.tsx`. El patrón `JobFormScreen` recoge los dos ficheros (y `JobFormScreen.adversarial.test.tsx` de TASK-14), así que la verificación `job-form-model JobFormScreen App.test` ejecuta hoy 5 ficheros, no 3 (4 al cerrar esta tarea).

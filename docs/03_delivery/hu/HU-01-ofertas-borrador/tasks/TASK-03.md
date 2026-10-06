@@ -143,7 +143,7 @@ Mensajes esperados (de TASK-01): título de 2 → «Debe tener al menos 3 caract
 valores: presencial, híbrida, remota.».
 
 ## Reapertura · review ronda 1 (2026-10-06)
-- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Origen:** `review/REVIEW-ronda-1.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
 - **Qué hay que hacer:** EC-50 (nuevo en el PRD v1.1, DT-05; regla común en DEC-11 punto 8): rechazar con 400 `VALIDATION_ERROR` los caracteres de control C0 (U+0000-U+001F) y DEL (U+007F) en `title` y `location`, y en `description` todos salvo `\n`, `\r` y `\t`, en el alta y en la edición, sin guardar nada. Hazlo en el JSON Schema (`pattern` en `JobFields` de `apps/api/src/modules/jobs/schemas.ts`; Ajv con `unicode`), de forma que `details` lleve el campo y el mensaje de *keyword* `pattern` («Formato no válido.»), o con un mensaje propio si lo justificas. Reutilizable por candidatos (exporta los patrones desde `apps/api/src/http/validation.ts` si encaja). Tests en un fichero nuevo `apps/api/test/jobs/control-chars.test.ts`, con nombres «EC-50»: NUL al principio, en medio y al final; U+0001, U+001F y U+007F; tabulador y salto de línea en la descripción aceptados y en el título rechazados; alta y edición; y que tras cada rechazo no hay filas nuevas ni cambios.
 - **Ficheros:** `apps/api/src/modules/jobs/schemas.ts`, `apps/api/src/http/validation.ts` (si exportas los patrones), `apps/api/test/jobs/control-chars.test.ts` (crear)
 - **Criterios de done:** `npm test -w apps/api` completo en verde; `npm test -w apps/api -- control-chars` con 1 fichero; `npm run typecheck`; `npx eslint` de los ficheros tocados; repetir la sonda: `"a\u0000bcdef"` → 400.

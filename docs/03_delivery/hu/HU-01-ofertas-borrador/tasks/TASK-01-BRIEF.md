@@ -92,7 +92,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** `messageOf` (`apps/api/src/http/error-handler.ts:73`) tiene unas 13 ramas y el umbral es 10: pásalo a una tabla de mensajes por *keyword* (un objeto de funciones o plantillas) más un único caso por defecto, sin cambiar ningún mensaje. Sin tocar `apps/api/test/http/error-handler.test.ts` (299 líneas): sus tests son la red de seguridad del refactor.

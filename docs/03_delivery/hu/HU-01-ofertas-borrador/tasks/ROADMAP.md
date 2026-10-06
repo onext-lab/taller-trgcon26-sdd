@@ -71,7 +71,7 @@ Paralelismo posible **sin compartir ficheros** (máx. 4 builders, `IMPLEMENTATIO
 
 Ficheros que se tocan en secuencia (no paralelizar): `apps/api/src/modules/jobs/{schemas,repository,service,routes}.ts`
 (TASK-03 → 04 → 05), `apps/api/test/helpers/test-app.ts` (TASK-01 → 02 → 03), `apps/web/src/App.tsx`
-(TASK-10 → 11 → 12 → 13), `apps/web/test/features/jobs/JobFormScreen.test.tsx` (TASK-12 → 13 → 14).
+(TASK-10 → 11 → 12 → 13), `apps/web/test/features/jobs/JobFormScreen.test.tsx` (TASK-12 → 13 → 14; en la implementación, los tests de TASK-13 y TASK-14 pasaron a `JobFormScreen.edit.test.tsx` y `JobFormScreen.adversarial.test.tsx` por el umbral de 300 líneas).
 
 ## RF Must × tarea `[adversarial]`
 
@@ -80,7 +80,7 @@ Ficheros que se tocan en secuencia (no paralelizar): `apps/api/src/modules/jobs/
 | RF-01 | TASK-06 (API), TASK-14 (web) | 1 EC-01, EC-02 · 3 EC-05 · 6 EC-08 · 4 EC-06 (web) | 2 EC-03, EC-04 y 7 EC-09 en TASK-03/12/13; 5 EC-07 N/A |
 | RF-02 | TASK-06 (API) | 1 EC-11 · 6 EC-17 | 1 EC-10, 2 EC-12, EC-13 en TASK-03/12; 5 EC-16 en TASK-02; 3 EC-14, 4 EC-15, 7 EC-18 N/A |
 | RF-03 | TASK-06 (API), TASK-14 (web) | 1 EC-20 + regla de banda fusionada · 3 EC-22 · 5 EC-24 · 6 EC-25 · 1 EC-19 y 5 EC-24/EC-30 (web) | 1 EC-19, 2 EC-21, 4 EC-23, 7 EC-26 en TASK-05; EC-23 en TASK-15 |
-| RF-04 | TASK-07 (API), TASK-14 (web) | 1 EC-27 · 3 EC-29 · 7 EC-33 · 7 EC-33 + CA-14 (web) · 4 EC-30 (TASK-06 y TASK-14) | 2 EC-28 en TASK-05/10; 5 EC-31 N/A; 6 EC-32 sin test (aceptado en *Threat modeling*) |
+| RF-04 | TASK-07 (API), TASK-14 (web) | 1 EC-27 · 3 EC-29 · 7 EC-33 · 7 EC-33 + CA-14 (web) · 4 EC-30 (TASK-06 y TASK-14) | 2 EC-28 en TASK-05/10; 5 EC-31 N/A; 6 EC-32 en TASK-07 (reapertura de la review: `apps/api/test/jobs/enumeration.test.ts`) |
 | RF-05 | TASK-07 (API), TASK-14 (web) | 1 EC-34 · 6 EC-41 + solo campos de lista · 6 EC-41 y 5 EC-40 (web) | 2 EC-35/36/37 en TASK-04/10; 3 EC-38 en TASK-01/10/15; 4 EC-39, 7 EC-42 N/A |
 | RF-06 | TASK-07 (API), TASK-14 (web) | 1 EC-43 + CA-20 · 4 EC-46 · 6 EC-48 (web) | 2 EC-44 y 6 EC-48 (API) en TASK-04/11; 3 EC-45 en TASK-11; 5 EC-47, 7 EC-49 N/A |
 
@@ -132,7 +132,7 @@ RF-07 es Should: sin adversarial obligatorio (sus `CHECK` se prueban en TASK-02)
 | EC-12 | TASK-03, TASK-12 | EC-29 | TASK-07, TASK-11 | EC-46 | TASK-07, TASK-14 |
 | EC-13 | TASK-03, TASK-08, TASK-12 | EC-30 | TASK-06, TASK-14 | EC-47 | N/A (módulo nuevo) |
 | EC-14 | N/A (validación pura) | EC-31 | N/A (borrador sin inscripciones) | EC-48 | TASK-04, TASK-14 |
-| EC-15 | N/A (sin estado compartido) | EC-32 | Sin test: aceptado en *Threat modeling* | EC-49 | N/A (`GET` sin efectos) |
+| EC-15 | N/A (sin estado compartido) | EC-32 | TASK-07 (reapertura de la review): `apps/api/test/jobs/enumeration.test.ts` | EC-49 | N/A (`GET` sin efectos) |
 | EC-16 | TASK-02 | EC-33 | TASK-07, TASK-14 | | |
 | EC-17 | TASK-06, TASK-12, TASK-13 | EC-34 | TASK-07, TASK-08 | | |
 

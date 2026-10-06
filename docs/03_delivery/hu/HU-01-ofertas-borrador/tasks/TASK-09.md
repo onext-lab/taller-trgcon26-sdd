@@ -110,7 +110,7 @@ dispara `close` y permite simular `cancel`. La trampa de foco y `Escape` reales 
   'Cancelar' })`).
 
 ## Reapertura · review ronda 1 (2026-10-06)
-- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Origen:** `review/REVIEW-ronda-1.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
 - **Qué hay que hacer:** (1) `ConfirmDialog` (`apps/web/src/components/ConfirmDialog.tsx:17`) tiene 66 líneas y el umbral es 50: pártelo (p. ej., un hook para abrir/cerrar y el foco, y el JSX) sin cambiar su API ni su comportamiento. (2) DP-02: en `apps/web/test/components/router.test.tsx:108` el fixture `'Ana Pérez'` es un nombre corriente sin marca de ficción; cámbialo por un valor inequívocamente inventado (p. ej. `'Nombre Inventado'`).
 - **Ficheros:** `apps/web/src/components/ConfirmDialog.tsx`, `apps/web/test/components/router.test.tsx`
 - **Criterios de done:** `npm test -w apps/web -- ConfirmDialog router DeleteJobAction` en verde con 3 ficheros y el mismo número de tests que antes; `npm run typecheck`; `npx eslint` de los 2 ficheros; ninguna función de `ConfirmDialog.tsx` pasa de 50 líneas (pega su recuento).

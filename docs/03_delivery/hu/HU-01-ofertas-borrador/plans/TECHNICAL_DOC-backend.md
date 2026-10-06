@@ -36,7 +36,7 @@ por ruta») y obliga a construir `details` en cada servicio.
 | transversal | `apps/api/src/app.ts` | modificar: opciones de Ajv, `registerErrorHandling`, `now` en `AppOptions`, registro de `jobsRoutes` con prefijo `/api/jobs` |
 | transversal | `apps/api/src/clock.ts` | nuevo: `type Clock = () => Date`, `systemClock` (~10 líneas) |
 | transversal | `apps/api/src/errors.ts` | nuevo: `AppError`, `ErrorDetail`, `notFound(message)`, `validationError(details)` (~40) |
-| transversal | `apps/api/src/http/validation.ts` | nuevo: `ajvOptions`, `idParamsSchema`, `type IdParams`, `trimTextFields` (~50) |
+| transversal | `apps/api/src/http/validation.ts` | nuevo: `ajvOptions`, `idParamsSchema`, `type IdParams`, `trimTextFields`, `NO_CONTROL_CHARS` y `NO_CONTROL_CHARS_EXCEPT_WHITESPACE` (patrones de EC-50, DEC-11.8) (~60) |
 | transversal | `apps/api/src/http/error-handler.ts` | nuevo: `registerErrorHandling(app)`, traducción de errores de Ajv y de Fastify al envelope (~120) |
 | transversal | `apps/api/src/db/transaction.ts` | nuevo: `withTransaction(db, fn)` (~25) |
 | transversal | `apps/api/src/db/migrations/001-create-job-openings.sql` | nuevo: tabla `job_openings` e índice |
@@ -115,9 +115,9 @@ Mensajes de `details` por *keyword* de Ajv (genéricos, reutilizables por las HU
 
 ```json
 "JobFields": {
-  "title":       { "type": "string",            "minLength": 3, "maxLength": 120 },
-  "description": { "type": ["string", "null"],  "maxLength": 5000 },
-  "location":    { "type": ["string", "null"],  "minLength": 2, "maxLength": 120 },
+  "title":       { "type": "string",            "minLength": 3, "maxLength": 120, "pattern": NO_CONTROL_CHARS },
+  "description": { "type": ["string", "null"],  "maxLength": 5000, "pattern": NO_CONTROL_CHARS_EXCEPT_WHITESPACE },
+  "location":    { "type": ["string", "null"],  "minLength": 2, "maxLength": 120, "pattern": NO_CONTROL_CHARS },
   "workMode":    { "type": ["string", "null"],  "enum": ["presencial", "híbrida", "remota", null] },
   "salaryMin":   { "type": ["integer", "null"], "exclusiveMinimum": 0, "maximum": 9007199254740991 },
   "salaryMax":   { "type": ["integer", "null"], "exclusiveMinimum": 0, "maximum": 9007199254740991 }
@@ -447,7 +447,7 @@ Tests en `apps/api/test/jobs/` salvo que se indique otra carpeta. «web» = la p
 | Manipulación | Inyección SQL en título o descripción (EC-08); *mass assignment* de `status`, `createdAt`, `id` (EC-02, EC-25) | Solo sentencias preparadas; el `UPDATE` usa una lista fija de 6 columnas (sin `SET` dinámico). `additionalProperties: false` con `removeAdditional: false`: lo sobrante da 400 en vez de descartarse. `status` y `created_at` solo los fija el servicio | Ninguno conocido |
 | Repudio | No se sabe quién creó o borró una oferta | Rol único (DEC-04); los logs registran método, ruta y `reqId` | Aceptado: sin usuarios no hay autoría |
 | Exposición de datos | *Stack traces*, SQL o mensajes internos en errores (RNF-03); campos de más en respuestas | Un único `setErrorHandler`: los 500 responden un mensaje fijo y el detalle va solo al log. Los mensajes de `details` no repiten el valor recibido. Esquemas de `response` por código filtran campos; el listado devuelve 4 campos (DEC-10) | Los mensajes de error de SQLite (expresión del `CHECK`, nombre de columna) llegan al log del servidor, nunca al cliente; no contienen valores |
-| Denegación de servicio | Cuerpos enormes (EC-17), listados sin límite, expresiones regulares costosas | `bodyLimit` de 1 MiB → 413; `maxLength` por campo; listado fijo de 20; el único `pattern` (ID) es lineal y acotado; `allErrors` sobre un objeto de ≤ 6 propiedades conocidas | Un cliente local puede saturar la API a peticiones: aceptado (local, un usuario) |
+| Denegación de servicio | Cuerpos enormes (EC-17), listados sin límite, expresiones regulares costosas | `bodyLimit` de 1 MiB → 413; `maxLength` por campo; listado fijo de 20; los cuatro `pattern` (ID; `NO_CONTROL_CHARS` en `title` y `location`; `NO_CONTROL_CHARS_EXCEPT_WHITESPACE` en `description`) son clases de caracteres anclados, lineales y sobre textos acotados por `maxLength`; `allErrors` sobre un objeto de ≤ 6 propiedades conocidas | Un cliente local puede saturar la API a peticiones: aceptado (local, un usuario) |
 | Elevación de privilegios | — | N/A — no hay roles (DEC-04) | — |
 | Enumeración de IDs | IDs secuenciales (EC-32) | Una oferta no tiene datos personales; API local | Aceptado |
 | XSS almacenado | `<script>` en título o descripción (EC-41, EC-48) | La API guarda y devuelve el texto tal cual (sin sanear, para no corromper datos); el escape es de la web (RNF-04) | Depende de la web: ver TECHNICAL_DOC-frontend |
@@ -680,6 +680,8 @@ y el serializador. Datos: títulos y ciudades inventados (los del PRD). Las fron
 | RF-06 | CA-20 | `jobs/get.test.ts` › «CA-20 ID inexistente → 404 sin datos» | sí |
 | RF-06 | EC-43 | `jobs/get.test.ts` › «EC-43 ID no entero → 400» | sí |
 | RF-06 | EC-44, EC-46 | `jobs/get.test.ts` › «EC-44 solo título → opcionales null» y «EC-46 GET tras borrado → 404» | |
+| RF-02 | EC-50 | `jobs/control-chars.test.ts` › alta («EC-50 NUL … del título/de la ubicación/de la descripción», «EC-50 … se rechaza en título, ubicación y descripción», «EC-50 tabulador, salto de línea y retorno de carro en la descripción se aceptan y se guardan», «EC-50 un NUL no provoca 500») y edición («EC-50 tras los rechazos no hay filas nuevas ni cambios en la base») | sí |
+| RF-04, RF-06 | EC-32 | `jobs/enumeration.test.ts` › «EC-32 sin variables de entorno → 127.0.0.1:3001», «EC-32 API_HOST y API_PORT vacíos → 127.0.0.1:3001», «EC-32 las variables ajenas no cambian el host», «EC-32 solo API_HOST y API_PORT, explícitos, cambian dónde escucha», «EC-32 GET /api/jobs/1..N → campos exactos de oferta o 404 en el envelope» | sí |
 | RF-07 | criterio de RF-07 | `jobs/seed.test.ts` › «RF-07 migrate + seed → 4 borradores, 2 con banda, todos cumplen RN-02 a RN-04» | |
 | RNF-01 | — | `jobs/performance.test.ts` › «RNF-01 GET /api/jobs y /api/jobs/:id < 200 ms con 100 ofertas» | |
 | RNF-02 | — | `jobs/performance.test.ts` › «RNF-02 POST, PATCH y DELETE < 500 ms con 100 ofertas» | |

@@ -91,7 +91,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** (1) `ConfirmDialog` (`apps/web/src/components/ConfirmDialog.tsx:17`) tiene 66 líneas y el umbral es 50: pártelo (p. ej., un hook para abrir/cerrar y el foco, y el JSX) sin cambiar su API ni su comportamiento. (2) DP-02: en `apps/web/test/components/router.test.tsx:108` el fixture `'Ana Pérez'` es un nombre corriente sin marca de ficción; cámbialo por un valor inequívocamente inventado (p. ej. `'Nombre Inventado'`).

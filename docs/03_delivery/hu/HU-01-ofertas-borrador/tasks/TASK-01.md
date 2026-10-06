@@ -177,7 +177,7 @@ otra; si no, `db.exec('BEGIN IMMEDIATE')`, `fn()`, `COMMIT`; ante error, `ROLLBA
 - No uses `vi.useFakeTimers()` (congela los temporizadores de Fastify): el reloj se inyecta.
 
 ## Reapertura · review ronda 1 (2026-10-06)
-- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Origen:** `review/REVIEW-ronda-1.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
 - **Qué hay que hacer:** `messageOf` (`apps/api/src/http/error-handler.ts:73`) tiene unas 13 ramas y el umbral es 10: pásalo a una tabla de mensajes por *keyword* (un objeto de funciones o plantillas) más un único caso por defecto, sin cambiar ningún mensaje. Sin tocar `apps/api/test/http/error-handler.test.ts` (299 líneas): sus tests son la red de seguridad del refactor.
 - **Ficheros:** `apps/api/src/http/error-handler.ts`
 - **Criterios de done:** `npm test -w apps/api -- error-handler create update` en verde con el mismo número de tests que antes (`error-handler.test.ts` sin cambios); `npm run typecheck`; `npx eslint` del fichero; ninguna función de `error-handler.ts` pasa de 10 ramas ni de 50 líneas (justifícalo).
