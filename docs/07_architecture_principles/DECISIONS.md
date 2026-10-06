@@ -189,6 +189,11 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
      `UNSUPPORTED_MEDIA_TYPE` (415) y `BAD_REQUEST` (otros 4xx). Todos en el envelope de DEC-01, sin *stack traces*.
   6. Reloj `Clock = () => Date` inyectado en `buildApp({ now })` (concreta DEC-09).
   7. Transacciones con `withTransaction(db, fn)`, que se une a una en curso (concreta DEC-06).
+  8. **Caracteres de control:** los textos rechazan con 400 los caracteres de control C0 (U+0000-U+001F) y DEL
+     (U+007F); los textos largos (descripción de una oferta, resumen de un candidato) admiten salto de línea,
+     retorno de carro y tabulador. Añadido en la review de HU-01: un NUL embebido pasaba Ajv (que cuenta puntos
+     de código) y hacía fallar el `CHECK` de longitud de SQLite (cuyo `length()` corta en el NUL), así que la
+     API respondía 500 en lugar de 400.
 - **Alternativas.** Compilar los validadores con `ajv` como dependencia directa, o `ajv-errors` para los mensajes (una
   dependencia más en los dos casos, DEC-05); validar en los servicios (duplica las reglas del esquema).
 - **Consecuencias.** Toda ruta nueva declara sus numéricos de `params` y `querystring` como texto con `pattern` (p. ej.,
@@ -196,4 +201,4 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   manejador lo traduce. Las HU siguientes reutilizan el manejador de errores, el recorte, `withTransaction` y las
   utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
   texto → 400».
-- **Estado.** Aceptada (2026-10-06), en el diseño de HU-01.
+- **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1).

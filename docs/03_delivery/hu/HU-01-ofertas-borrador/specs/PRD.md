@@ -181,6 +181,7 @@ Las 7 categorías de `QUALITY-GATES.md` §3, evaluadas por cada RF Must. RF-07 (
 | EC-47 | RF-06 | 5 Datos corruptos | — | N/A — el módulo nace con esta HU |
 | EC-48 | RF-06 | 6 Seguridad | Descripción con `<script>` y `<b>` | Se muestra como texto literal (RNF-04); la API devuelve el texto tal cual, sin sanear |
 | EC-49 | RF-06 | 7 Idempotencia | — | N/A — `GET` sin efectos |
+| EC-50 | RF-02 | 1 Input inválido | Un carácter de control (C0, U+0000-U+001F, o DEL, U+007F) en el título o la ubicación, o en la descripción salvo salto de línea, retorno de carro y tabulador (p. ej. `"a\u0000bcdef"`) | 400 `VALIDATION_ERROR` con el campo en `details`; no se guarda nada (DT-05, DEC-11.8) |
 
 ## Decisiones aplicables
 - **DEC-01** (stack y envelope de errores): Fastify con JSON Schema por ruta, `node:sqlite`, React + Vite; errores en
@@ -220,6 +221,7 @@ No hay preguntas abiertas.
 | DT-02 | (OQ-02) El borrado se confirma en un `<dialog>` accesible, con el foco inicial en «Cancelar», que nombra la oferta y avisa de que no se puede deshacer | FEAT-01 (Riesgos) deja al PRD cómo presentar un borrado físico e irreversible (S-12) | RF-04; CA-13 | 2026-10-06 |
 | DT-03 | **Sin clave natural no hay idempotencia.** Una oferta no tiene ningún campo único (dos ofertas pueden llamarse igual), así que la API no puede distinguir un reintento del alta de un alta nueva: dos `POST` crean dos borradores. La defensa es de la web (deshabilita «Guardar» mientras envía) y el remedio, borrar el sobrante (RF-04). Contrasta con candidatos (email único, RV-10) e inscripciones (pareja única, RV-18), donde la base sí lo impide (DEC-08) | Decisión de ingeniería, coherente con DEC-08 (la unicidad la garantiza un índice cuando existe una clave natural) | EC-06, EC-09 | 2026-10-06 |
 | DT-04 | Decisiones de ingeniería coherentes con S-03, DEC-07 y DEC-10: desempate del listado por ID descendente; ID no entero → 400 `VALIDATION_ERROR`; `PATCH` con `{}` → 400 y un opcional vaciado queda sin valor; fallo de la base → 500 `INTERNAL_ERROR` en el envelope; `GET /api/jobs` sin parámetros en esta HU (llegan con HU-02); las columnas de publicación y cierre se crean ya en la migración de esta HU | Sin fuente literal en RV ni S; aceptadas al aprobar el PRD | RF-03, RF-05; EC-19, EC-27, EC-34, EC-37, EC-43; Modelo de datos | 2026-10-06 |
+| DT-05 | (EC-50, review ronda 1) Los caracteres de control C0 y DEL se rechazan con 400 en el título y la ubicación, y en la descripción salvo `\n`, `\r` y `\t`. Regla común en DEC-11 (punto 8) | La review ejecutó un título con un NUL embebido y la API respondió 500 (Ajv cuenta puntos de código y `length()` de SQLite corta en el NUL), y un NUL al final se guardaba. Mismo criterio que la OQ-06 de HU-03 | RF-02; EC-50 | 2026-10-06 |
 
 ## Criterios de aceptación
 
@@ -252,3 +254,6 @@ No hay preguntas abiertas.
 - [ ] Cada edge case Must tiene su test.
 - [ ] Review aprobada.
 - [ ] 0 Open Questions.
+
+---
+_v1.1 (2026-10-06, review ronda 1): añadido EC-50 y DT-05 (caracteres de control → 400), aprobado por quien aprueba el PRD. El resto no cambia._
