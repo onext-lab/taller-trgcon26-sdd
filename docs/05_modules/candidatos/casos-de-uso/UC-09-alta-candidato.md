@@ -3,9 +3,9 @@ id: UC-09
 titulo: "Dar de alta un candidato"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-02
-hus: []
+hus: [HU-03]
 ---
 
 # UC-09 — Dar de alta un candidato
@@ -67,10 +67,10 @@ jurídica: medidas precontractuales y, si se marca, consentimiento (RGPD §2); c
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
+| P | HU-03 | | |
+| A1 | HU-03 | | |
+| E1 | HU-03 | | |
+| E2 | HU-03 | | |
+| E3 | HU-03 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

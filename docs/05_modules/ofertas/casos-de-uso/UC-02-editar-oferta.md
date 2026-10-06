@@ -3,9 +3,9 @@ id: UC-02
 titulo: "Editar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-01, HU-02]
 ---
 
 # UC-02 — Editar una oferta
@@ -63,11 +63,11 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
+| P | HU-01 | | |
+| A1 | HU-01 | | |
+| E1 | HU-02 | | |
+| E2 | HU-01 | | |
+| E3 | HU-02 | | |
+| E4 | HU-02 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

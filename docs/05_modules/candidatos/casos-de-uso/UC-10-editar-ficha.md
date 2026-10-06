@@ -3,9 +3,9 @@ id: UC-10
 titulo: "Editar la ficha de un candidato"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-02
-hus: []
+hus: [HU-03]
 ---
 
 # UC-10 — Editar la ficha de un candidato
@@ -64,13 +64,13 @@ Lee y escribe nombre y apellidos, email, teléfono, resumen y skills (RGPD §1).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
+| P | HU-03 | | |
+| A1 | HU-03 | | |
+| A2 | HU-03 | | |
+| A3 | HU-03 | | |
+| E1 | HU-03 | | |
+| E2 | HU-03 | | |
+| E3 | HU-03 | | |
+| E4 | HU-03 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

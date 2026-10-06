@@ -3,9 +3,9 @@ id: UC-11
 titulo: "Buscar candidatos"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-02
-hus: []
+hus: [HU-03]
 ---
 
 # UC-11 — Buscar candidatos
@@ -61,12 +61,12 @@ se registra en los logs (RGPD §6).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| A4 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-03 | | |
+| A1 | HU-03 | | |
+| A2 | HU-03 | | |
+| A3 | HU-03 | | |
+| A4 | HU-03 | | |
+| E1 | HU-03 | | |
+| E2 | HU-03 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

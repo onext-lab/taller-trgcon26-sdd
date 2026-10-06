@@ -3,9 +3,9 @@ id: UC-04
 titulo: "Cerrar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-02, HU-05]
 ---
 
 # UC-04 — Cerrar una oferta
@@ -70,11 +70,11 @@ retención de los candidatos afectados (`docs/RGPD.md` §3, S-06).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-02 | | |
+| A1 | HU-05 | | |
+| A2 | HU-02 | | |
+| A3 | HU-02 | | |
+| E1 | HU-02 | | |
+| E2 | HU-02 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

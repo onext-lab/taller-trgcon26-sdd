@@ -1,7 +1,7 @@
 ---
 id: FEAT-02
 titulo: "Gestión de candidatos"
-estado: shaping
+estado: priorizada
 prioridad: null
 idea_origen: IDEA-002
 modulos_afectados: [candidatos]
@@ -194,3 +194,5 @@ Ninguna. Las preguntas del shaping se respondieron el 2026-10-06 y están en reg
   - **Fuera de HU-03, con motivo:** UC-12 A1 («Mientras dure el proceso») solo puede darse con una inscripción no
     final; lo cubre HU-04 (FEAT-03), que implementa el puerto RN-12 y su llamada al recálculo.
   - **Dependencias:** ninguna.
+
+**HU creadas (2026-10-06):** HU-03; UC-12 · A1 lo cubre HU-04 (FEAT-03).

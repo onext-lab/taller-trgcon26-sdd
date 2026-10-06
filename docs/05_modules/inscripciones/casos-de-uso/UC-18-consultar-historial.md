@@ -3,9 +3,9 @@ id: UC-18
 titulo: "Consultar el historial de una inscripción"
 modulo: inscripciones
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-03
-hus: []
+hus: [HU-04, HU-05]
 ---
 
 # UC-18 — Consultar el historial de una inscripción
@@ -58,10 +58,10 @@ pipeline ni en listados (RGPD §6.2).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-04 | | |
+| A1 | HU-04 | | |
+| A2 | HU-05 | | |
+| E1 | HU-05 | | |
+| E2 | HU-05 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

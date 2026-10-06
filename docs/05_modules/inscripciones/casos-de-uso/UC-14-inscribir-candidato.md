@@ -3,9 +3,9 @@ id: UC-14
 titulo: "Inscribir un candidato en una oferta"
 modulo: inscripciones
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-03
-hus: []
+hus: [HU-04]
 ---
 
 # UC-14 — Inscribir un candidato en una oferta
@@ -74,11 +74,11 @@ más datos de los necesarios (RGPD §6).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
-| E5 | | | |
+| P | HU-04 | | |
+| E1 | HU-04 | | |
+| E2 | HU-04 | | |
+| E3 | HU-04 | | |
+| E4 | HU-04 | | |
+| E5 | HU-04 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

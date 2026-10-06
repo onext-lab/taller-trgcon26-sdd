@@ -3,9 +3,9 @@ id: UC-01
 titulo: "Crear una oferta como borrador"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-01]
 ---
 
 # UC-01 — Crear una oferta como borrador
@@ -65,12 +65,12 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
-| E5 | | | |
-| E6 | | | |
+| P | HU-01 | | |
+| E1 | HU-01 | | |
+| E2 | HU-01 | | |
+| E3 | HU-01 | | |
+| E4 | HU-01 | | |
+| E5 | HU-01 | | |
+| E6 | HU-01 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -3,9 +3,9 @@ id: UC-13
 titulo: "Registrar, retirar o renovar el consentimiento para futuros procesos"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-02
-hus: []
+hus: [HU-03]
 ---
 
 # UC-13 — Registrar, retirar o renovar el consentimiento para futuros procesos
@@ -69,11 +69,11 @@ retirada es el ejercicio del art. 7.3 (RGPD §4).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-03 | | |
+| A1 | HU-03 | | |
+| A2 | HU-03 | | |
+| A3 | HU-03 | | |
+| E1 | HU-03 | | |
+| E2 | HU-03 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -3,9 +3,9 @@ id: UC-06
 titulo: "Duplicar una oferta como borrador"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-02]
 ---
 
 # UC-06 — Duplicar una oferta como borrador
@@ -52,6 +52,6 @@ Ninguno. No se copian inscripciones (S-11).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
+| P | HU-02 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

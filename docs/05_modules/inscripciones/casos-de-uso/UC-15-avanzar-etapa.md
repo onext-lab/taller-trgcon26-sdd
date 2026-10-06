@@ -3,9 +3,9 @@ id: UC-15
 titulo: "Avanzar una inscripción a la etapa siguiente"
 modulo: inscripciones
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-03
-hus: []
+hus: [HU-05]
 ---
 
 # UC-15 — Avanzar una inscripción a la etapa siguiente
@@ -78,14 +78,14 @@ de fin de retención del candidato (RGPD §3).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
-| E5 | | | |
-| E6 | | | |
+| P | HU-05 | | |
+| A1 | HU-05 | | |
+| A2 | HU-05 | | |
+| E1 | HU-05 | | |
+| E2 | HU-05 | | |
+| E3 | HU-05 | | |
+| E4 | HU-05 | | |
+| E5 | HU-05 | | |
+| E6 | HU-05 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -1,7 +1,7 @@
 ---
 id: FEAT-01
 titulo: "Gestión de ofertas de empleo"
-estado: shaping
+estado: priorizada
 prioridad: null
 idea_origen: IDEA-001
 modulos_afectados: [ofertas]
@@ -186,7 +186,7 @@ Ninguna. Las 9 preguntas del análisis se respondieron el 2026-10-06 como S-01, 
 S-11 y S-12 (`docs/02_discovery/reglas-validadas.md`).
 
 ## Handoff a delivery
-Los números de HU son una propuesta; los definitivos los asigna `/crear-sprint`.
+Las HU las crea el `product-owner` con `node scripts/next-id.mjs hu`; `/crear-sprint` las mete en un sprint.
 
 1. **HU-01 — Crear, editar y consultar ofertas en borrador.** Valor: el reclutador prepara sus ofertas y las
    encuentra. Dependencias: ninguna.
@@ -207,3 +207,5 @@ Los números de HU son una propuesta; los definitivos los asigna `/crear-sprint`
 3. **UC-04 · A1 (rechazo de las inscripciones activas al cerrar)** no se puede probar hasta que exista UC-19: lo
    cubre la HU de FEAT-03 que implemente UC-19, y esa HU conecta la invocación desde el cierre de `ofertas`. Queda
    declarado aquí para que la cobertura de flujos de FEAT-01 esté completa.
+
+**HU creadas (2026-10-06):** HU-01 y HU-02; UC-04 · A1 lo cubre HU-05 (FEAT-03).

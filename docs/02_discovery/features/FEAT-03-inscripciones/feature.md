@@ -1,7 +1,7 @@
 ---
 id: FEAT-03
 titulo: "Inscripciones y pipeline de selección"
-estado: shaping          # shaping | priorizada | en delivery | entregada
+estado: priorizada          # shaping | priorizada | en delivery | entregada
 prioridad: null          # alta | media | baja (la fija la persona)
 idea_origen: IDEA-003
 modulos_afectados: [inscripciones]
@@ -248,3 +248,5 @@ de un candidato anonimizado queda aplazado de forma explícita a la feature A _(
    - **Dependencias:** HU-04 y el cierre de ofertas UC-04 (FEAT-01).
 3. **Fuera de estas HU:** UC-17 · A3 (etiqueta «Candidato anonimizado»). El estado «anonimizado» lo introduce la
    feature A, y su HU lo cubrirá y probará _(S-05)_.
+
+**HU creadas (2026-10-06):** HU-04 y HU-05.

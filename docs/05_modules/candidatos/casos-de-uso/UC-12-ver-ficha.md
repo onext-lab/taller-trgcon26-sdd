@@ -3,9 +3,9 @@ id: UC-12
 titulo: "Ver la ficha de un candidato"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-02
-hus: []
+hus: [HU-03, HU-04]
 ---
 
 # UC-12 — Ver la ficha de un candidato
@@ -58,9 +58,9 @@ Lee todos los datos del candidato (RGPD §1). La ficha completa solo se muestra 
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-03 | | |
+| A1 | HU-04 | | |
+| E1 | HU-03 | | |
+| E2 | HU-03 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

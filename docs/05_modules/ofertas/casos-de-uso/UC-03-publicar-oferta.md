@@ -3,9 +3,9 @@ id: UC-03
 titulo: "Publicar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-02]
 ---
 
 # UC-03 — Publicar una oferta
@@ -56,9 +56,9 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-02 | | |
+| A1 | HU-02 | | |
+| E1 | HU-02 | | |
+| E2 | HU-02 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

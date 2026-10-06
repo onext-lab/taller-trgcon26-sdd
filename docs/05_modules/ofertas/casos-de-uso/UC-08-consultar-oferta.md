@@ -3,9 +3,9 @@ id: UC-08
 titulo: "Consultar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-01
-hus: []
+hus: [HU-01, HU-02]
 ---
 
 # UC-08 — Consultar una oferta
@@ -57,8 +57,8 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| E1 | | | |
+| P | HU-01 | | |
+| A1 | HU-02 | | |
+| E1 | HU-01 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

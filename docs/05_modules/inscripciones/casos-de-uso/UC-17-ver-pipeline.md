@@ -3,9 +3,9 @@ id: UC-17
 titulo: "Ver el pipeline de una oferta"
 modulo: inscripciones
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-03
-hus: []
+hus: [HU-04, HU-05]
 ---
 
 # UC-17 — Ver el pipeline de una oferta
@@ -64,11 +64,11 @@ un valor de lista cerrada, no texto libre.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| E1 | | | |
-| E2 | | | |
+| P | HU-04, HU-05 | | |
+| A1 | HU-05 | | |
+| A2 | HU-04 | | |
+| A3 | — (feature A) | | |
+| E1 | HU-04 | | |
+| E2 | HU-04 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
