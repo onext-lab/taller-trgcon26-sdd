@@ -195,3 +195,23 @@ describe('POST /api/jobs/:id/close — adversarial', () => {
     expect(invalid.json()).toEqual(INVALID_ID);
   });
 });
+
+describe('POST /api/jobs/:id/close — puerto por defecto (INV-05)', () => {
+  // EC-14: ventana de INV-05 mientras no existe `applications`. HU-05 sustituirá este test al conectar UC-19
+  // (cierre que rechaza las inscripciones activas) con el puerto real.
+  it('EC-14 sin puerto de inscripciones: previa con 0 y cierre 200 sin nada que rechazar', async () => {
+    await app.close();
+    ({ app, db } = createTestApp({ now: clock.now }));
+    const published = await createPublishedJob(app);
+
+    const preview = await closePreview(published.id);
+    clock.set(CLOSE_AT);
+    const response = await postClose(published.id);
+
+    expect(preview.statusCode).toBe(200);
+    expect(preview.json()).toEqual({ activeApplications: 0 });
+    expect(response.statusCode).toBe(200);
+    expect(response.json<Job>()).toEqual({ ...published, status: 'closed', closedAt: CLOSE_AT });
+    expect(await getJob(published.id)).toEqual(response.json<Job>());
+  });
+});

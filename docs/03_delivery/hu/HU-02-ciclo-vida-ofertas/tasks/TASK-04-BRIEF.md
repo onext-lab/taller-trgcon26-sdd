@@ -91,3 +91,30 @@ INTEGRACION rc=0
 - **Resultado:** verde; no destapa fallos de src. Durante la tarea, la sesión avisó de que el test CA-04 esperaba CONFLICT en vez del INVALID_TRANSITION del contrato (error del test, no de src) y el builder lo corrigió antes de entregar
 - **Commit:** el de esta tarea (`[HU-02 TASK-04]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** EC-14 (RF-02 Must, categoría 5) no tiene test. Fija con un test de la API el comportamiento de la ventana de INV-05 que declara el PRD: con el puerto por defecto (`noJobApplications`, sin `jobApplications` en `createTestApp`), cerrar una oferta publicada da 200 `closed`, `GET /api/jobs/:id/close-preview` da `{ activeApplications: 0 }` antes de cerrar, y no hay inscripciones que rechazar. Nombre del test con «EC-14» y un comentario que diga que HU-05 lo sustituirá al conectar UC-19. Si `close.test.ts` (197) pasa de 300, crea un hermano.
+- **Ficheros:** `apps/api/test/jobs/close.test.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/api -- close` en verde; `npm run typecheck -w @ats/api`; `npx eslint` del fichero.
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/api -- close
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+exit=0
+$ npm run typecheck -w @ats/api
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/api/test/jobs/close.test.ts
+exit=0
+$ wc -l (ficheros tocados)
+     217 apps/api/test/jobs/close.test.ts
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; test «EC-14 sin puerto de inscripciones…» con el puerto por defecto (noJobApplications), que HU-05 sustituirá al conectar UC-19
+

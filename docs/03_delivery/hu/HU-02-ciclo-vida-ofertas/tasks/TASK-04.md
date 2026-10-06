@@ -93,3 +93,9 @@ abajo los recoge igual.
   «EC-12 fallo de SQLite al cerrar → 500 y sigue publicada», «DT-01 close-preview de una oferta inexistente → 404; ID
   inválido → 400»; `duplicate.test.ts` › «EC-25 ID no válido → 400; inexistente → 404; no se crea nada», «EC-27 fallo de
   SQLite al duplicar → 500 sin borrador nuevo», «EC-30 la copia guarda el HTML tal cual».
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** EC-14 (RF-02 Must, categoría 5) no tiene test. Fija con un test de la API el comportamiento de la ventana de INV-05 que declara el PRD: con el puerto por defecto (`noJobApplications`, sin `jobApplications` en `createTestApp`), cerrar una oferta publicada da 200 `closed`, `GET /api/jobs/:id/close-preview` da `{ activeApplications: 0 }` antes de cerrar, y no hay inscripciones que rechazar. Nombre del test con «EC-14» y un comentario que diga que HU-05 lo sustituirá al conectar UC-19. Si `close.test.ts` (197) pasa de 300, crea un hermano.
+- **Ficheros:** `apps/api/test/jobs/close.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- close` en verde; `npm run typecheck -w @ats/api`; `npx eslint` del fichero.
