@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
-import { idParamsSchema, trimTextFields, type IdParams } from '../../http/validation.ts';
+import { idParamsSchema, rejectBody, trimTextFields, type IdParams } from '../../http/validation.ts';
 import {
+  closePreviewSchema,
   createJobBodySchema,
   jobPageSchema,
   jobSchema,
@@ -67,5 +68,31 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
       service.remove(Number(request.params.id));
       return reply.code(204).send();
     },
+  );
+
+  // Lectura previa al cierre (DD-11): no cambia nada, en cualquier estado.
+  app.get<{ Params: IdParams }>(
+    '/:id/close-preview',
+    { schema: { params: idParamsSchema, response: { 200: closePreviewSchema } } },
+    (request) => service.closePreview(Number(request.params.id)),
+  );
+
+  // Acciones sin cuerpo (DD-01): `rejectBody` → `params` (400) → existencia (404) → estado (409) → campos (400).
+  app.post<{ Params: IdParams }>(
+    '/:id/publish',
+    { preValidation: rejectBody, schema: { params: idParamsSchema, response: { 200: jobSchema } } },
+    (request) => service.publish(Number(request.params.id)),
+  );
+
+  app.post<{ Params: IdParams }>(
+    '/:id/close',
+    { preValidation: rejectBody, schema: { params: idParamsSchema, response: { 200: jobSchema } } },
+    (request) => service.close(Number(request.params.id)),
+  );
+
+  app.post<{ Params: IdParams }>(
+    '/:id/duplicate',
+    { preValidation: rejectBody, schema: { params: idParamsSchema, response: { 201: jobSchema } } },
+    (request, reply) => reply.code(201).send(service.duplicate(Number(request.params.id))),
   );
 };

@@ -63,6 +63,48 @@ export async function createJob(app: FastifyInstance, body: Record<string, unkno
   return response.json<Job>();
 }
 
+async function postAction(
+  app: FastifyInstance,
+  id: number,
+  action: 'publish' | 'close',
+): Promise<Job> {
+  const response = await app.inject({ method: 'POST', url: `/api/jobs/${id}/${action}` });
+  if (response.statusCode !== 200) {
+    throw new Error(
+      `POST /api/jobs/${id}/${action} respondió ${response.statusCode}: ${response.body}`,
+    );
+  }
+  return response.json<Job>();
+}
+
+/** Publica una oferta con `POST /api/jobs/:id/publish` (sin cuerpo); falla si la respuesta no es 200. */
+export function publishJob(app: FastifyInstance, id: number): Promise<Job> {
+  return postAction(app, id, 'publish');
+}
+
+/** Cierra una oferta con `POST /api/jobs/:id/close` (sin cuerpo); falla si la respuesta no es 200. */
+export function closeJob(app: FastifyInstance, id: number): Promise<Job> {
+  return postAction(app, id, 'close');
+}
+
+const PUBLISHABLE_JOB = {
+  title: 'Técnica/o de selección',
+  description: 'Descripción inventada del puesto.',
+  location: 'Valencia',
+  workMode: 'híbrida',
+  salaryMin: 32000,
+  salaryMax: 40000,
+};
+
+/** Crea un borrador completo (título, descripción, ubicación y modalidad) y lo publica. `body` pisa los campos. */
+export async function createPublishedJob(
+  app: FastifyInstance,
+  body: Record<string, unknown> = {},
+): Promise<Job> {
+  const draft = await createJob(app, { ...PUBLISHABLE_JOB, ...body });
+  return publishJob(app, draft.id);
+}
+
 export type WriteOperation = 'INSERT' | 'UPDATE' | 'DELETE';
 
 /**

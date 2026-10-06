@@ -36,6 +36,11 @@ export interface JobInput {
 /** Cuerpo de la edición (TASK-05): campo ausente = sin cambios; `title` no admite `null`. */
 export type JobPatch = Partial<JobInput>;
 
+/** Lectura previa al cierre (DD-11): inscripciones activas que se rechazarían. */
+export interface ClosePreview {
+  activeApplications: number;
+}
+
 /** Elemento del listado (TASK-04): `referenceDate = publishedAt ?? createdAt`. */
 export interface JobListItem {
   id: number;
@@ -155,4 +160,12 @@ export const updateJobBodySchema = {
   additionalProperties: false,
   minProperties: 1,
   properties: jobFieldsSchema,
+} as const;
+
+/** Respuesta de `GET /api/jobs/:id/close-preview`. */
+export const closePreviewSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['activeApplications'],
+  properties: { activeApplications: { type: 'integer', minimum: 0 } },
 } as const;
