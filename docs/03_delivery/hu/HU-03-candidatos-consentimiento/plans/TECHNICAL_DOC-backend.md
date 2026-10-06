@@ -49,7 +49,7 @@ mismo campo.
 | transversal | `apps/api/test/helpers/test-app.ts` · `apps/api/test/helpers/candidates.ts` | modificar (`candidateProcesses?`; `failWrites(db, op, { table, column })` con `job_openings` por defecto) · nuevo |
 | docs | `docs/07_architecture_principles/DECISIONS.md` | modificar: texto nuevo de DEC-11.4 (tarea B-01) |
 | tests | `apps/api/test/candidates/*.test.ts` · `apps/api/test/http/error-details.test.ts` · `apps/api/test/jobs/error-details-regression.test.ts` | nuevos (ver *Estrategia de tests*) |
-| tests | `apps/api/test/http/error-handler.test.ts:238,292` · `apps/api/test/jobs/create-adversarial.test.ts:78` · `apps/api/test/jobs/list.test.ts:94-97` · `apps/api/test/jobs/list-filters-adversarial.test.ts:62` | modificar solo las aserciones de **claves no declaradas** (DD-11) |
+| tests | `apps/api/test/http/error-handler.test.ts:236,238,292` · `apps/api/test/jobs/create-adversarial.test.ts:78` (línea previa al cambio; hoy el caso de `foo` está en :92-105) · `apps/api/test/jobs/list.test.ts:94-97` · `apps/api/test/jobs/list-filters-adversarial.test.ts:62` | modificar solo las 6 aserciones de DD-11: las 5 de **claves no declaradas** más `apps/api/test/http/error-handler.test.ts:236` (el campo `boolean` de la ruta sintética, por el mensaje nuevo «Debe ser verdadero o falso.») |
 
 Sin dependencias nuevas: `format: 'email'` lo trae el Ajv de Fastify 5.12.5 (comprobado: `ana.gil` y `ana.gil@` dan
 `keyword: 'format'`), y JSON1 (`json_each`, `json_valid`) viene en el SQLite de Node 24.
@@ -188,7 +188,7 @@ hay filas previas.
 **Seed** (`apps/api/src/db/seed-candidates.ts`, invocado desde `seed(db, now)` en la misma transacción que las
 ofertas; `reset.ts` no cambia gracias al valor por defecto): 30 candidatos inventados con `@example.com` (DT-08):
 `createdAt = now − (3 + 5·i) días` (i = 0…29: entre 3 y 148 días, ninguno vencido porque alta + 6 meses ≥ 181 días);
-10 con consentimiento vigente (`givenAt = createdAt + 1 día`), 4 retirados (`givenAt + 1 día`, `withdrawnAt + 2 días`,
+10 con consentimiento vigente (`givenAt = createdAt + 1 día`), 4 retirados (`givenAt = createdAt + 1 día`; `withdrawnAt = givenAt + 2 días`,
 siempre ≤ `now`) y 16 sin él; 0-4 skills del conjunto de DT-08; varios sin teléfono ni resumen. Retención con
 `computeRetentionEndsAt` y `noCandidateProcesses`. Escribe con el repositorio (sin SQL propio). Las 10 ofertas no
 cambian: `e2e/jobs*.spec.ts` y `apps/api/test/jobs/seed.test.ts` siguen igual.
@@ -271,7 +271,7 @@ El alta sigue el mismo esquema: `INSERT` (retención `NULL`, consentimiento si `
 | EC-35 | `idParamsSchema` | rechazar | `abc`, `1.5` → 400 en `id` | `candidates/get.test.ts` |
 | EC-36 | Respuesta | `null` explícito | `phone`/`summary` `null`, `skills []`; alta 2026-10-06T22:30Z → retención 2027-04-07 | `candidates/get.test.ts` |
 | EC-37 | Web | — | (frontend) | `plans/TECHNICAL_DOC-frontend.md` |
-| EC-38 | — | lectura | `GET` tras un `PATCH` devuelve lo último | `candidates/get.test.ts` |
+| EC-38 | — | lectura | `GET` tras un `PATCH` devuelve lo último | `candidates/update.test.ts` |
 | EC-39 | — | N/A en esta HU (retención nula solo con HU-04) | — | — |
 | EC-40 | API devuelve texto tal cual | sin sanear | `<script>`/`<b>`/`<i>x</i>` literales en la ficha | `candidates/get.test.ts` |
 | EC-41 | — | N/A — `GET` | — | — |
@@ -372,10 +372,13 @@ El alta sigue el mismo esquema: `INSERT` (retención `NULL`, consentimiento si `
 - **Contexto:** RF-07 pide tres preguntas al proceso del candidato.
 - **Opciones consideradas:** A) `getProcesses(id): { hasOpenApplication, hadAnyApplication, lastProcessClosedAt }`.
   B) Tres métodos. C) Unión discriminada (`none | open | closed`).
-- **Elegida:** A, con el contrato «`lastProcessClosedAt` no nulo si tuvo y no tiene abiertas» y error si se incumple.
+- **Elegida:** A, con el contrato «`lastProcessClosedAt` no nulo si tuvo y no tiene abiertas». `computeRetentionEndsAt`
+  lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:69-77`).
 - **Razón:** una consulta en HU-04, mismo patrón que `JobApplicationsPort`, y fiel a las tres preguntas del PRD
   (EC-55 informa de abierta y cierre a la vez).
-- **Tradeoff:** el tipo permite estados incoherentes; los cubre el error explícito y su test.
+- **Tradeoff:** el tipo permite estados incoherentes. El error explícito (con su test) solo cubre el caso sin ningún
+  plazo aplicable; si hay otro plazo vigente (p. ej., consentimiento + 24 meses), la incoherencia del puerto no se
+  detecta y se usa ese plazo.
 
 ### DD-07: Versión del consentimiento como constante de la API
 - **Contexto:** DT-01 (texto y versión `v1` en el código).
@@ -388,9 +391,12 @@ El alta sigue el mismo esquema: `INSERT` (retención `NULL`, consentimiento si `
 
 ### DD-08: Enmienda de DEC-11.4 por *keyword*, con solo lectura declarados
 - **Contexto:** DT-10 (d), RNF-08; `details` hoy nombra cada clave sobrante, sin tope.
-- **Opciones consideradas:** A) En `toDetails`: un error `additionalProperties` → `{ field: <contexto>, message: 'Hay
-  campos no permitidos.' }` (uno para todos), y los solo lectura declarados con esquema `false` para seguir
-  nombrándolos. B) Lista blanca leyendo `request.routeOptions.schema` en el manejador. C) Recortar `details` a N.
+- **Opciones consideradas:** A) En `toDetails`/`fieldOf`, sin rama por *keyword*: `field` es `missingProperty` en
+  `required` y, en el resto, el primer segmento de `instancePath`; **cualquier error con `instancePath` vacío sale como
+  el contexto** (`body`, `querystring` o `params`), y como `details` guarda un elemento por `field`, todas las claves no
+  declaradas (`additionalProperties`, «Hay campos no permitidos.») quedan en un solo elemento sin nombre; los solo
+  lectura se declaran con esquema `false` para seguir nombrándolos. El caso `params` es teórico: su esquema es fijo
+  (`idParamsSchema`) y el router no deja llegar claves de más. B) Lista blanca leyendo `request.routeOptions.schema` en el manejador. C) Recortar `details` a N.
 - **Elegida:** A.
 - **Razón:** con `additionalProperties: false` en la raíz (DEC-07), Ajv solo produce `instancePath` y
   `missingProperty` de propiedades declaradas, así que los `field` posibles son las propiedades declaradas más el
@@ -425,10 +431,12 @@ El alta sigue el mismo esquema: `INSERT` (retención `NULL`, consentimiento si `
 - **Elegida:** A. **Decidida por el aprobador el 2026-10-06**: «OD-01 = A: una sola regla para todas las
   rutas, que cierra SEC-03 de HU-02 y SEC-04/DP-01 de HU-01».
 - **Razón:** cierra SEC-04/DP-01 (HU-01) y SEC-03 (HU-02) con una sola regla en el manejador.
-- **Tradeoff:** cambian 5 aserciones de tests de HU-01/HU-02, que B-01 actualiza y lista en su commit:
-  `apps/api/test/jobs/create-adversarial.test.ts:78` (fila `foo`), `apps/api/test/jobs/list.test.ts:94-97` (`sort`,
-  `foo`), `apps/api/test/jobs/list-filters-adversarial.test.ts:62` (`sort`), `apps/api/test/http/error-handler.test.ts:238`
-  (`extra`) y `apps/api/test/http/error-handler.test.ts:292` (`page`).
+- **Tradeoff:** cambian 6 aserciones de tests de HU-01/HU-02, que B-01 actualiza y lista en su commit: las 5 de claves
+  no declaradas, `apps/api/test/jobs/create-adversarial.test.ts:78` (fila `foo`; línea previa al cambio; hoy el caso
+  de `foo` está en :92-105), `apps/api/test/jobs/list.test.ts:94-97` (`sort`, `foo`),
+  `apps/api/test/jobs/list-filters-adversarial.test.ts:62` (`sort`), `apps/api/test/http/error-handler.test.ts:238`
+  (`extra`) y `apps/api/test/http/error-handler.test.ts:292` (`page`), más `apps/api/test/http/error-handler.test.ts:236`
+  (el campo `boolean` de la ruta sintética, por el mensaje nuevo «Debe ser verdadero o falso.»).
 
 ## Impacto en decisiones
 
@@ -494,7 +502,9 @@ triggers reales (`failWrites` generalizado); puerto con dobles reales (`createPr
   `status-rules-adversarial.test.ts:83,105-123` (`status`, `publishedAt`), `publish.test.ts:147-185` (faltantes al
   publicar), `close.test.ts`, `delete.test.ts`, `duplicate.test.ts`, `get.test.ts`,
   `list-filters-adversarial.test.ts:53-113` (salvo la fila `sort` de la línea 62) y `create-adversarial.test.ts:44-71`.
-  Cambian solo las 5 aserciones de **claves no declaradas** listadas en DD-11 (y en el commit de B-01).
+  Cambian solo las 6 aserciones listadas en DD-11 (y en el commit de B-01): las 5 de **claves no declaradas** más
+  `apps/api/test/http/error-handler.test.ts:236` (el campo `boolean` de la ruta sintética, por el mensaje nuevo «Debe
+  ser verdadero o falso.»).
 
 **Adversariales** (tareas aparte, ≥ 1 por RF Must): `create-adversarial`, `update-adversarial`, `privacy-logs` (RF-01,
 RF-02, RF-03) y `list-adversarial`, `consent-adversarial` (RF-04, RF-05, RF-06, RF-07).
@@ -504,7 +514,7 @@ RF-02, RF-03) y `list-adversarial`, `consent-adversarial` (RF-04, RF-05, RF-06, 
 | Riesgo | Probabilidad (1–5) | Impacto (1–5) | Mitigación |
 |---|---|---|---|
 | El plan no cabe en 15 tareas: backend estima **8** (6 + 2 adversariales), así que la web dispone de 7 | 3 | 4 | Si el frontend necesita más de 7, **propuesta** (no aplicada): sacar UC-13 · P, A1-A3, E1-E2 (RF-06: `POST /consent*` y la sección de consentimiento de la ficha) a otra HU; el alta con consentimiento (UC-09 · A1), la fórmula y el recálculo se quedan aquí |
-| La enmienda de DEC-11.4 toca código y tests de `ofertas` (HU-01/02) en una HU cuyo módulo es `candidatos` | 4 | 2 | Regresión escrita y en verde antes del cambio, y en verde después; solo cambian las 5 aserciones de claves no declaradas de DD-11, listadas en el commit de B-01; `/module-sync` actualiza `docs/05_modules/ofertas/technical.md` |
+| La enmienda de DEC-11.4 toca código y tests de `ofertas` (HU-01/02) en una HU cuyo módulo es `candidatos` | 4 | 2 | Regresión escrita y en verde antes del cambio, y en verde después; solo cambian las 6 aserciones de DD-11, listadas en el commit de B-01; `/module-sync` actualiza `docs/05_modules/ofertas/technical.md` |
 | `isDuplicateEmailError` depende del texto del mensaje de SQLite | 2 | 3 | Comprueba también `errcode === 2067`; lo fija EC-05 |
 | Un esquema futuro sin `additionalProperties: false` rompería el tope de `details` | 2 | 3 | DEC-07 lo exige; el test genérico de `error-details.test.ts` lo documenta |
 | Copias de `v1` y del texto en API y web desfasadas | 2 | 2 | DD-07; test en cada lado con `v1` |
@@ -525,7 +535,7 @@ No hay (OD-01 resuelta → DD-11).
 
 | # | Tarea | Tamaño | Ficheros principales |
 |---|---|---|---|
-| B-01 | Enmienda DEC-11.4 (DD-08, DD-11): (1) escribir `error-details-regression.test.ts` y verlo **pasar antes del cambio**; (2) `toDetails` por *keyword*, mensajes `false schema`/`maxItems`/`boolean`/`array`; `ErrorDetail.existingId` y `duplicate()`; `forbiddenFields`; solo lectura en `jobs/schemas.ts`; (3) actualizar las 5 aserciones de DD-11 (`apps/api/test/jobs/create-adversarial.test.ts:78`, `apps/api/test/jobs/list.test.ts:94-97`, `apps/api/test/jobs/list-filters-adversarial.test.ts:62`, `apps/api/test/http/error-handler.test.ts:238` y `:292`); (4) la regresión **sigue en verde después**; (5) texto de DEC-11.4 en `DECISIONS.md`. **El mensaje del commit lista esas 5 aserciones con fichero:línea** | L | `apps/api/src/http/error-handler.ts`, `apps/api/src/errors.ts`, `apps/api/src/http/validation.ts`, `apps/api/src/modules/jobs/schemas.ts`, `apps/api/test/http/error-details.test.ts`, `apps/api/test/jobs/error-details-regression.test.ts` |
+| B-01 | Enmienda DEC-11.4 (DD-08, DD-11): (1) escribir `error-details-regression.test.ts` y verlo **pasar antes del cambio**; (2) `toDetails` por *keyword*, mensajes `false schema`/`maxItems`/`boolean`/`array`; `ErrorDetail.existingId` y `duplicate()`; `forbiddenFields`; solo lectura en `jobs/schemas.ts`; (3) actualizar las 6 aserciones de DD-11: las 5 de claves no declaradas (`apps/api/test/jobs/create-adversarial.test.ts:78` (línea previa al cambio; hoy el caso de `foo` está en :92-105), `apps/api/test/jobs/list.test.ts:94-97`, `apps/api/test/jobs/list-filters-adversarial.test.ts:62`, `apps/api/test/http/error-handler.test.ts:238` y `:292`) más `apps/api/test/http/error-handler.test.ts:236` (el campo `boolean` de la ruta sintética, por el mensaje nuevo «Debe ser verdadero o falso.»); (4) la regresión **sigue en verde después**; (5) texto de DEC-11.4 en `DECISIONS.md`. **El mensaje del commit lista esas 6 aserciones con fichero:línea** | L | `apps/api/src/http/error-handler.ts`, `apps/api/src/errors.ts`, `apps/api/src/http/validation.ts`, `apps/api/src/modules/jobs/schemas.ts`, `apps/api/test/http/error-details.test.ts`, `apps/api/test/jobs/error-details-regression.test.ts` |
 | B-02 | Migración `002`, puerto y fórmula pura | L | `002-create-candidates.sql`, `processes-port.ts`, `retention.ts`, `migration.test.ts`, `retention.test.ts` |
 | B-03 | Esquemas, normalización, repositorio, servicio `create`/`get`/`recalculateRetention`, rutas `POST /` y `GET /:id`, composición en `app.ts` y *helpers* | L | `schemas.ts`, `normalize.ts`, `repository.ts`, `service.ts`, `routes.ts`, `app.ts`, `test/helpers/*`, `normalize.test.ts`, `create.test.ts`, `get.test.ts` |
 | B-04 | `PATCH /:id` y los dos `POST` de consentimiento | L | `service.ts`, `repository.ts`, `routes.ts`, `update.test.ts`, `consent.test.ts` |

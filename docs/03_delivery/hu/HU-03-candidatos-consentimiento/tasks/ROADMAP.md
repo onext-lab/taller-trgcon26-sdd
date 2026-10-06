@@ -194,3 +194,6 @@ UC-12 · A1 («Mientras dure el proceso») queda fuera (HU-04); la ficha ya pint
 | `Intl` con ICU reducido | TD-backend (prob. 1, imp. 4) | Node 24 trae ICU completo; `retention.test.ts` cubre el cambio de hora (TASK-02) |
 | Tests de rendimiento inestables en portátiles lentos | Este plan | Medir varias repeticiones y comparar el peor caso con el umbral, como `apps/api/test/jobs/performance.test.ts` |
 | Un esquema futuro sin `additionalProperties: false` rompería el tope de `details` | TD-backend (prob. 2, imp. 3) | DEC-07 lo exige; `error-details.test.ts` lo documenta (TASK-01) |
+
+## Nota · review ronda 1 (2026-10-06)
+TASK-01 cambió 6 aserciones (las 5 previstas más `apps/api/test/http/error-handler.test.ts:236`, por el mensaje `boolean`); TASK-10 convirtió `resolveScreen` de `apps/web/src/App.tsx` en la tabla `ROUTES` para no pasar de 10 ramas. Ver `review/REVIEW.md`.

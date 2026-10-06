@@ -123,3 +123,6 @@ Texto nuevo del punto 4 de DEC-11 (copiar literal):
 - La web de ofertas nunca envía claves no declaradas (`apps/web/src/features/jobs/list-query.ts:28-34`): la enmienda no
   cambia nada en la web.
 - `/module-sync` actualizará `docs/05_modules/ofertas/technical.md` (no es de esta tarea).
+
+## Nota · review ronda 1 (2026-10-06)
+Las aserciones de ofertas cambiadas fueron **6**, no 5: las 5 de claves no declaradas más `apps/api/test/http/error-handler.test.ts:236` (el campo `boolean` de la ruta sintética pasa a «Debe ser verdadero o falso.», el mensaje que pide esta tarea). Las 6 constan en el commit `df83266`. Las líneas citadas son las previas al cambio: el caso de `foo` de `create-adversarial.test.ts` está hoy en `:92-105` (drift DD-02 y DD-03 de la review).
