@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactElement, type RefObject } from 'react';
 import { ApiHealth } from './components/ApiHealth.tsx';
 import { Link, matchPath, navigate, usePath } from './components/router.tsx';
 import { JobDetailScreen } from './features/jobs/JobDetailScreen.tsx';
+import { JobFormScreen } from './features/jobs/JobFormScreen.tsx';
 import { JobListScreen } from './features/jobs/JobListScreen.tsx';
 import { jobPaths } from './features/jobs/paths.ts';
 
@@ -28,6 +29,10 @@ function NotFoundScreen() {
 function resolveScreen(path: string): Screen | null {
   if (matchPath('/', path)) return null;
   if (matchPath(jobPaths.list, path)) return { title: 'Ofertas', element: <JobListScreen /> };
+  // `/jobs/new` also matches `/jobs/:id`: it must be declared first.
+  if (matchPath(jobPaths.create, path)) {
+    return { title: 'Nueva oferta', element: <JobFormScreen mode="create" /> };
+  }
   if (matchPath('/jobs/:id', path)) return { title: 'Oferta', element: <JobDetailScreen /> };
   return { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
 }
