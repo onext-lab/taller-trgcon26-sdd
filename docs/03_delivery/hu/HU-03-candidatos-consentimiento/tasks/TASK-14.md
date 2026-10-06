@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** test
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (gate 4 de RF-04, RF-05 y RF-06 en la web)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 
