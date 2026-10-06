@@ -74,7 +74,11 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 
 ## Tareas sin HU
 
-Ninguna.
+### T-01 · `engine-strict` para exigir Node 24 en `npm ci` · estado: hecha
+- **Tipo:** infraestructura
+- `.npmrc` con `engine-strict=true` y nota en `docs/SETUP.md`. Con Node 20, `npm ci` se para con `EBADENGINE`;
+  con Node 24, instala. Origen: al empezar `/implementar-hu HU-01`, una terminal con Node 20 hacía fallar los
+  tests de la API con «No such built-in module: node:sqlite».
 
 ## Orden de ejecución
 1. HU-01 (sin dependencias)

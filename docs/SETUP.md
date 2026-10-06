@@ -26,7 +26,10 @@ crea el propio Node.
 - **Node 24 ejecuta TypeScript directamente** (*type stripping*): la API arranca sin paso de compilación.
 - En la v24.21.0, la que se probó, `node:sqlite` ya **no emite ningún aviso** de estabilidad al cargarse.
 
-`package.json` lo declara en `engines.node` (`>=24.15`) y `.nvmrc` fija `24`.
+`package.json` lo declara en `engines.node` (`>=24.15`) y `.nvmrc` fija `24`. Además, `.npmrc` activa
+`engine-strict=true`: con otra versión, `npm ci` se para con `EBADENGINE` y el mensaje «Not compatible with your
+version of node/npm», en lugar de instalar y fallar después en los tests (con Node 20, la API cae con «No such
+built-in module: node:sqlite»).
 
 ## Cómo instalar Node 24
 
@@ -79,6 +82,8 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 | Síntoma | Qué hacer |
 |---|---|
 | `node -v` muestra v20 o v22 | Activa la 24: `nvm use 24` o `fnm use 24`, y abre una terminal nueva. |
+| `npm ci` falla con `EBADENGINE` | La terminal usa otra versión de Node (p. ej., la que `nvm` tiene por defecto). `nvm use` en la raíz del repo (lee `.nvmrc`) o `nvm alias default 24`, y repite. |
+| Los tests de la API fallan con «No such built-in module: node:sqlite» | Igual: Node anterior a la 24. `npm run check:env` lo detecta. |
 | `check:env` dice que un puerto está ocupado | Cierra el `npm run dev` que tengas abierto en otra terminal. |
 | Los e2e no encuentran el navegador | `npx playwright install chromium`. |
 | La base de datos tiene datos raros | `npm run db:reset` la regenera desde el esquema, las migraciones y el seed. |
