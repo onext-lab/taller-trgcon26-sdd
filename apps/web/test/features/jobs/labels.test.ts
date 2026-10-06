@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activeApplicationsText,
   formatSalaryBand,
+  jobFieldLabel,
   jobStatusLabel,
+  missingFieldsText,
   workModeLabel,
 } from '../../../src/features/jobs/labels.ts';
 import { WORK_MODES } from '../../../src/features/jobs/types.ts';
@@ -25,6 +28,30 @@ describe('formatSalaryBand', () => {
 
   it('sin ninguno → «Sin indicar»', () => {
     expect(formatSalaryBand(null, null)).toBe('Sin indicar');
+  });
+});
+
+describe('textos del ciclo de vida', () => {
+  it('jobFieldLabel traduce los cuatro campos obligatorios', () => {
+    expect(['title', 'description', 'location', 'workMode'].map(jobFieldLabel)).toEqual([
+      'Título',
+      'Descripción',
+      'Ubicación',
+      'Modalidad',
+    ]);
+  });
+
+  it('missingFieldsText lista las etiquetas en el orden recibido (CA-03)', () => {
+    expect(missingFieldsText(['description', 'workMode'])).toBe(
+      'Para publicar falta: Descripción, Modalidad.',
+    );
+    expect(missingFieldsText(['title'])).toBe('Para publicar falta: Título.');
+  });
+
+  it('activeApplicationsText: 0, 1 y 2 (DD-04)', () => {
+    expect(activeApplicationsText(0)).toBe('Se rechazarán 0 inscripciones activas.');
+    expect(activeApplicationsText(1)).toBe('Se rechazará 1 inscripción activa.');
+    expect(activeApplicationsText(2)).toBe('Se rechazarán 2 inscripciones activas.');
   });
 });
 

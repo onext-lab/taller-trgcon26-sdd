@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type SyntheticEvent } from 'react';
+import { useEffect, useId, useRef, type ReactNode, type SyntheticEvent } from 'react';
 
 // Native modal <dialog> (DD-05): showModal() makes the rest of the page inert and Escape fires `cancel`.
 // Initial focus goes to «Cancelar» (DT-02); on close, focus returns to the element that opened it.
@@ -9,7 +9,11 @@ export type ConfirmDialogProps = {
   description: string;
   confirmLabel: string;
   busy?: boolean;
+  /** Disables only the confirm button (e.g. while a figure shown in the dialog is still loading). */
+  confirmDisabled?: boolean;
   error?: string;
+  /** Extra content between the description and the error. */
+  children?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -51,7 +55,9 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   busy = false,
+  confirmDisabled = false,
   error,
+  children,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -75,6 +81,7 @@ export function ConfirmDialog({
       <p id={descriptionId} className="long-text">
         {description}
       </p>
+      {children}
       {error ? (
         <p role="alert" className="error-text">
           {error}
@@ -84,7 +91,7 @@ export function ConfirmDialog({
         <button ref={cancelRef} type="button" onClick={onCancel} disabled={busy}>
           Cancelar
         </button>
-        <button type="button" onClick={onConfirm} disabled={busy}>
+        <button type="button" onClick={onConfirm} disabled={busy || confirmDisabled}>
           {confirmLabel}
         </button>
       </div>

@@ -40,7 +40,7 @@ function JobListContent({ page }: { page: JobPage }) {
 // Container of the list screen (`/jobs`): loads the first page and shows loading, empty, error or data.
 export function JobListScreen() {
   const notice = useNotice();
-  const jobs = useResource((signal) => listJobs(signal), []);
+  const jobs = useResource((signal) => listJobs([], signal), []);
 
   return (
     <>
