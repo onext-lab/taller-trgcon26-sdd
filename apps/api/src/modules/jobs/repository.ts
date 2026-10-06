@@ -1,4 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { registerTextSearch } from '../../db/text-search.ts';
 import type { Job, JobInput, JobListItem, JobStatus, WorkMode } from './schemas.ts';
 
 /** Fila de `job_openings` tal como la devuelve SQLite (los CHECK de la migración 001 garantizan los dominios). */
@@ -69,21 +70,38 @@ interface JobListRow {
   reference_date: string;
 }
 
-// Misma expresión que el índice `job_openings_reference_date_idx` (migración 001), para que lo use.
+/** Filtros del listado, en Y. `q` ya viene plegado con `foldSearchText`; `null` = sin filtro. */
+export interface JobListFilter {
+  status: JobStatus | null;
+  q: string | null;
+}
+
+// `instr` es literal: `%`, `_` y `\` no son comodines (DD-04). El ORDER BY repite la expresión del índice
+// `job_openings_reference_date_idx` (migración 001), para que lo use.
+const FILTER_SQL = `WHERE (:status IS NULL OR status = :status)
+    AND (:q IS NULL OR instr(fold_search(title), :q) > 0)`;
+
 const LIST_PAGE_SQL = `SELECT id, title, status, COALESCE(published_at, created_at) AS reference_date
   FROM job_openings
+  ${FILTER_SQL}
   ORDER BY COALESCE(published_at, created_at) DESC, id DESC
-  LIMIT ? OFFSET ?`;
+  LIMIT :limit OFFSET :offset`;
+
+const COUNT_SQL = `SELECT COUNT(*) AS total FROM job_openings ${FILTER_SQL}`;
 
 /** Acceso a `job_openings` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
 export function createJobsRepository(db: DatabaseSync) {
+  // DD-04: la búsqueda necesita `fold_search` en esta conexión (registrarla dos veces no falla).
+  registerTextSearch(db);
   return {
     findById(id: number): Job | undefined {
       const row = db.prepare('SELECT * FROM job_openings WHERE id = ?').get(id);
       return row ? toJob(row as unknown as JobRow) : undefined;
     },
-    listPage(limit: number, offset: number): JobListItem[] {
-      const rows = db.prepare(LIST_PAGE_SQL).all(limit, offset) as unknown as JobListRow[];
+    listPage(filter: JobListFilter, limit: number, offset: number): JobListItem[] {
+      const rows = db
+        .prepare(LIST_PAGE_SQL)
+        .all({ status: filter.status, q: filter.q, limit, offset }) as unknown as JobListRow[];
       return rows.map((row) => ({
         id: row.id,
         title: row.title,
@@ -91,8 +109,9 @@ export function createJobsRepository(db: DatabaseSync) {
         referenceDate: row.reference_date,
       }));
     },
-    count(): number {
-      const row = db.prepare('SELECT COUNT(*) AS total FROM job_openings').get();
+    /** Total del resultado filtrado (mismo `WHERE` que `listPage`). */
+    count(filter: JobListFilter): number {
+      const row = db.prepare(COUNT_SQL).get({ status: filter.status, q: filter.q });
       return Number(row?.total ?? 0);
     },
     insert(input: JobInput, createdAt: string): Job {

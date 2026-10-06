@@ -1,13 +1,22 @@
 import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
-import { idParamsSchema, rejectBody, trimTextFields, type IdParams } from '../../http/validation.ts';
+import {
+  idParamsSchema,
+  rejectBody,
+  trimTextFields,
+  type IdParams,
+} from '../../http/validation.ts';
 import {
   closePreviewSchema,
   createJobBodySchema,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
   jobPageSchema,
   jobSchema,
   listQuerySchema,
   updateJobBodySchema,
   type JobInput,
+  type JobListQuery,
+  type JobListQuerystring,
   type JobPatch,
 } from './schemas.ts';
 import type { JobsService } from './service.ts';
@@ -25,6 +34,22 @@ const trimJobText: preValidationHookHandler = (request, _reply, done) => {
   done();
 };
 
+/** Recorte de `q` antes de validar (DD-05): un tabulador o salto de línea en el borde se recorta; dentro, 400. */
+const trimSearchText: preValidationHookHandler = (request, _reply, done) => {
+  trimTextFields(request.query, { trim: ['q'], emptyToNull: [] });
+  done();
+};
+
+/** `page` y `pageSize` llegan como texto validado por `pattern`; `q` vacío = sin filtro. */
+function toListQuery({ status, q, page, pageSize }: JobListQuerystring): JobListQuery {
+  return {
+    status,
+    q: q || undefined,
+    page: page === undefined ? DEFAULT_PAGE : Number(page),
+    pageSize: pageSize === undefined ? DEFAULT_PAGE_SIZE : Number(pageSize),
+  };
+}
+
 /** Plugin del módulo jobs (DD-09): recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
 export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
   app,
@@ -39,8 +64,13 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
     (request, reply) => reply.code(201).send(service.create(request.body)),
   );
 
-  app.get('/', { schema: { querystring: listQuerySchema, response: { 200: jobPageSchema } } }, () =>
-    service.list(),
+  app.get<{ Querystring: JobListQuerystring }>(
+    '/',
+    {
+      preValidation: trimSearchText,
+      schema: { querystring: listQuerySchema, response: { 200: jobPageSchema } },
+    },
+    (request) => service.list(toListQuery(request.query)),
   );
 
   // Orden: JSON Schema de `params` (400) → existencia en el servicio (404).

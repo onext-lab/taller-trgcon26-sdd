@@ -65,15 +65,63 @@ async function writeCycle(n: number) {
   return { post, patch, del };
 }
 
+/** Publicar, cerrar, duplicar, PATCH y DELETE de una oferta nueva (HU-02); devuelve cada tiempo con su respuesta. */
+async function lifecycleCycle(n: number) {
+  const draft = await timed({
+    method: 'POST',
+    url: '/api/jobs',
+    payload: {
+      title: `Oferta de ciclo ${n}`,
+      description: 'Descripción inventada.',
+      location: 'Burgos',
+      workMode: 'remota',
+    },
+  });
+  const { id } = draft.response.json<{ id: number }>();
+  const publish = await timed({ method: 'POST', url: `/api/jobs/${id}/publish` });
+  const close = await timed({ method: 'POST', url: `/api/jobs/${id}/close` });
+  const duplicate = await timed({ method: 'POST', url: `/api/jobs/${id}/duplicate` });
+  const copyId = duplicate.response.json<{ id: number }>().id;
+  const patch = await timed({
+    method: 'PATCH',
+    url: `/api/jobs/${copyId}`,
+    payload: { description: 'Descripción inventada editada.' },
+  });
+  const del = await timed({ method: 'DELETE', url: `/api/jobs/${copyId}` });
+  return { publish, close, duplicate, patch, del };
+}
+
 describe('rendimiento de la API de ofertas', () => {
-  it('RNF-01 GET /api/jobs y /api/jobs/:id < 200 ms con 100 ofertas', async () => {
+  it('RNF-01 listado con filtros y pageSize=100, ficha y close-preview < 200 ms con 100 ofertas', async () => {
     const list = await timedGet('/api/jobs');
     expect(list.statusCode).toBe(200);
     expect(list.elapsedMs).toBeLessThan(READ_BUDGET_MS);
 
+    const filtered = await timedGet('/api/jobs?status=draft&q=RENDIMIENTO&page=1&pageSize=100');
+    expect(filtered.statusCode).toBe(200);
+    expect(filtered.elapsedMs).toBeLessThan(READ_BUDGET_MS);
+
     const detail = await timedGet(`/api/jobs/${lastId}`);
     expect(detail.statusCode).toBe(200);
     expect(detail.elapsedMs).toBeLessThan(READ_BUDGET_MS);
+
+    const preview = await timedGet(`/api/jobs/${lastId}/close-preview`);
+    expect(preview.statusCode).toBe(200);
+    expect(preview.elapsedMs).toBeLessThan(READ_BUDGET_MS);
+  });
+
+  it('RNF-02 publicar, cerrar, duplicar, PATCH y DELETE < 500 ms con 100 ofertas', async () => {
+    await lifecycleCycle(0); // calentamiento
+    const { publish, close, duplicate, patch, del } = await lifecycleCycle(1);
+
+    expect(publish.response.statusCode).toBe(200);
+    expect(close.response.statusCode).toBe(200);
+    expect(duplicate.response.statusCode).toBe(201);
+    expect(patch.response.statusCode).toBe(200);
+    expect(del.response.statusCode).toBe(204);
+    for (const { elapsedMs } of [publish, close, duplicate, patch, del]) {
+      expect(elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
+    }
   });
 
   it('RNF-02 POST, PATCH y DELETE < 500 ms con 100 ofertas', async () => {

@@ -1,13 +1,19 @@
 import type { Clock } from '../../clock.ts';
+import { foldSearchText } from '../../db/text-search.ts';
 import { notFound } from '../../errors.ts';
 import type { JobApplicationsPort } from './applications-port.ts';
 import type { JobEditableFields, JobsRepository } from './repository.ts';
-import { assertNoDetails, checkAction, missingRequiredDetails, salaryRangeDetails } from './rules.ts';
-import type { ClosePreview, Job, JobInput, JobPage, JobPatch } from './schemas.ts';
+import {
+  assertNoDetails,
+  checkAction,
+  missingRequiredDetails,
+  salaryRangeDetails,
+} from './rules.ts';
+import type { ClosePreview, Job, JobInput, JobListQuery, JobPage, JobPatch } from './schemas.ts';
 
 /**
- * Casos de uso de las ofertas. Firma final del diseño (TECHNICAL_DOC-backend § Firmas internas); TASK-04 añade `get` y
- * `list`, y TASK-05 `update` y `remove`. No conoce `request` ni `reply`: los errores salen como `AppError` (DD-10).
+ * Casos de uso de las ofertas. Firma final del diseño (TECHNICAL_DOC-backend § Firmas internas); `list` recibe los
+ * parámetros ya convertidos por la ruta. No conoce `request` ni `reply`: los errores salen como `AppError` (DD-10).
  */
 export interface JobsService {
   create(input: JobInput): Job;
@@ -28,8 +34,8 @@ export interface JobsService {
   closePreview(id: number): ClosePreview;
   /** Copia de los 6 campos editables como borrador nuevo, desde cualquier estado (DD-09). No es idempotente. */
   duplicate(id: number): Job;
-  /** Primera página de 20 (DEC-10); la paginación llega con HU-02. */
-  list(): JobPage;
+  /** Filtros en Y (estado, texto plegado), orden de HU-01 y `total` del resultado filtrado (DEC-10). */
+  list(query: JobListQuery): JobPage;
 }
 
 export interface JobsServiceDeps {
@@ -43,8 +49,6 @@ export interface JobsServiceDeps {
 }
 
 const NOT_FOUND_MESSAGE = 'La oferta no existe.';
-const PAGE = 1;
-const PAGE_SIZE = 20;
 
 /** Solo los 6 campos editables de la oferta guardada: `status` y las fechas nunca entran en la fusión. */
 function editableFields({
@@ -139,9 +143,10 @@ export function createJobsService({
         return repository.insert(editableFields(original), now().toISOString());
       });
     },
-    list() {
-      const items = repository.listPage(PAGE_SIZE, (PAGE - 1) * PAGE_SIZE);
-      return { items, total: repository.count(), page: PAGE, pageSize: PAGE_SIZE };
+    list({ status, q, page, pageSize }) {
+      const filter = { status: status ?? null, q: q ? foldSearchText(q) : null };
+      const items = repository.listPage(filter, pageSize, (page - 1) * pageSize);
+      return { items, total: repository.count(filter), page, pageSize };
     },
   };
 }

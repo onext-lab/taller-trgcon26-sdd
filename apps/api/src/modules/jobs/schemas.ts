@@ -126,7 +126,7 @@ export const jobListItemSchema = {
   },
 } as const;
 
-/** Página del listado (DEC-10). En esta HU siempre la primera, de 20. */
+/** Página del listado (DEC-10): `total` es el del resultado filtrado. */
 export const jobPageSchema = {
   type: 'object',
   additionalProperties: false,
@@ -139,11 +139,38 @@ export const jobPageSchema = {
   },
 } as const;
 
-/** Querystring de `GET /api/jobs`: cualquier parámetro da 400 hasta HU-02. */
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_PAGE_SIZE = 20;
+
+/** Parámetros del listado ya validados y convertidos (TECHNICAL_DOC-backend § Firmas internas). */
+export interface JobListQuery {
+  status?: JobStatus;
+  q?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Querystring tal como llega: sin coerción (DEC-11.2) todo es texto; `toListQuery` la convierte. */
+export interface JobListQuerystring {
+  status?: JobStatus;
+  q?: string;
+  page?: string;
+  pageSize?: string;
+}
+
+/**
+ * Querystring de `GET /api/jobs` (DD-05): `page` y `pageSize` como texto con `pattern` (`pageSize` de 1 a 100);
+ * `q` se recorta antes de validar. Cualquier otro parámetro da 400 «Campo no permitido.».
+ */
 export const listQuerySchema = {
   type: 'object',
   additionalProperties: false,
-  properties: {},
+  properties: {
+    status: { type: 'string', enum: JOB_STATUSES },
+    q: { type: 'string', maxLength: 100, pattern: NO_CONTROL_CHARS },
+    page: { type: 'string', pattern: '^[1-9][0-9]{0,8}$' },
+    pageSize: { type: 'string', pattern: '^(?:[1-9][0-9]?|100)$' },
+  },
 } as const;
 
 /** Cuerpo de `POST /api/jobs`. */
