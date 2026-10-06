@@ -17,6 +17,8 @@
 export interface ApiErrorDetail {
   field: string;
   message: string;
+  /** ID of the existing record in the 409 `DUPLICATE` of a candidate (S5); kept only if it is a valid ID. */
+  existingId?: number;
 }
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -64,14 +66,25 @@ function isDetail(value: unknown): value is ApiErrorDetail {
   return isRecord(value) && typeof value.field === 'string' && typeof value.message === 'string';
 }
 
+/** A record ID: a safe integer > 0. */
+export function isValidId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+}
+
+// Copies only `field`, `message` and, if it is a safe integer > 0, `existingId`; anything else is dropped.
+function copyDetail(detail: ApiErrorDetail): ApiErrorDetail {
+  const copy: ApiErrorDetail = { field: detail.field, message: detail.message };
+  if (isValidId(detail.existingId)) copy.existingId = detail.existingId;
+  return copy;
+}
+
 function toEnvelopeError(status: number, value: unknown): ApiError | null {
   if (!isRecord(value) || !isRecord(value.error)) return null;
   const { code, message, details } = value.error;
   if (typeof code !== 'string' || typeof message !== 'string') return null;
   if (details === undefined) return new ApiError(status, code, message);
   if (!Array.isArray(details) || !details.every(isDetail)) return null;
-  const copy = details.map(({ field, message: text }) => ({ field, message: text }));
-  return new ApiError(status, code, message, copy);
+  return new ApiError(status, code, message, details.map(copyDetail));
 }
 
 type Parsed = { ok: true; value: unknown } | { ok: false };

@@ -180,3 +180,56 @@ describe('requestJson', () => {
     expect(mock.calls).toHaveLength(1);
   });
 });
+
+describe('existingId de details (S5, DD-06)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function duplicateDetail(existingId: unknown): Promise<ApiError> {
+    const detail: Record<string, unknown> = {
+      field: 'email',
+      message: 'Ya existe un candidato con este email.',
+    };
+    if (existingId !== undefined) detail.existingId = existingId;
+    mockFetch({
+      'POST /api/candidates': {
+        status: 409,
+        json: { error: { code: 'DUPLICATE', message: 'Registro duplicado.', details: [detail] } },
+      },
+    });
+    return expectApiError(requestJson('/api/candidates', { method: 'POST', body: {} }));
+  }
+
+  it('CA-05 conserva un existingId entero seguro mayor que 0', async () => {
+    const error = await duplicateDetail(42);
+    expect(error.details).toEqual([
+      { field: 'email', message: 'Ya existe un candidato con este email.', existingId: 42 },
+    ]);
+  });
+
+  it('sin existingId el detail queda sin esa clave', async () => {
+    const error = await duplicateDetail(undefined);
+    expect(error.details).toEqual([
+      { field: 'email', message: 'Ya existe un candidato con este email.' },
+    ]);
+    expect(error.details?.[0]).not.toHaveProperty('existingId');
+  });
+
+  it.each([
+    ['0', 0],
+    ['-1', -1],
+    ['1.5', 1.5],
+    ['"42"', '42'],
+    ['null', null],
+    ['un entero no seguro', Number.MAX_SAFE_INTEGER + 2],
+  ])(
+    'descarta un existingId no válido (%s) y conserva el resto del detail',
+    async (_name, value) => {
+      const error = await duplicateDetail(value);
+      expect(error.details).toEqual([
+        { field: 'email', message: 'Ya existe un candidato con este email.' },
+      ]);
+    },
+  );
+});

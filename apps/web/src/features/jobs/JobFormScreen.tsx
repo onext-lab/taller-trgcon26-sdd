@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { userMessage } from '../../components/http.ts';
 import { Link, matchPath, navigate, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
+import { useDocumentTitle } from '../../components/use-document-title.ts';
 import { useResource } from '../../components/use-resource.ts';
 import { createJob, getJob, updateJob } from './api.ts';
 import { isNotFound, NotFound } from './JobDetailScreen.tsx';
@@ -19,7 +20,6 @@ import {
 import { jobPaths, parseJobId } from './paths.ts';
 import type { Job } from './types.ts';
 
-const APP_NAME = 'ATS';
 const CREATE_TITLE = 'Nueva oferta';
 const EDIT_TITLE = 'Editar oferta';
 const CLOSED_MESSAGE = 'Esta oferta está cerrada y no se puede editar.';
@@ -100,9 +100,7 @@ function JobFormContainer(props: ContainerProps) {
     onConflict,
   });
 
-  useEffect(() => {
-    document.title = `${heading} · ${APP_NAME}`;
-  }, [heading]);
+  useDocumentTitle(heading);
 
   return (
     <>
@@ -131,8 +129,8 @@ function JobFormContainer(props: ContainerProps) {
 function ClosedJobNotice({ id, message }: { id: number; message: string | null }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
+  useDocumentTitle(EDIT_TITLE);
   useEffect(() => {
-    document.title = `${EDIT_TITLE} · ${APP_NAME}`;
     if (message !== null) headingRef.current?.focus();
   }, [message]);
 

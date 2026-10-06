@@ -1,8 +1,9 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { FormField } from '../../components/FormField.tsx';
+import { PageSizeSelect } from '../../components/PageSizeSelect.tsx';
 import { navigate } from '../../components/router.tsx';
 import { jobStatusLabel } from './labels.ts';
-import { listPath, listView, PAGE_SIZES, readListQuery, validateSearchText } from './list-query.ts';
+import { listPath, listView, readListQuery, validateSearchText } from './list-query.ts';
 import { JOB_STATUSES } from './types.ts';
 
 // State of the search form. It starts from the URL and is resynchronized when the URL changes (e.g. «Atrás»),
@@ -38,25 +39,8 @@ function useFilterForm(search: string) {
   return { view, status, setStatus, q, setQ, error, searchRef, submit };
 }
 
-function PageSizeSelect({ view }: { view: ReturnType<typeof listView> }) {
-  function change(event: ChangeEvent<HTMLSelectElement>): void {
-    const pageSize = Number(event.target.value);
-    navigate(listPath({ status: view.status, q: view.q, pageSize }));
-  }
-
-  return (
-    <FormField id="page-size" label="Por página">
-      {(control) => (
-        <select {...control} name="pageSize" value={view.pageSize} onChange={change}>
-          {PAGE_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-      )}
-    </FormField>
-  );
+function changePageSize(view: ReturnType<typeof listView>, pageSize: number): void {
+  navigate(listPath({ status: view.status, q: view.q, pageSize }));
 }
 
 // Filters of the list (RF-05, DD-02): Estado and text apply with «Buscar»; «Por página», outside the form,
@@ -98,7 +82,10 @@ export function JobFilters({ search }: { search: string }) {
         </FormField>
         <button type="submit">Buscar</button>
       </form>
-      <PageSizeSelect view={form.view} />
+      <PageSizeSelect
+        value={form.view.pageSize}
+        onChange={(size) => changePageSize(form.view, size)}
+      />
     </div>
   );
 }

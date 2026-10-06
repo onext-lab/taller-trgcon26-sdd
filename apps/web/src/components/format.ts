@@ -18,6 +18,17 @@ export function formatDate(iso: string): string {
   return Number.isNaN(date.getTime()) ? INVALID_DATE_TEXT : dateFormatter.format(date);
 }
 
+const CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * `2027-04-06` → «06/04/2027». A calendar date has no time and no zone, so it is rearranged as text (no
+ * `Date`, which would shift it with the zone); any other format → «Fecha no válida».
+ */
+export function formatCalendarDate(date: string): string {
+  const match = CALENDAR_DATE_PATTERN.exec(date);
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : INVALID_DATE_TEXT;
+}
+
 const integerFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
 
 /**
