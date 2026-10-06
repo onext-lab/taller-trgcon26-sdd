@@ -106,24 +106,30 @@ describe('JobListScreen', () => {
     expect(screen.queryByRole('table')).toBeNull();
   });
 
-  it('con 20 ofertas pinta 20 filas y ningún aviso (CA-15, EC-35)', async () => {
+  it('con 20 ofertas pinta 20 filas y no ofrece «Siguiente» (CA-15, EC-34)', async () => {
     mockFetch({ 'GET /api/jobs': ok(page(manyItems(20), 20)) });
 
     render(<JobListScreen />);
 
     await screen.findByRole('table', { name: 'Ofertas' });
     expect(bodyRows()).toHaveLength(20);
+    expect(screen.getByText('Página 1 de 1 (20 ofertas)')).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Siguiente' })).toBeNull();
     expect(screen.queryByText(/Se muestran las/)).toBeNull();
   });
 
-  it('con 21 ofertas pinta 20 filas y avisa del total (CA-15, EC-35)', async () => {
+  it('con 21 ofertas pinta 20 filas y «Página 1 de 2» con «Siguiente» (CA-15, EC-34)', async () => {
     mockFetch({ 'GET /api/jobs': ok(page(manyItems(20), 21)) });
 
     render(<JobListScreen />);
 
     await screen.findByRole('table', { name: 'Ofertas' });
     expect(bodyRows()).toHaveLength(20);
-    expect(screen.getByText('Se muestran las 20 más recientes de 21.')).toBeDefined();
+    expect(screen.getByText('Página 1 de 2 (21 ofertas)')).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Siguiente' }).getAttribute('href')).toBe(
+      '/jobs?page=2',
+    );
+    expect(screen.queryByText(/Se muestran las/)).toBeNull();
   });
 
   it('muestra título enlazado a la ficha, «Borrador» y la fecha en Europe/Madrid (CA-16, EC-36)', async () => {
