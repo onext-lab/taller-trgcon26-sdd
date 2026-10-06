@@ -16,6 +16,19 @@ export function createTestApp({ now }: { now?: Clock } = {}): {
   return { app, db };
 }
 
+export type WriteOperation = 'INSERT' | 'UPDATE' | 'DELETE';
+
+/**
+ * Hace fallar las siguientes escrituras `op` en job_openings con un error real de SQLite (un trigger con
+ * `RAISE(ABORT, 'fallo simulado')`), sin mocks. Un trigger por operación.
+ */
+export function failWrites(db: DatabaseSync, op: WriteOperation): void {
+  const name = `fail_job_openings_${op.toLowerCase()}`;
+  db.exec(
+    `CREATE TRIGGER ${name} BEFORE ${op} ON job_openings BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`,
+  );
+}
+
 export interface TestClock {
   now: Clock;
   set(iso: string): void;
