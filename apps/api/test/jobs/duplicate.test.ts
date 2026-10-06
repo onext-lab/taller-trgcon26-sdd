@@ -1,3 +1,4 @@
+import type { DatabaseSync } from 'node:sqlite';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Job } from '../../src/modules/jobs/schemas.ts';
@@ -7,19 +8,21 @@ import {
   createPublishedJob,
   createTestApp,
   createTestClock,
+  failWrites,
   type TestClock,
 } from '../helpers/test-app.ts';
 
-// Datos inventados. Los casos hostiles (404, cuerpo, ID no válido, fallo de SQLite) van en la tarea adversarial.
+// Datos inventados. Camino feliz primero; los casos hostiles (adversarial, TASK-04) van al final.
 const NOW = '2026-10-06T08:00:00.000Z';
 const DUPLICATE_AT = '2026-10-07T09:00:00.000Z';
 
 let app: FastifyInstance;
+let db: DatabaseSync;
 let clock: TestClock;
 
 beforeEach(() => {
   clock = createTestClock(NOW);
-  ({ app } = createTestApp({ now: clock.now }));
+  ({ app, db } = createTestApp({ now: clock.now }));
 });
 
 afterEach(async () => {
@@ -106,6 +109,64 @@ describe('POST /api/jobs/:id/duplicate — duplicar (camino feliz)', () => {
     expect(new Set([original.id, first.id, second.id]).size).toBe(3);
     expect(first.status).toBe('draft');
     expect(second.status).toBe('draft');
+    expect(await getJob(original.id)).toEqual(original);
+  });
+});
+
+function countJobs(): number {
+  return Number(db.prepare('SELECT COUNT(*) AS total FROM job_openings').get()?.total);
+}
+
+describe('POST /api/jobs/:id/duplicate — adversarial', () => {
+  it('EC-25 ID no válido → 400; inexistente → 404; no se crea nada', async () => {
+    await createJob(app, { title: 'Oferta que no se duplica' });
+    const rowsBefore = countJobs();
+
+    const invalid = await app.inject({ method: 'POST', url: '/api/jobs/abc/duplicate' });
+    const missing = await postDuplicate(999999);
+
+    expect(invalid.statusCode).toBe(400);
+    expect(invalid.json()).toEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Hay campos con errores.',
+        details: [{ field: 'id', message: 'Formato no válido.' }],
+      },
+    });
+    expect(missing.statusCode).toBe(404);
+    expect(missing.json()).toEqual({
+      error: { code: 'NOT_FOUND', message: 'La oferta no existe.' },
+    });
+    expect(countJobs()).toBe(rowsBefore);
+  });
+
+  it('EC-27 fallo de SQLite al duplicar → 500 sin borrador nuevo', async () => {
+    const original = await createPublishedJob(app);
+    const rowsBefore = countJobs();
+    failWrites(db, 'INSERT');
+
+    const response = await postDuplicate(original.id);
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({
+      error: { code: 'INTERNAL_ERROR', message: 'Error interno. Inténtalo de nuevo.' },
+    });
+    expect(response.body).not.toContain('fallo simulado');
+    expect(response.body).not.toContain('stack');
+    expect(countJobs()).toBe(rowsBefore);
+    expect(await getJob(original.id)).toEqual(original);
+  });
+
+  it('EC-30 la copia guarda el HTML tal cual', async () => {
+    const html = '<script>alert("x")</script> <b>negrita</b> &amp;';
+    const original = await createJob(app, { title: 'Oferta con marcado', description: html });
+
+    const response = await postDuplicate(original.id);
+
+    expect(response.statusCode).toBe(201);
+    const copy = response.json<Job>();
+    expect(copy.description).toBe(html);
+    expect((await getJob(copy.id)).description).toBe(html);
     expect(await getJob(original.id)).toEqual(original);
   });
 });
