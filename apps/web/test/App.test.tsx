@@ -60,6 +60,49 @@ describe('App', () => {
     await waitFor(() => expect(document.title).toBe('Ofertas · ATS'));
   });
 
+  it('«Candidatos» en «Principal» lleva a /candidates con aria-current, título y foco en <main>', async () => {
+    startAt('/jobs');
+    mockFetch({
+      ...HEALTH_OK,
+      'GET /api/jobs': { status: 200, json: EMPTY_PAGE },
+      'GET /api/candidates': { status: 200, json: EMPTY_PAGE },
+    });
+
+    render(<App />);
+    await screen.findByText('Todavía no hay ofertas.');
+    const nav = screen.getByRole('navigation', { name: 'Principal' });
+    const link = within(nav).getByRole('link', { name: 'Candidatos' });
+    expect(link.getAttribute('aria-current')).toBeNull();
+    expect(within(nav).getByRole('link', { name: 'Ofertas' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    fireEvent.click(link);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Candidatos' })).toBeDefined();
+    expect(await screen.findByText('Todavía no hay candidatos.')).toBeDefined();
+    expect(window.location.pathname).toBe('/candidates');
+    expect(link.getAttribute('aria-current')).toBe('page');
+    expect(
+      within(nav).getByRole('link', { name: 'Ofertas' }).getAttribute('aria-current'),
+    ).toBeNull();
+    await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+  });
+
+  it('la carga directa de /candidates fija el título «Candidatos · ATS» y marca el enlace', async () => {
+    startAt('/candidates');
+    mockFetch({ ...HEALTH_OK, 'GET /api/candidates': { status: 200, json: EMPTY_PAGE } });
+
+    render(<App />);
+
+    expect(await screen.findByText('Todavía no hay candidatos.')).toBeDefined();
+    const nav = screen.getByRole('navigation', { name: 'Principal' });
+    expect(within(nav).getByRole('link', { name: 'Candidatos' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    expect(document.title).toBe('Candidatos · ATS');
+  });
+
   it('muestra «Estado de la API: ok» en el pie', async () => {
     startAt('/no-existe');
     mockFetch(HEALTH_OK);
