@@ -230,7 +230,6 @@ de un candidato anonimizado queda aplazado de forma explícita a la feature A _(
    - **Flujos que cubre:**
      - UC-14: P, E1, E2, E3, E4 y E5.
      - UC-17: P en los pasos 1-4 y la acción «Inscribir candidato» del paso 5, más A2, E1 y E2.
-     - UC-18: P y A1, para comprobar el `StageChange` inicial.
      - UC-12 · A1 (módulo `candidatos`): la ficha muestra «Mientras dure el proceso» cuando hay una inscripción no
        final. Es esta HU la que implementa el puerto de procesos del candidato y dispara el recálculo al inscribir
        (FEAT-02 lo deja declarado para ella; S-06).
@@ -242,7 +241,8 @@ de un candidato anonimizado queda aplazado de forma explícita a la feature A _(
      - UC-15: P, A1, A2, E1, E2, E3, E4, E5 y E6.
      - UC-16: P, A1, E1, E2, E3, E4, E5 y E6.
      - UC-17: P en las acciones «Avanzar» y «Rechazar» y el acceso al historial del paso 5, más A1.
-     - UC-18: A2, E1 y E2.
+     - UC-18: P, A1, A2, E1 y E2. P y A1 (la API del detalle de la inscripción y su pantalla) estaban en HU-04 y
+       pasaron aquí por decisión del responsable del 2026-10-06, por el techo de 15 tareas de HU-04.
      - UC-19: P, A1, A2, E1 y E2.
      - UC-04 · A1 (cerrar oferta con inscripciones activas, módulo `ofertas`), que se prueba aquí.
    - **Dependencias:** HU-04 y el cierre de ofertas UC-04 (FEAT-01).

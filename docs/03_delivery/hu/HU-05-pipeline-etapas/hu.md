@@ -18,13 +18,14 @@ que el cierre de una oferta deje procesos abiertos**.
 
 ## Contexto
 Segunda rebanada de FEAT-03 (`docs/02_discovery/features/FEAT-03-inscripciones/feature.md`): sobre las inscripciones de
-HU-04, añade el avance a la etapa siguiente con etapa esperada e idempotencia, el rechazo con motivo y nota, el acceso
-al historial desde cada tarjeta, el pipeline de solo lectura de las ofertas cerradas y la operación interna que rechaza
-las inscripciones activas al cerrar una oferta (UC-19). Conecta esa operación dentro de la transacción de cierre de
+HU-04, añade el avance a la etapa siguiente con etapa esperada e idempotencia, el rechazo con motivo y nota, el detalle
+de la inscripción con su historial (su API y su pantalla, que antes estaban en HU-04: decisión del responsable del
+2026-10-06) y el acceso a él desde cada tarjeta, el pipeline de solo lectura de las ofertas cerradas y la operación
+interna que rechaza las inscripciones activas al cerrar una oferta (UC-19). Conecta esa operación dentro de la transacción de cierre de
 `ofertas` (UC-04 · A1), que HU-02 dejó preparada. Cada paso a etapa final invoca el recálculo de retención de
 `candidatos` en la misma transacción. Es atómica porque se entrega sola sobre HU-04, vertical porque toca reglas de
-transición, persistencia transaccional entre tres módulos, API y pantallas (tarjetas, formulario de rechazo, historial
-y pipeline cerrado), y con valor porque completa el proceso de selección de punta a punta.
+transición, persistencia transaccional entre tres módulos, API y pantallas (tarjetas, formulario de rechazo, detalle
+de la inscripción con su historial y pipeline cerrado), y con valor porque completa el proceso de selección de punta a punta.
 
 ## Casos de uso
 Qué casos de uso del catálogo del módulo cubre esta HU y qué flujos (P principal, A alternativos, E excepciones).
@@ -35,7 +36,7 @@ Se citan por ID y ruta desde la raíz, sin enlace relativo (la HU se mueve a `co
 | UC-15 | P, A1, A2, E1, E2, E3, E4, E5, E6 | `docs/05_modules/inscripciones/casos-de-uso/UC-15-avanzar-etapa.md` |
 | UC-16 | P, A1, E1, E2, E3, E4, E5, E6 | `docs/05_modules/inscripciones/casos-de-uso/UC-16-rechazar-inscripcion.md` |
 | UC-17 | P (acciones «Avanzar» y «Rechazar» y acceso al historial del paso 5), A1 | `docs/05_modules/inscripciones/casos-de-uso/UC-17-ver-pipeline.md` |
-| UC-18 | A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-18-consultar-historial.md` |
+| UC-18 | P, A1, A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-18-consultar-historial.md` |
 | UC-19 | P, A1, A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-19-rechazo-al-cerrar-oferta.md` |
 | UC-04 | A1 | `docs/05_modules/ofertas/casos-de-uso/UC-04-cerrar-oferta.md` |
 
@@ -43,7 +44,6 @@ Flujos de esos UC que **no** cubre esta HU:
 - UC-17 · P en los pasos 1-4 y la acción «Inscribir candidato» del paso 5, A2, E1 y E2: los cubre HU-04.
 - UC-17 · A3 (etiqueta «Candidato anonimizado»): fuera de alcance del núcleo; el estado «anonimizado» lo introduce la
   feature A, y su HU lo cubrirá (S-05).
-- UC-18 · P y A1: los cubre HU-04.
 - UC-04 · P, A2, A3, E1 y E2: los cubre HU-02.
 
 ## Criterios de aceptación
@@ -95,6 +95,12 @@ Flujos de esos UC que **no** cubre esta HU:
 - [ ] Dada una oferta `closed`, cuando abro su pipeline, entonces veo todas las columnas con solo el nombre de cada
       candidato, sin «Avanzar», «Rechazar» ni «Inscribir candidato», y puedo abrir el historial de cualquier tarjeta
       _(UC-17 · A1)_.
+- [ ] Dada una inscripción que avanzó de `received` a `screening` y luego a `interview`, cuando abro su detalle desde
+      su tarjeta del pipeline, entonces veo la etapa actual `interview` y sus tres `StageChange` del más antiguo al más
+      reciente, cada uno con etapa origen, etapa destino y fecha en `dd/mm/aaaa` (hora de Europe/Madrid) _(UC-18 · P)_.
+- [ ] Dada una inscripción recién creada, cuando abro su detalle, entonces veo la etapa actual `received` y un único
+      `StageChange`, sin origen → `received`, con la fecha de inscripción en `dd/mm/aaaa` (hora de Europe/Madrid)
+      _(UC-18 · A1)_.
 - [ ] Dada una inscripción rechazada a mano, cuando abro su historial, entonces veo los `StageChange` del más antiguo al
       más reciente y, en el de rechazo, el motivo y la nota; y en una rechazada por el cierre de la oferta, el motivo
       «oferta cerrada» y ninguna nota _(UC-18 · A2)_.
@@ -124,8 +130,8 @@ Flujos de esos UC que **no** cubre esta HU:
 ## Notas y dependencias
 - **Depende de:** HU-04 (y, a través de ella, HU-02, que entrega el cierre de ofertas de UC-04).
 - **Bloquea:** nada.
-- **Mismo UC en dos HU:** UC-17 y UC-18 los comparte con HU-04, y UC-04 con HU-02. Van en secuencia: esta HU empieza
-  cuando HU-04 está en `main`, y HU-02 ya lo está para entonces.
+- **Mismo UC en dos HU:** UC-17 lo comparte con HU-04, y UC-04 con HU-02; UC-18 es entero de esta HU. Van en
+  secuencia: esta HU empieza cuando HU-04 está en `main`, y HU-02 ya lo está para entonces.
 - **Reparto entre módulos** (`docs/02_discovery/reglas-validadas.md`): `inscripciones` expone la operación interna de
   UC-19, `ofertas` la invoca dentro de su transacción de cierre y `candidatos` recalcula la retención cuando se le pide;
   nadie duplica la fórmula.

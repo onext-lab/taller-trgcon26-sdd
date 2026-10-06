@@ -18,7 +18,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 
 ## Resumen de estado
 - HU: hechas 3 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-06 21:10 (HU-03 aprobada con observaciones en la ronda 1, mergeada y sincronizada; T-03 hecha)
+- Última actualización: 2026-10-06 21:20 (UC-18 · P y A1 pasan de HU-04 a HU-05 por tamaño; ver Notas)
 
 ## Historias de usuario
 
@@ -113,3 +113,6 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - Para HU-04 (review de HU-03): un test que ate `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API, y
   unificar los teléfonos del seed y de los tests en la serie `+34 600 000 0xx` (`docs/RGPD.md` §6).
 - Los candidatos con la retención vencida siguen en el listado sin marca hasta la feature A (supresión y retención).
+- 2026-10-06 · Decisión del responsable al revisar el PRD de HU-04: UC-18 · P y A1 (detalle de la inscripción con su
+  historial: API y pantalla) pasan de HU-04 a HU-05, por el techo de 15 tareas de HU-04; HU-04 suma `ofertas` a sus
+  módulos afectados (puerto de estado de la oferta en `jobs` y guarda de estado en su SQL, SEC-02).
