@@ -166,15 +166,39 @@ describe('JobFormScreen · alta', () => {
     expect(window.location.pathname).toBe('/jobs/new');
   });
 
-  it('un 400 con un campo desconocido va a la alerta del formulario', async () => {
+  it.each(['status', 'body'])(
+    'un 400 con details de «%s», que no es del formulario, va a la alerta (EC-01, EC-02)',
+    async (field) => {
+      mockFetch({
+        'POST /api/jobs': {
+          status: 400,
+          json: {
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Los datos enviados no son válidos.',
+              details: [{ field, message: `Problema en ${field}.` }],
+            },
+          },
+        },
+      });
+      render(<JobFormScreen mode="create" />);
+      type('Título (obligatorio)', TITLE);
+
+      save();
+
+      expect((await screen.findByRole('alert')).textContent).toBe(`Problema en ${field}.`);
+      expect(screen.getByLabelText('Título (obligatorio)').getAttribute('aria-invalid')).toBeNull();
+    },
+  );
+
+  it('un 413 muestra su mensaje en la alerta y conserva lo escrito (EC-17)', async () => {
     mockFetch({
       'POST /api/jobs': {
-        status: 400,
+        status: 413,
         json: {
           error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Los datos enviados no son válidos.',
-            details: [{ field: 'body', message: 'Falta el cuerpo.' }],
+            code: 'PAYLOAD_TOO_LARGE',
+            message: 'El cuerpo de la petición es demasiado grande.',
           },
         },
       },
@@ -184,7 +208,24 @@ describe('JobFormScreen · alta', () => {
 
     save();
 
-    expect((await screen.findByRole('alert')).textContent).toBe('Falta el cuerpo.');
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('El cuerpo de la petición es demasiado grande.');
+    expect((screen.getByLabelText('Título (obligatorio)') as HTMLInputElement).value).toBe(TITLE);
+  });
+
+  it('con la red caída hace una sola llamada, sin reintento, y conserva lo escrito (EC-09)', async () => {
+    const mock = mockFetch({ 'POST /api/jobs': { networkError: true } });
+    render(<JobFormScreen mode="create" />);
+    type('Título (obligatorio)', TITLE);
+
+    save();
+
+    expect((await screen.findByRole('alert')).textContent).toContain('No se ha podido conectar');
+    expect(mock.calls).toHaveLength(1);
+    expect((screen.getByLabelText('Título (obligatorio)') as HTMLInputElement).value).toBe(TITLE);
+    expect((screen.getByRole('button', { name: 'Guardar' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
   });
 
   it('un 500 muestra la alerta, conserva lo escrito y reactiva «Guardar» sin reintentar (EC-05)', async () => {

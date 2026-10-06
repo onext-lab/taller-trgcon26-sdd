@@ -33,6 +33,9 @@ function resolveScreen(path: string): Screen | null {
   if (matchPath(jobPaths.create, path)) {
     return { title: 'Nueva oferta', element: <JobFormScreen mode="create" /> };
   }
+  if (matchPath('/jobs/:id/edit', path)) {
+    return { title: 'Editar oferta', element: <JobFormScreen mode="edit" /> };
+  }
   if (matchPath('/jobs/:id', path)) return { title: 'Oferta', element: <JobDetailScreen /> };
   return { title: NOT_FOUND_TITLE, element: <NotFoundScreen /> };
 }

@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   EMPTY_FORM,
+  jobToForm,
   toCreateInput,
+  toPatch,
   validateJobForm,
   type JobFormValues,
 } from '../../../src/features/jobs/job-form-model.ts';
+import type { Job } from '../../../src/features/jobs/types.ts';
 
 // Invented data only.
 function form(overrides: Partial<JobFormValues> = {}): JobFormValues {
@@ -146,5 +149,110 @@ describe('toCreateInput (CA-02, EC-02, EC-03)', () => {
   it('nunca incluye status, createdAt ni id', () => {
     const input = toCreateInput(form({ description: 'x', salaryMin: '1' }));
     for (const key of ['status', 'createdAt', 'id']) expect(key in input).toBe(false);
+  });
+});
+
+const ORIGINAL: Job = {
+  id: 7,
+  title: 'Desarrollador/a backend (Node.js)',
+  description: 'Busca talento.',
+  location: 'Valencia',
+  workMode: 'híbrida',
+  salaryMin: 32000,
+  salaryMax: null,
+  status: 'draft',
+  createdAt: '2026-10-06T09:30:00.000Z',
+  publishedAt: null,
+  closedAt: null,
+};
+
+describe('jobToForm', () => {
+  it('convierte los null en cadenas vacías y los salarios en texto', () => {
+    expect(jobToForm(ORIGINAL)).toEqual({
+      title: 'Desarrollador/a backend (Node.js)',
+      description: 'Busca talento.',
+      location: 'Valencia',
+      workMode: 'híbrida',
+      salaryMin: '32000',
+      salaryMax: '',
+    });
+    expect(
+      jobToForm({ ...ORIGINAL, description: null, location: null, workMode: null }),
+    ).toMatchObject({
+      description: '',
+      location: '',
+      workMode: '',
+    });
+  });
+});
+
+describe('toPatch (CA-09, CA-10, EC-21, EC-25)', () => {
+  const unchanged = jobToForm(ORIGINAL);
+
+  it('sin cambios devuelve {}', () => {
+    expect(toPatch(ORIGINAL, unchanged)).toEqual({});
+  });
+
+  it('solo descripción y ubicación cambiadas devuelve esas dos', () => {
+    const patch = toPatch(ORIGINAL, {
+      ...unchanged,
+      description: 'Otro texto.',
+      location: 'Bilbao',
+    });
+    expect(patch).toEqual({ description: 'Otro texto.', location: 'Bilbao' });
+  });
+
+  it('vaciar la descripción devuelve null, nunca una cadena vacía', () => {
+    expect(toPatch(ORIGINAL, { ...unchanged, description: '' })).toEqual({ description: null });
+    expect(toPatch(ORIGINAL, { ...unchanged, description: '   ' })).toEqual({ description: null });
+  });
+
+  it('vaciar la modalidad y el salario devuelve null; fijar un salario vacío, el número', () => {
+    const patch = toPatch(ORIGINAL, {
+      ...unchanged,
+      workMode: '',
+      salaryMin: '',
+      salaryMax: ' 40000 ',
+    });
+    expect(patch).toEqual({ workMode: null, salaryMin: null, salaryMax: 40000 });
+  });
+
+  it('los recortes que no cambian el valor no cuentan como cambio', () => {
+    const padded = { ...unchanged, title: `  ${ORIGINAL.title}  `, location: ' Valencia ' };
+    expect(toPatch(ORIGINAL, { ...padded, salaryMin: ' 32000 ' })).toEqual({});
+  });
+
+  it('vaciar un opcional que ya estaba vacío no cuenta como cambio', () => {
+    const bare: Job = { ...ORIGINAL, description: null, location: null, workMode: null };
+    expect(toPatch(bare, { ...jobToForm(bare), description: '  ' })).toEqual({});
+  });
+
+  it('el título cambiado va recortado y nunca como null', () => {
+    expect(toPatch(ORIGINAL, { ...unchanged, title: '  Técnica/o de selección ' })).toEqual({
+      title: 'Técnica/o de selección',
+    });
+  });
+
+  it('nunca emite campos de solo lectura', () => {
+    const everything = {
+      title: 'Otro título',
+      description: 'x',
+      location: 'yy',
+      workMode: 'remota',
+      salaryMin: '1',
+      salaryMax: '2',
+    };
+    const keys = Object.keys(toPatch(ORIGINAL, everything)).sort();
+    expect(keys).toEqual([
+      'description',
+      'location',
+      'salaryMax',
+      'salaryMin',
+      'title',
+      'workMode',
+    ]);
+    for (const key of ['status', 'createdAt', 'id', 'publishedAt', 'closedAt']) {
+      expect(keys).not.toContain(key);
+    }
   });
 });

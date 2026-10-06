@@ -1,8 +1,8 @@
-import { WORK_MODES, type JobInput, type WorkMode } from './types.ts';
+import { WORK_MODES, type Job, type JobInput, type JobPatch, type WorkMode } from './types.ts';
 
 /**
  * Pure model of the job form (DD-04): the state is kept as strings, validation mirrors RF-02 (the API
- * has the last word) and `toCreateInput` builds the body of `POST /api/jobs`. TASK-13 adds `toPatch`.
+ * has the last word) and `toCreateInput` builds the body of `POST /api/jobs`; `jobToForm` and `toPatch` serve the edit mode.
  */
 
 export const FIELD_ORDER = [
@@ -118,4 +118,44 @@ export function toCreateInput(values: JobFormValues): JobInput {
   const max = parseSalary(values.salaryMax);
   if (typeof max === 'number') input.salaryMax = max;
   return input;
+}
+
+/** Form values of an existing job: `null` becomes an empty string, numbers become text. */
+export function jobToForm(job: Job): JobFormValues {
+  return {
+    title: job.title,
+    description: job.description ?? '',
+    location: job.location ?? '',
+    workMode: job.workMode ?? '',
+    salaryMin: job.salaryMin === null ? '' : String(job.salaryMin),
+    salaryMax: job.salaryMax === null ? '' : String(job.salaryMax),
+  };
+}
+
+// Text fields are compared already trimmed; an empty optional is `null`, never `""`.
+function textOrNull(raw: string): string | null {
+  const text = raw.trim();
+  return text === '' ? null : text;
+}
+
+/**
+ * Body of `PATCH /api/jobs/:id` from a valid form (DD-04): only the editable fields whose normalized
+ * value differs from `original`; an emptied optional goes as `null`, `title` never does. `{}` means
+ * nothing changed (the caller sends no request). Never `status`, `createdAt` or `id` (EC-25).
+ */
+export function toPatch(original: Job, values: JobFormValues): JobPatch {
+  const patch: JobPatch = {};
+  const title = values.title.trim();
+  if (title !== original.title) patch.title = title;
+  const description = textOrNull(values.description);
+  if (description !== original.description) patch.description = description;
+  const location = textOrNull(values.location);
+  if (location !== original.location) patch.location = location;
+  const workMode = isWorkMode(values.workMode) ? values.workMode : null;
+  if (workMode !== original.workMode) patch.workMode = workMode;
+  const min = parseSalary(values.salaryMin);
+  if (min !== 'invalid' && min !== original.salaryMin) patch.salaryMin = min;
+  const max = parseSalary(values.salaryMax);
+  if (max !== 'invalid' && max !== original.salaryMax) patch.salaryMax = max;
+  return patch;
 }

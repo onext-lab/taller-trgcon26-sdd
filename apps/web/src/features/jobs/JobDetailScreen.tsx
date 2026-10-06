@@ -18,11 +18,11 @@ function useDocumentTitle(title: string | null): void {
 
 // 404 and 400 from the API show the same as an invalid ID (EC-43); `status` is never 400/404 unless the
 // API said so in its envelope.
-function isNotFound(error: unknown): boolean {
+export function isNotFound(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 404 || error.status === 400);
 }
 
-function NotFound() {
+export function NotFound() {
   useDocumentTitle(NOT_FOUND_TITLE);
   return (
     <>
