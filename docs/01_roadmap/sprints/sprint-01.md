@@ -17,8 +17,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 2 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-06 19:45 (HU-02 aprobada con observaciones en la ronda 2, mergeada y sincronizada)
+- HU: hechas 3 / total 5 · bloqueadas 0
+- Última actualización: 2026-10-06 21:10 (HU-03 aprobada con observaciones en la ronda 1, mergeada y sincronizada; T-03 hecha)
 
 ## Historias de usuario
 
@@ -42,15 +42,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-03 · Alta, edición y búsqueda de candidatos, con consentimiento · estado: pendiente
+### HU-03 · Alta, edición y búsqueda de candidatos, con consentimiento · estado: hecha
 - **Origen:** FEAT-02 · **Depende de:** nada · **Rama:** `hu/HU-03-candidatos-consentimiento`
-- [ ] prd-writer
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
 
 ### HU-04 · Inscribir en una oferta publicada, sin duplicados · estado: pendiente
 - **Origen:** FEAT-03 · **Depende de:** HU-02 y HU-03 · **Rama:** `hu/HU-04-inscribir-candidato`
@@ -86,7 +86,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   plantilla de TASK, en `/task-planner` y en el brief decide cuál lanza `/implementar-hu` (R4.0 de
   `docs/IMPLEMENTATION-RULE.md`). Decisión de la persona responsable tras cerrar HU-01.
 
-### T-03 · Tests web de ofertas intermitentes bajo carga · estado: pendiente (bloquea el cierre del sprint)
+### T-03 · Tests web de ofertas intermitentes bajo carga · estado: hecha (`f888305`)
 - **Tipo:** deuda de tests (HU-01/HU-02)
 - `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` (foco en el h1),
   `apps/web/test/features/jobs/JobListScreen.pagination.test.tsx` (CA-18) y

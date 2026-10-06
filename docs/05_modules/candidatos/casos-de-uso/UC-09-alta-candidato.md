@@ -3,7 +3,7 @@ id: UC-09
 titulo: "Dar de alta un candidato"
 modulo: candidatos
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-02
 hus: [HU-03]
 ---

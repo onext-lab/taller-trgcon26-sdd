@@ -81,9 +81,9 @@ INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001
 - **Ventana tolerada de INV-05 hasta HU-05:** mientras el puerto sea el stub, una oferta cerrada puede tener
   inscripciones en etapa no final. Hoy no existen inscripciones; el test de EC-14
   (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-05 lo sustituye al conectar UC-19.
-- Avisos de la review de HU-02: HU-03 cierra el `details` sin tope (SEC-03) y reutiliza `NO_CONTROL_CHARS*` y
-  `foldSearchText`; HU-05 conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores no llevan
-  datos del candidato al log.
+- Avisos de la review de HU-02: HU-03 cerró el `details` sin tope (SEC-03) y reutilizó `NO_CONTROL_CHARS*` y
+  `foldSearchText`; queda HU-05, que conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores
+  no llevan datos del candidato al log.
 
 ## Estado vivo del MVP
 

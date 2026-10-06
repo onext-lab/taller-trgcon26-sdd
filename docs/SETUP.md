@@ -54,6 +54,11 @@ npm run db:reset && npm run dev     # crea data/ats.db y levanta API (:3001) y w
 
 Abre <http://127.0.0.1:5173>: tienes que ver «ATS» y «Estado de la API: ok».
 
+`npm run db:reset` carga datos de ejemplo, todos inventados: **10 ofertas** (4 borradores, 4 publicadas y 2 cerradas) y
+**30 candidatos** (10 con consentimiento vigente, 4 con el consentimiento retirado y 16 sin él, todos con email
+`@example.com`). Las fechas de los candidatos son **relativas al momento del reset** (altas de 3 a 148 días antes), así
+que ninguno nace vencido y cada reset las desplaza.
+
 ## Comprobación: `npm run check:env`
 
 `npm run check:env` (`scripts/check-env.mjs`) revisa la versión de Node, que los puertos 3001 y 5173 estén libres, que
@@ -95,8 +100,9 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 ## Cómo se preparan los e2e
 
 `npm run e2e` usa su propia base, `data/e2e.db`, y sus propios puertos (3101 la API y 5174 la web), así que se puede
-lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y seed de 10
-ofertas: 4 borradores, 4 publicadas y 2 cerradas) en el comando del `webServer` de la API, en `playwright.config.ts`
+lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera (esquema, migraciones y el mismo seed:
+10 ofertas, con 4 borradores, 4 publicadas y 2 cerradas, y 30 candidatos, con 10 con consentimiento vigente, 4 retirado y
+16 sin él, con fechas relativas al reset) en el comando del `webServer` de la API, en `playwright.config.ts`
 (`npm run db:reset -w apps/api && npm run start -w apps/api`). No va en un `globalSetup` porque en Playwright 1.63 el
 `webServer` arranca **antes** que `globalSetup`: borrar la base entonces dejaría a la API escribiendo en ficheros ya
 borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones seguidas dan el mismo resultado.

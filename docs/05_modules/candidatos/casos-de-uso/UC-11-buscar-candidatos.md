@@ -3,7 +3,7 @@ id: UC-11
 titulo: "Buscar candidatos"
 modulo: candidatos
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-02
 hus: [HU-03]
 ---
@@ -35,8 +35,8 @@ El reclutador encuentra candidatos por nombre, email o skill.
 ## Flujos alternativos
 - **A1 — Sin filtros** (desde el paso 1): sin `q` ni skill → todos los candidatos, con el mismo orden y paginación
   (S-04).
-- **A2 — Filtro por skill** (desde el paso 1): el reclutador elige una sola skill → solo los candidatos con esa skill
-  exacta, comparada en minúsculas; si también hay `q`, se combinan en Y (RV-14, S-04).
+- **A2 — Filtro por skill** (desde el paso 1): el reclutador escribe una sola skill en un campo de texto (DT-04) → solo
+  los candidatos con esa skill exacta, comparada en minúsculas; si también hay `q`, se combinan en Y (RV-14, S-04).
 - **A3 — Sin resultados** (en el paso 2): ninguna coincidencia → estado vacío con mensaje (06_design_principles §3).
 - **A4 — Otra página o tamaño** (en el paso 3): el reclutador pide otra página o un tamaño de página de hasta 100 →
   se devuelve esa página; una página más allá de la última devuelve una lista vacía (RV-08, S-04).
