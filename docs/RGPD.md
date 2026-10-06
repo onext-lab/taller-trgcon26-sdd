@@ -39,8 +39,14 @@ origen, religión, afiliación…). Un PRD que quiera añadir un dato nuevo tien
 | Con consentimiento para futuros procesos | 24 meses desde la fecha del consentimiento | Anonimizar, salvo que lo renueve |
 | **Sin** ninguna inscripción y **sin** consentimiento | 6 meses desde el alta | Anonimizar |
 
-- `Candidate` guarda la **fecha de fin de retención**; se recalcula cuando cambia el consentimiento o se cierra su
-  último proceso.
+- `Candidate` guarda la **fecha de fin de retención**. Se recalcula al crear o cerrar una inscripción y al cambiar el
+  consentimiento, en la misma transacción que la operación que lo provoca.
+- **Fórmula única** (validada en el shaping, `S-06` de
+  [reglas-validadas.md](02_discovery/reglas-validadas.md)): con alguna inscripción no final, **sin fecha de fin**; si
+  no, la **más tardía** de las que apliquen: consentimiento vigente + 24 meses; cierre del último proceso + 6 meses;
+  alta + 6 meses si nunca tuvo inscripciones. `hired` también cierra el proceso. Retirar el consentimiento aplica la
+  fórmula aunque la fecha resultante ya haya pasado (se anonimiza en la siguiente pasada). Si la fecha no existe
+  (31/08 + 6 meses), se toma el último día del mes.
 - El vencimiento es **por día**: un candidato vence el mismo día de su fecha de fin de retención (caso límite típico).
 
 ## 4. Derechos del candidato

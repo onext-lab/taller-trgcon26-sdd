@@ -61,3 +61,54 @@
   (RFC 2606): nunca personas reales.
 - **RV-27 · Importación CSV (feature C).** Una fila con un email que ya existe no sobrescribe: se informa como
   «duplicado» en el informe de errores. El resto se decide en el shaping de esa feature.
+
+## Respuestas del shaping de FEAT-01..03 (2026-10-06)
+
+Preguntas que no cubrían las RV, respondidas en bloque por la persona («todo según recomendación»). Se citan `S-NN`.
+
+- **S-01 · Idempotencia.** Repetir una acción de estado ya aplicada (publicar una publicada, cerrar una cerrada,
+  retirar un consentimiento inexistente, reintentar un cambio de etapa ya hecho) devuelve 200 sin cambios, sin tocar
+  fechas ni crear `StageChange`. En el reintento de etapa prevalece RV-23 sobre RV-22.
+- **S-02 · Concurrencia de ediciones.** En las ediciones de campos gana la última escritura; las transiciones de estado
+  comprueban el estado actual y responden 409 si no lo permite.
+- **S-03 · Formatos.** Se recortan los espacios antes de validar (solo espacios = vacío). Esquema estricto: un campo
+  desconocido o de solo lectura (p. ej., el fin de retención) da 400. Email estándar de ≤ 254 caracteres. Teléfono:
+  «+» opcional y 6-20 caracteres entre dígitos, espacios, guiones y paréntesis. Ubicación: texto libre de 2-120.
+  Nombre y apellidos en un solo campo. Skills: se recortan, se descartan las vacías y se deduplican antes de contar
+  el máximo. `q`: ≤ 100 caracteres y sin caracteres de control.
+- **S-04 · Listados.** La búsqueda por título de ofertas ignora mayúsculas y tildes. Los candidatos se paginan como
+  RV-08 y se ordenan por alta, la más reciente primero. Más de 100 por página da 400. Sin filtro, las ofertas mezclan
+  estados por fecha de referencia (publicación o, si no hay, creación), con desempate por ID. El listado de candidatos
+  muestra solo nombre, email y skills. Una sola skill por filtro, combinada con `q` en Y.
+- **S-05 · Anonimizados.** El estado «anonimizado», su exclusión de búsquedas (RV-14) y el bloqueo de inscripción
+  (RV-17) los introduce la feature A, que modifica los UC existentes. El núcleo solo prevé la etiqueta «Candidato
+  anonimizado» en el pipeline.
+- **S-06 · Fórmula de retención.** Con alguna inscripción no final, sin fecha de fin («mientras dure el proceso»). Si
+  no, la fecha más tardía de las que apliquen: consentimiento vigente + 24 meses; cierre del último proceso + 6 meses;
+  alta + 6 meses si nunca tuvo inscripciones. `hired` también cierra el proceso. Se recalcula al crear o cerrar
+  inscripciones y al cambiar el consentimiento, en la misma transacción. Retirar el consentimiento aplica la fórmula
+  aunque la fecha ya haya pasado. Fecha inexistente (31/08 + 6 meses) → último día del mes. Ver [RGPD.md](../RGPD.md) §3.
+- **S-07 · Consentimiento.** La versión del texto es una constante versionada en el código, mostrada junto a la casilla.
+  La fecha la pone el sistema. Al retirarlo se conservan la fecha de otorgamiento y la de retirada. Marcarlo con uno
+  vigente es una renovación (fecha y versión nuevas, 24 meses desde ahí).
+- **S-08 · Banda salarial.** Dos extremos opcionales e independientes, enteros > 0; mínimo ≤ máximo solo si vienen
+  los dos.
+- **S-09 · Editar una oferta publicada.** Debe seguir cumpliendo los campos obligatorios: vaciar uno da 400.
+- **S-10 · Cierre de oferta.** Diálogo con el número de inscripciones activas que se rechazarán; una sola transacción
+  (si algo falla, ni se cierra ni se rechaza nada); se guarda y se muestra la fecha de cierre; cerrar un borrador da 409.
+- **S-11 · Duplicar.** Desde cualquier estado; copia los campos editables (título incluido), sin fechas, sin
+  inscripciones y sin enlace a la original.
+- **S-12 · Borrar un borrador.** Borrado físico.
+- **S-13 · StageChange inicial.** Al crear una inscripción se registra un `StageChange` sin origen → `received`.
+- **S-14 · Inscripción duplicada.** 409 con el ID de la inscripción existente.
+- **S-15 · Motivo «oferta cerrada».** Lo reserva el sistema para RV-05; a mano solo se eligen los otros tres.
+- **S-16 · Notas.** Solo los rechazos llevan nota (minimización).
+- **S-17 · Segundo `hired`.** Se permite en la misma oferta (RV-07).
+- **S-18 · Pipeline.** Visible también en ofertas `closed`, en solo lectura; con columna `rejected` y su motivo; cada
+  columna ordenada por la fecha del último cambio, la más reciente primero; sin paginación; solo el nombre del candidato.
+- **S-19 · Dónde se inscribe.** Solo desde el pipeline de la oferta, un candidato cada vez.
+
+Reparto entre módulos (decisión de ingeniería, conforme la persona): `candidatos` es dueño de la fórmula de retención y
+de su recálculo, y lee los procesos del candidato por un puerto que implementa `inscripciones`; `inscripciones` expone
+una operación interna que rechaza las inscripciones activas de una oferta, y `ofertas` la invoca dentro de la
+transacción de cierre.
