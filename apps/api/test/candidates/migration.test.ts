@@ -21,7 +21,7 @@ const GIVEN_AT = '2026-09-22T09:00:00.000Z';
 const VALID: CandidateRow = {
   full_name: 'Lucía Ferrer Soto',
   email: 'lucia.ferrer@example.com',
-  phone: '600123456',
+  phone: '600000012',
   summary: 'Resumen inventado del perfil.',
   skills: '["sql","typescript"]',
   created_at: '2026-09-21T08:00:00.000Z',

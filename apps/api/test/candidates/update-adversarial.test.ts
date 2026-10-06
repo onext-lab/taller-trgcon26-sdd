@@ -55,8 +55,8 @@ describe('PATCH /api/candidates/:id — concurrencia (EC-22)', () => {
   it('EC-22 dos PATCH a la vez a la misma ficha → dos 200 y la ficha final es entera de uno de los dos', async () => {
     const created = await seed();
     const bodies = [
-      { fullName: 'Pestaña Alfa', phone: '611 111 111', skills: ['sql'] },
-      { fullName: 'Pestaña Beta', phone: '622 222 222', skills: ['python'] },
+      { fullName: 'Pestaña Alfa', phone: '600 000 011', skills: ['sql'] },
+      { fullName: 'Pestaña Beta', phone: '600 000 022', skills: ['python'] },
     ];
 
     const responses = await Promise.all(bodies.map((body) => patch(created.id, body)));
@@ -112,7 +112,7 @@ describe('PATCH /api/candidates/:id — fallo de la base (CA-14, EC-23)', () => 
     const response = await patch(created.id, {
       fullName: 'Nombre Nuevo Hostil',
       email: 'nuevo.hostil@example.com',
-      phone: '699 999 999',
+      phone: '600 000 099',
       summary: 'Resumen nuevo hostil.',
       skills: ['rust'],
     });
@@ -122,7 +122,7 @@ describe('PATCH /api/candidates/:id — fallo de la base (CA-14, EC-23)', () => 
     for (const text of [
       'Nombre Nuevo',
       'nuevo.hostil',
-      '699',
+      '600 000 099',
       'Resumen nuevo',
       'rust',
       'SQLITE',
