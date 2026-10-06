@@ -1,12 +1,12 @@
 ---
 id: IDEA-003
 titulo: "Inscripciones y pipeline de selección"
-estado: idea            # idea | aceptada | descartada | completada
+estado: aceptada        # idea | aceptada | descartada | completada
 fecha: 2026-10-06
 autor: "equipo del taller"
 modulos_afectados: [inscripciones]
 prioridad: null         # alta | media | baja (la fija la persona)
-feature: null           # FEAT-NN cuando se acepte
+feature: FEAT-03        # FEAT-NN cuando se acepte
 completada_en: null
 ---
 
@@ -30,4 +30,4 @@ Módulo `inscripciones` (API y web). Lee de `ofertas` (solo publicadas) y de `ca
 - Toca UI: principios en [06_design_principles/README.md](../../06_design_principles/README.md).
 
 ## Decisión
-<Se rellena al aceptar (con su FEAT-NN) o al descartar (con el motivo).>
+Promovida a FEAT-03 el 2026-10-06.
