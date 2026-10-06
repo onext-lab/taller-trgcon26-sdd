@@ -95,3 +95,31 @@ INTEGRACION rc=0
 - **Resultado:** verde a la primera (sin ciclos de arreglo)
 - **Commit:** el de esta tarea (`[HU-01 TASK-11]`)
 
+
+## 8. Reapertura · review ronda 1
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
+
+- **Qué hacer:** `DeleteJobAction` (`apps/web/src/features/jobs/DeleteJobAction.tsx:14`) tiene 62 líneas y el umbral es 50: pártelo (p. ej., un hook `useDeleteJob` con el estado y la llamada, y el componente con el JSX) sin cambiar su comportamiento ni sus textos.
+- **Ficheros:** `apps/web/src/features/jobs/DeleteJobAction.tsx`
+- **Verificación que debes pegar:** `npm test -w apps/web -- DeleteJobAction JobDetailScreen` en verde con 2 ficheros y el mismo número de tests que antes; `npm run typecheck`; `npx eslint` del fichero; ninguna función pasa de 50 líneas (pega su recuento).
+
+### Resultado de la integración (reapertura)
+```
+$ npm test -w apps/web -- DeleteJobAction JobDetailScreen
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+exit=0
+$ npm run typecheck
+> tsc -p tsconfig.json
+> tsc -p tsconfig.json
+exit=0
+$ npx eslint apps/web/src/features/jobs/DeleteJobAction.tsx
+exit=0
+$ wc -l (ficheros tocados)
+      82 apps/web/src/features/jobs/DeleteJobAction.tsx
+INTEGRACION rc=0
+```
+
+- **Resultado:** verde; DeleteJobAction pasa a useDeleteJob (35 líneas) + componente (32 líneas); mismos tests
+

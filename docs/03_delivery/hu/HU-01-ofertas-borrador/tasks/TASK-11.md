@@ -92,3 +92,9 @@ Los tests adversariales (HTML en la descripción, doble clic en «Borrar oferta�
 - `App.test.tsx`: sigue en verde con la ruta nueva.
 
 Datos inventados («Desarrollador/a backend (Node.js)», «Valencia»).
+
+## Reapertura · review ronda 1 (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Qué hay que hacer:** `DeleteJobAction` (`apps/web/src/features/jobs/DeleteJobAction.tsx:14`) tiene 62 líneas y el umbral es 50: pártelo (p. ej., un hook `useDeleteJob` con el estado y la llamada, y el componente con el JSX) sin cambiar su comportamiento ni sus textos.
+- **Ficheros:** `apps/web/src/features/jobs/DeleteJobAction.tsx`
+- **Criterios de done:** `npm test -w apps/web -- DeleteJobAction JobDetailScreen` en verde con 2 ficheros y el mismo número de tests que antes; `npm run typecheck`; `npx eslint` del fichero; ninguna función pasa de 50 líneas (pega su recuento).

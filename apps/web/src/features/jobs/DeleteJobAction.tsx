@@ -9,9 +9,9 @@ const GONE_MESSAGE = 'Esta oferta ya no existe.';
 
 type Props = { id: number; title: string };
 
-// «Borrar» button + confirmation dialog (DT-02, DD-05). Cancelling never calls the API; confirming sends
-// one DELETE (the ref guard keeps a double click from sending two) and returns to the list with a notice.
-export function DeleteJobAction({ id, title }: Props) {
+// State and API call of the delete flow. Confirming sends one DELETE (the ref guard keeps a double click
+// from sending two) and returns to the list with a notice.
+function useDeleteJob(id: number) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -43,6 +43,13 @@ export function DeleteJobAction({ id, title }: Props) {
       setBusy(false);
     }
   }
+
+  return { open, setOpen, busy, error, gone, close, confirm };
+}
+
+// «Borrar» button + confirmation dialog (DT-02, DD-05). Cancelling never calls the API.
+export function DeleteJobAction({ id, title }: Props) {
+  const { open, setOpen, busy, error, gone, close, confirm } = useDeleteJob(id);
 
   if (gone) {
     return (
