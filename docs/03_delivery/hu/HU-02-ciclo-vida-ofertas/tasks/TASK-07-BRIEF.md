@@ -99,7 +99,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** `isJob` (`apps/web/src/features/jobs/api.ts:46`) tiene unas 13 ramas (una cadena de `&&`) y el umbral es 10: pásalo a una tabla de comprobaciones por campo (p. ej. un objeto campo → predicado y `every`) sin cambiar qué acepta ni qué rechaza.

@@ -1,159 +1,78 @@
-# Review — HU-02 Publicar, cerrar, duplicar y listar ofertas con filtros
+# Review — HU-02 Publicar, cerrar, duplicar y listar ofertas con filtros (ronda 2)
 
 ## 1. Resumen ejecutivo
-- **Fecha:** 2026-10-06 · **Rama:** `hu/HU-02-ciclo-vida-ofertas` · **Commits revisados:** `fcce2b2..b669cc0`
-  (especificación, diseño y tareas, y 14 commits de código)
-- **Ficheros tocados:** 67 de código y tests, más los documentos de la HU y DEC-12 · **Tasks:** 14/14 completadas
-- **Auditores:** security-auditor ✔ · datos-personales-auditor ✔ · doc-code-drift-checker ✔ (más la tabla
-  criterio → test, los gates y el contraste DEC/DD)
-- **Hallazgos:** críticos 1 · altos 0 · medios 4 · bajos 12
-- La HU completa el ciclo de vida de la oferta: publicar, cerrar (en una transacción, con el diálogo y el puerto de
-  inscripciones preparado para HU-05), duplicar, editar y borrar según el estado (comprobado en el servicio), y el
-  listado con filtros por estado y título (sin tildes ni mayúsculas), con paginación. Añade DEC-12 (403 a escrituras
-  desde otro sitio). Cumple 24/24 CA y 20/20 flujos de UC, con la integración completa en verde. Falla en un edge case
-  de RF Must sin test (EC-14).
+- **Fecha:** 2026-10-06 · **Rama:** `hu/HU-02-ciclo-vida-ofertas` · **Commits revisados en esta ronda:**
+  `f82ae93..HEAD` (6 de código, 2 de docs y el de esta review). La ronda 1 está en `review/REVIEW-ronda-1.md`.
+- **Tasks:** 14/14 completadas (TASK-01, 04, 05, 07, 08 y 11 reabiertas por la ronda 1)
+- **Auditores:** security-auditor ✔ · datos-personales-auditor ✔ · doc-code-drift-checker ✔
+- **Hallazgos abiertos:** críticos 0 · altos 0 · medios 0 · bajos 5 (observaciones, §9)
+- Las siete acciones de la ronda 1 están resueltas: EC-14 tiene test, DEC-12 está enmendado (lista de métodos seguros,
+  `same-site` rechazado, texto corregido y código nombrado) con su guard y sus tests, `splitServerError` e `isJob`
+  vuelven a ≤ 10 ramas, CA-18 se alinea con el PRD, el drift de los TD, las tareas y el PRD está corregido y el test
+  duplicado se ha quitado. Los hallazgos nuevos de la ronda (NEW-01..05, documentales) se curaron antes de cerrarla.
 
 ## 2. Veredicto
-**Requiere cambios.** EC-14 (RF-02 Must) describe un comportamiento (la ventana de INV-05: con el puerto por defecto, el
-cierre no rechaza inscripciones) y no tiene test ni está marcado `N/A` en el PRD. Por la regla de `/reviewer`, es
-crítico. Además, la review pide curar dos medios antes del merge: el guard de DEC-12 deja pasar `same-site` y los
-métodos de escritura que no estén en su lista (SEC-01), y `splitServerError` pasa de 10 ramas.
+**Aprobado con observaciones.** Sin críticos, altos ni medios abiertos; quedan 5 bajos aceptados (§9) y el drift de
+documentación general que corrige `/module-sync`.
 
 ## 3. Decisiones aplicables
+Igual que la ronda 1 (§3 de `review/REVIEW-ronda-1.md`), con un cambio:
 
 | DEC-NN | Aplica porque | ¿Cumple? |
 |---|---|---|
-| DEC-01 | Rutas nuevas con esquema y envelope | Sí — `apps/api/src/modules/jobs/routes.ts:58-127`, `apps/api/src/http/error-handler.ts:10-22` |
-| DEC-03 | Sin migración nueva; seed de 10 | Sí — solo `001-create-job-openings.sql`; `git ls-files` sin `.db`; seed inventado (`apps/api/src/db/seed.ts`) |
-| DEC-04 | Sin login | Sí — sin credenciales ni roles |
-| DEC-05 | Sin dependencias nuevas | Sí — `normalize` y `DatabaseSync#function` nativos (`apps/api/src/db/text-search.ts:9,17`) |
-| DEC-06 | Cierre transaccional y puerto | Sí — `apps/api/src/modules/jobs/service.ts:124-135`; `jobs` no importa `applications`; composición en `apps/api/src/app.ts:57-63` |
-| DEC-07 | 409, 201 y 200 | Sí — `apps/api/src/errors.ts:29` (`INVALID_TRANSITION`), `apps/api/src/modules/jobs/rules.ts:11-32` |
-| DEC-08 | Estado dentro de la transacción; repetir = 200 | Sí — `service.ts:87-135`; guarda en el `UPDATE` (`apps/api/src/modules/jobs/repository.ts:48-54`) |
-| DEC-09 | Fechas y reloj | Sí — `now()` en `service.ts:118,128,143`; `formatDate` en `apps/web/src/features/jobs/JobDetails.tsx:16` |
-| DEC-10 | Listado | Sí — forma y orden (`service.ts:146-150`, `repository.ts:87`), 4 campos (`schemas.ts:117`), NFD (`text-search.ts:9`) |
-| DEC-11 | Validación y errores | Sí — `page`/`pageSize` como texto con `pattern` (`schemas.ts:171-172`), `q` recortado y sin controles (`routes.ts:38`, `schemas.ts:170`) |
-| DEC-12 | Escrituras desde otro sitio | Sí, como está escrita — `apps/api/src/http/cross-site.ts:12-18`, `app.ts:30-31`, test `apps/api/test/http/cross-site.test.ts:87`. **Pero** su texto y su alcance tienen fallos (SEC-01, DD-01, DD-06) |
-
-Las DD de los dos TECHNICAL_DOC están implementadas como dicen (DD-12 de triggers, descartada; no hay `002`).
+| DEC-12 | Escrituras desde otro sitio (enmendada) | Sí — `apps/api/src/http/cross-site.ts:4,9-10,22`: solo `GET`, `HEAD` y `OPTIONS` pasan sin comprobar; `Sec-Fetch-Site` normalizado debe ser `same-origin` o `none`; sin cabecera pasa. Tests en `apps/api/test/http/cross-site.test.ts` (`same-site` → 403, `PUT` → 403 antes del 404, normalización) |
 
 ## 4. Hallazgos por auditor
 
 ### security-auditor
-0 críticos, 0 altos, 1 medio, 3 bajos (VERDICT del auditor: OK).
-- **SEC-01 · medio** — `apps/api/src/http/cross-site.ts:4,13`: el guard es una lista de métodos (`POST`, `PATCH`,
-  `DELETE`). (a) Un método de escritura futuro (`PUT`) quedaría fuera, aunque DEC-12 promete que «cada HU que añada
-  escrituras hereda la protección». (b) Con la API en `127.0.0.1`, otra aplicación en otro puerto de loopback llega
-  como `same-site` y pasa. Propuesta: invertir la lógica (rechazar todo método que no sea `GET`, `HEAD` ni `OPTIONS`
-  si `Sec-Fetch-Site` no es `same-origin` ni `none`; sin cabecera, pasa) y normalizar el valor. Cambia DEC-12.
-- **SEC-02 · bajo** — `apps/api/src/modules/jobs/repository.ts:42-45,159`: `UPDATE` y `DELETE` sin guarda de estado
-  en el SQL (sí la tienen `markPublished`/`markClosed`). No explotable hoy (`BEGIN IMMEDIATE`, una conexión).
-  Defensa en profundidad para HU-05.
-- **SEC-03 · bajo** — `details` sin tope con el nombre de la clave sobrante: es la SEC-04/DP-01 aceptada en HU-01, que
-  HU-03 cierra (DT-10 de su PRD).
-- **SEC-04 · bajo** — `apps/api/src/app.ts:28`: sin lista de `Host` permitidos; un DNS rebinding llegaría como
-  `same-origin`. Teórico y anterior a HU-02.
-- Sin hallazgos en inyección (SQL con parámetros con nombre; `instr` literal), ReDoS, `page` enorme (patrón de 9
-  cifras), mass assignment, XSS, URL de la web (`encodeURIComponent`, rutas internas), errores ni logs.
+0 críticos, 0 altos, 0 medios, 1 bajo nuevo (VERDICT del auditor: OK).
+- **SEC-01 (medio en la ronda 1): resuelto.** Falla cerrado ante cabeceras repetidas o vacías; el 403 llega antes del
+  parseo del cuerpo y del 404; la web, por el proxy de Vite, sigue llegando como `same-origin`.
+- **SEC-05 · bajo** — `apps/api/src/http/cross-site.ts:22`: sin validación de `Host`, un DNS rebinding llegaría como
+  `same-origin`. Es la SEC-04 de la ronda 1 (anterior a HU-02 y teórica).
+- Los refactors de `isJob`, `list-query.ts`, `job-form-errors.ts` y `JobListScreen.tsx` no abren nada.
 
 ### datos-personales-auditor
-0 críticos, 0 altos, 0 medios, 2 bajos (VERDICT del auditor: OK). La HU no trata datos personales; el puerto y
-`close-preview` solo exponen un recuento.
-- **DP-01 · bajo (preventivo)** — `apps/api/src/http/error-handler.ts:12` registra el objeto de error de los 500. Cuando
-  HU-05 implemente el puerto, un `Error` que interpole datos del candidato acabaría en el log: HU-05 necesita un test.
-- **DP-02 · bajo (informativo)** — `apps/api/src/modules/jobs/repository.ts:98`: `SELECT *` en `findById`, contenido
-  por el esquema de respuesta; no copiarlo en candidatos.
-- **Para HU-04/05:** recalcular la retención en la transacción del cierre (RGPD §3), mantener el puerto solo con
-  escalares, mensajes de error sin datos personales y rutas de candidatos sin datos en el path.
+0 hallazgos (VERDICT del auditor: OK). DP-01 y DP-02 de la ronda 1 siguen como avisos para HU-05.
 
 ### doc-code-drift-checker
-1 crítico, 0 altos, 5 medios, 5 bajos (VERDICT del auditor: BLOQUEANTE, por DD-01).
-- **DD-01 · crítico según el auditor → medio en esta review** — `docs/07_architecture_principles/DECISIONS.md:212`
-  (contexto de DEC-12): «los cuerpos `text/plain` dan 415» es falso. Fastify trae el parser de `text/plain`, así que el
-  cuerpo llega como texto: en las acciones lo para `rejectBody` con 400 y en el alta, el esquema (400). El razonamiento
-  de DEC-12 no cambia (siguen sin poder crear nada), pero el dato es erróneo. No es una ruta inexistente; lo escribió
-  la sesión al redactar DEC-12.
-- **DD-06 · medio** — DEC-12 no nombra el código `CROSS_SITE_REQUEST`.
-- **DD-02 / DD-03 · medios** — `plans/TECHNICAL_DOC-backend.md:405-411,646-650` y `plans/TECHNICAL_DOC-frontend.md`
-  (`:321-363`, `:349-353`, `:550-579`, tabla `:85-91`) citan ficheros de test de los que los casos se movieron a los
-  hermanos (`status-rules-adversarial`, `JobDetailScreen.states`, `CloseJobAction.adversarial`,
-  `JobListScreen.pagination`, `JobListScreen.filters-adversarial`).
-- **DD-04 / DD-05 · medios** — `docs/ARCHITECTURE.md:24-49` (sin `jobApplications?`, `CROSS_SITE_REQUEST`, el guard ni
-  `text-search.ts`) y `docs/SETUP.md:98-99` («seed de 4 borradores»; son 10). Van a `/module-sync`.
-- **Bajos:** DD-07 (recuentos y nombres de hermanos en `tasks/TASK-08.md`, `TASK-12.md` y `TASK-13.md`), DD-08
-  (líneas movidas en TD y ROADMAP), DD-09 (los TD citan PRD v1.1), DD-10 (`docs/_modules.md`, anterior).
-
-### Revisión de calidad (la review)
-- **Medio** — complejidad: `apps/web/src/features/jobs/job-form-errors.ts:18` `splitServerError` ≈ 14 ramas.
-- **Bajo** — `apps/web/src/features/jobs/api.ts:46` `isJob` ≈ 13 ramas (cadena de `&&` de forma).
-- **Bajo** — CA-18 del PRD dice que «Por página» ofrece solo 20, 50 y 100; la web añade delante un tamaño válido que
-  venga en la URL (`apps/web/src/features/jobs/JobFilters.tsx:45`), como decidió el TD-frontend sin actualizar el PRD.
-- **Bajo** — `apps/web/src/features/jobs/use-job-actions.ts:62-63`: el foco vuelve al botón con
-  `document.activeElement`; en Safari los botones no reciben foco al clic y no volvería (declarado en
-  `tasks/TASK-10-BRIEF.md`).
-- **Bajo** — `apps/api/test/jobs/performance.test.ts:127` duplica el test RNF-02 de HU-01 junto al nuevo.
-- **Informativo** — `JobDetailScreen.actions.test.tsx` está en 300 líneas exactas.
+VERDICT del auditor: OK. **DD-01, DD-02, DD-06, DD-07 y DD-09: resueltos; DD-03, resuelto tras esta ronda.** Hallazgos
+nuevos, todos curados antes de cerrar:
+- **NEW-01 · alto** — las reaperturas citaban `review/REVIEW.md` como origen de la ronda 1; repuntadas a
+  `review/REVIEW-ronda-1.md` (12 ficheros de `tasks/`). Es la misma lección que DD-13 de HU-01: el script de la sesión
+  ya escribe la ronda desde el principio.
+- **NEW-02 · medio** — `specs/PRD.md` DT-07 decía que los tamaños 1-100 se usan «por la API o la URL»; ahora, «solo por
+  la API» (la web pide como 20 un tamaño válido que no sea 20, 50 ni 100). DD-01 del TD-frontend lo explica.
+- **NEW-03 / NEW-04 · medio y bajo** — referencias del TD-frontend a los ficheros de test reales (`filters.test.tsx`,
+  `JobDetailScreen.states.test.tsx` y los hermanos `[adversarial]`); corregidas por el arquitecto.
+- **NEW-05 · bajo** — `tasks/TASK-01.md` y `TASK-04.md` llevan una nota de que los criterios de «`same-site` pasa»
+  quedan sustituidos por la reapertura.
 
 ## 5. Criterio → test
-Abreviaturas: `A/` = `apps/api/test/jobs/`, `AH/` = `apps/api/test/http/`, `W/` = `apps/web/test/features/jobs/`,
-`EL` = `e2e/jobs-lifecycle.spec.ts`, `ES` = `e2e/jobs-list.spec.ts`; los ficheros, sin `.test.ts(x)`. «pasa» = test
-presente y en verde en §7.
+Los 24 CA, los 20 flujos de UC y los EC de la ronda 1 siguen con su test (§5 de `review/REVIEW-ronda-1.md`) y en verde
+en §7. Cambios de esta ronda:
 
 | Origen | UC | Criterio o edge case | Categoría | Test (`fichero:línea`) | Estado |
 |---|---|---|---|---|---|
-| CA-01 / RF-01 | UC-03 · P | Publicar un borrador completo | — | `A/publish:51` · `W/JobDetailScreen.actions:61` · `EL:95` | pasa |
-| CA-02 | UC-03 · A1 | Ya publicada: 200, misma fecha | — | `A/publish:65` | pasa |
-| CA-03 | UC-03 · E1 | Faltan obligatorios: 400 con la lista | — | `A/publish:165` · `W/JobDetailScreen.actions:82` · `EL:114` | pasa |
-| CA-04 | UC-03 · E2 | Publicar una cerrada: 409 | — | `A/publish:197` | pasa |
-| CA-05 / RF-02 | UC-04 · P | Diálogo con 0 y cierre en una transacción | — | `A/close:51` · `W/CloseJobAction:82,147` · `EL:140` | pasa |
-| CA-06 | UC-04 · A2 | Cancelar o Escape: sin POST | — | `W/CloseJobAction:121,135` · `A/close:68` | pasa |
-| CA-07 | UC-04 · A3 | Ya cerrada: 200, misma fecha | — | `A/close:80` · `W/CloseJobAction:172` | pasa |
-| CA-08 | UC-04 · E1 | Cerrar un borrador: 409 | — | `A/close:143` | pasa |
-| CA-09 | UC-04 · E2 | Falla el cierre: envelope, sigue publicada | — | `A/close:161,175` · `W/CloseJobAction:185` | pasa |
-| CA-10 / RF-03 | UC-02 · E1 | Cerrada: sin Editar, PATCH 409 | — | `A/status-rules:64` · `W/JobDetailScreen.states:82` · `W/JobFormScreen.published:210` | pasa |
-| CA-11 | UC-02 · E3 | Vaciar obligatorio de publicada: 400 | — | `A/status-rules:74` · `W/JobFormScreen.published:78` · `EL:208` | pasa |
-| CA-12 | UC-02 · E4 | Cerrada en otra pestaña: 409 | — | `A/status-rules:117` · `W/JobFormScreen.published:171` · `EL:224` | pasa |
-| CA-13 | UC-05 · E1 | Publicada o cerrada: DELETE 409 | — | `A/status-rules:150` · `W/JobDetailScreen.states:71,82` · `W/DeleteJobAction:162` | pasa |
-| CA-14 / RF-04 | UC-06 · P | Duplicar una cerrada | — | `A/duplicate:46` · `W/JobDetailScreen.actions:113` · `EL:185` | pasa |
-| CA-15 | UC-06 · P | Duplicar borrador y publicada | — | `A/duplicate:67` | pasa |
-| CA-16 / RF-05 | UC-07 · A1 | `published` + «gestion» | — | `A/list-filters:67` · `W/JobListScreen.filters:70` · `ES:38` | pasa |
-| CA-17 | UC-07 · A3 | Paginación de la API | — | `A/list-filters:96,111` · `W/JobListScreen.pagination:104` | pasa |
-| CA-18 | UC-07 · A3 | Paginación y tamaño en la web | — | `W/JobListScreen.pagination:45,66` · `ES:60` | pasa |
-| CA-19 | UC-07 · E1 | `pageSize` 101 o 0: 400 | — | `A/list-filters-adversarial:73` · `ES:122` | pasa |
-| CA-20 | UC-07 · E2 | `q` de 101 o con control: 400 | — | `A/list-filters-adversarial:89,98,105` · `W/JobListScreen.filters:204,239` | pasa |
-| CA-21 | UC-07 · E3 | `status=archived`: 400 | — | `A/list-filters-adversarial:80` | pasa |
-| CA-22 / RF-06 | UC-08 · A1 | Ficha cerrada en solo lectura | — | `W/JobDetailScreen.states:82` · `EL:140` | pasa |
-| CA-23 | UC-08 · P | Ficha de borrador con 4 acciones | — | `W/JobDetailScreen.states:60` · `EL:95` | pasa |
-| CA-24 / RF-07 Should | — | Seed de 10 | — | `A/seed:49,61,81,101` | pasa |
-| EC-01..EC-13 | — | RF-01 y RF-02 (ver informe de la tabla) | 1-7 | `A/publish`, `A/close`, `W/JobDetailScreen.actions`, `W/CloseJobAction`, `A/migration:143` | pasa |
-| **EC-14 / RF-02 Must** | — | Ventana de INV-05: el cierre no rechaza inscripciones mientras no haya puerto real | 5 datos corruptos | — (el PRD no lo marca `N/A`) | **falla (crítico)** |
-| EC-15, EC-16 | — | Título hostil en el diálogo; doble clic | 6, 7 | `W/CloseJobAction.adversarial:75,87,102` · `A/close:80` | pasa |
-| EC-17..EC-24 | UC-02 · E3/E4 | RF-03 (edición y borrado según estado) | 1-7 | `A/status-rules:74,117,132` · `A/status-rules-adversarial:71,89,105,127,145` · `A/migration:143` · `W/JobFormScreen.published` · `W/job-form-model.published` | pasa |
-| EC-25..EC-31 | UC-06 · P | RF-04 (duplicar) | 1-7 | `A/duplicate:46,91,103,121,143,160` · `W/JobDetailScreen.actions` (EC-29 N/A) | pasa |
-| EC-32..EC-39, EC-48 | UC-07 | RF-05 (listado) | 1-7 | `A/list-filters:96,111,123,134,149,164,187,199` · `A/list-filters-adversarial:54,73,89,105,126,147` · `W/JobListScreen.filters-adversarial:52,64,96,114,146` · `ES:104` | pasa |
-| EC-42..EC-46 | UC-08 · A1 | RF-06 (ficha por estado) | 2-6 | `W/JobDetailScreen.states:60,82,120` · `W/JobDetailScreen.actions:182,247` · `W/CloseJobAction:210,267` · `EL:129,224` | pasa |
-| EC-49 / RF-01, 02, 04 | — | Escritura cross-site: 403 | 6 | `AH/cross-site:87,129` | pasa |
-| EC-40, 41, 45, 47 | — | `N/A` en el PRD | — | — | N/A |
-| RNF-01..06 | — | Latencia, envelope, HTML, accesibilidad, `q` fuera de logs | — | `A/performance:95,113` · `A/list-filters-adversarial:147` · `W/CloseJobAction:82` · `W/JobDetailScreen.states:120` | pasa |
+| EC-14 / RF-02 Must | — | Ventana de INV-05 con el puerto por defecto | 5 datos corruptos | `apps/api/test/jobs/close.test.ts:202` «EC-14 sin puerto de inscripciones…» | pasa (antes falla) |
+| EC-49 / RF-01, 02, 04 | — | Escritura desde otro sitio o `same-site`: 403 | 6 seguridad | `apps/api/test/http/cross-site.test.ts` (47 tests: `same-site`, `cross-site`, `PUT`, normalización) | pasa |
+| CA-18 | UC-07 · A3 | «Por página» solo 20/50/100 | — | `apps/web/test/features/jobs/JobListScreen.filters.test.tsx:94,123` · `apps/web/test/features/jobs/list-query.test.ts:100,118` | pasa |
 
-**Resultado:** 24/24 CA, 20/20 flujos de UC (UC-04 · A1 es de HU-05) y 43/44 EC aplicables. Huérfano: EC-14.
+**Resultado:** 24/24 CA, 20/20 flujos de UC y 44/44 EC aplicables.
 
 ## 6. Gates de QUALITY-GATES
 
 | Umbral | Medido | ¿Cumple? |
 |---|---|---|
-| PRD | 20/20 flujos con CA; 7 RF; 49 EC por las 7 categorías; RNF con métrica; 0 OQ; `Ready` v1.2 | Sí |
-| TECHNICAL_DOC | 49 EC en cada TD; DD con alternativas; 0 OD | Sí (con el drift de §4) |
-| Tasks | 14 (≤ 15), máx. 3,5 h, adversariales aparte en M por RF Must (TASK-04, 06, 12 y 13) | Sí |
 | Líneas por fichero ≤ 300 | `src`: máx. `apps/web/src/features/jobs/JobFormScreen.tsx` 216; tests: `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` 300 | Sí |
-| Líneas por función ≤ 50 | Máx. con lógica: `apps/web/src/features/jobs/JobFormScreen.tsx:38` 47; factorías de objetos de métodos (`service.ts:71`, `routes.ts:54`, `repository.ts:93`) con métodos ≤ 18 | Sí |
-| Complejidad ≤ 10 ramas | `apps/web/src/features/jobs/job-form-errors.ts:18` ≈ 14; `apps/web/src/features/jobs/api.ts:46` ≈ 13 | **No** (medio y bajo) |
-| 1 test por RF, flujo y EC Must | 7/7 RF, 20/20 flujos, 43/44 EC Must | **No** (EC-14, crítico) |
+| Líneas por función ≤ 50 | Sin cambios respecto a la ronda 1 | Sí |
+| Complejidad ≤ 10 ramas | `splitServerError` 5 y `splitValidationError` 6 (`apps/web/src/features/jobs/job-form-errors.ts`); `isJob` 2 (`apps/web/src/features/jobs/api.ts`) | Sí |
+| 1 test por RF, flujo y EC Must | 7/7 RF, 20/20 flujos, 44/44 EC Must | Sí |
 | Anti-patrones de §4 | Sin hallazgos | Sí |
 | typecheck, lint, test, e2e, check:harness | En verde (§7) | Sí |
 
 ## 7. Integración
-Ejecutada por la review sobre `b669cc0`, con Node 24.21.0:
+Ejecutada por la review sobre `22feb74`, con Node 24.21.0:
 
 ```
 $ npm run typecheck
@@ -162,12 +81,12 @@ $ npm run lint
 exit=0
 $ npm test
  Test Files  24 passed (24)
-      Tests  294 passed (294)
+      Tests  309 passed (309)
  Test Files  25 passed (25)
-      Tests  306 passed (306)
+      Tests  307 passed (307)
 exit=0
 $ npm run e2e
-  24 passed (13.0s)
+  24 passed (13.3s)
 exit=0
 $ npm run check:harness
 check:harness: todo en verde.
@@ -176,36 +95,31 @@ $ git ls-files | grep -c '\.db$'
 0
 ```
 
+Los cambios posteriores de la ronda son solo documentales (PRD DT-07, TD-frontend y notas de tareas).
+
 ## 8. Limitaciones
-- Rendimiento solo con `fastify.inject` en local; sin Windows ni Linux; sin Safari (ver el bajo del foco).
-- Los auditores trabajan en estático; la búsqueda con una tabla grande no se ha medido más allá de 100 ofertas.
+- Sin Safari (ver el bajo del foco), sin Windows ni Linux; rendimiento solo con `fastify.inject` y 100 ofertas.
+- No hay test que fije `text/plain` → 400 en el alta; el comportamiento sale de leer Fastify y `rejectBody`.
 
 ## 9. Acciones requeridas
-1. **Crítico** — EC-14 (RF-02 Must) sin test. Arreglo: fijar con un test de la API que, con el puerto por defecto
-   (`noJobApplications`), cerrar una oferta publicada da 200, `close-preview` da 0 y no hay nada que rechazar, y que
-   HU-05 sustituirá ese test al conectar UC-19. Sin cambiar el PRD para esquivarlo. Reapertura de TASK-04.
-2. **Medio (SEC-01, cambia DEC-12)** — invertir el guard: rechazar todo método que no sea `GET`, `HEAD` ni `OPTIONS`
-   si `Sec-Fetch-Site` (normalizado) no es `same-origin` ni `none`; sin cabecera, pasa. Tests de `same-site` → 403 y de
-   un método no listado. Necesita la aprobación de la enmienda de DEC-12. Reapertura de TASK-01.
-3. **Medio** — `splitServerError` (`apps/web/src/features/jobs/job-form-errors.ts:18`) a ≤ 10 ramas, sin cambiar su
-   comportamiento (reapertura de TASK-11); y `isJob` (`apps/web/src/features/jobs/api.ts:46`) igual (reapertura de
-   TASK-07).
-4. **Medio (docs de la sesión)** — DEC-12: corregir «`text/plain` da 415» (es 400) y nombrar `CROSS_SITE_REQUEST`
-   (DD-01, DD-06).
-5. **Medio (docs de la HU)** — que los TD y `tasks/TASK-08.md`, `TASK-12.md` y `TASK-13.md` citen los ficheros de test
-   reales (DD-02, DD-03, DD-07) y el PRD v1.2 (DD-09).
-6. **Bajo** — CA-18: que el PRD recoja lo que decidió el TD-frontend (el selector conserva un tamaño válido de la URL)
-   o que la web lo quite. Necesita decisión de quien aprueba el PRD.
-7. **Bajo** — quitar el test duplicado de `apps/api/test/jobs/performance.test.ts:127`.
+Ninguna bloqueante. **Observaciones aceptadas** (merge preaprobado con «Aprobado con observaciones»):
+1. SEC-02 · bajo — `UPDATE` y `DELETE` sin guarda de estado en el SQL (`apps/api/src/modules/jobs/repository.ts:42-45,159`);
+   defensa en profundidad para HU-05.
+2. SEC-04/SEC-05 · bajo — sin lista de `Host` permitidos (DNS rebinding teórico; anterior a HU-02).
+3. Bajo — foco tras un error en Safari (`apps/web/src/features/jobs/use-job-actions.ts:62-63`).
+4. Bajo — `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` en 300 líneas: el siguiente test va a un hermano.
+5. DP-01/DP-02 · bajo — avisos para HU-05: test de que los errores del puerto no llevan datos del candidato al log; no
+   copiar `SELECT *` en candidatos.
 
-**A `/module-sync`:** DD-04 (`docs/ARCHITECTURE.md`), DD-05 (`docs/SETUP.md`), y `technical.md`, `functional.md`,
-UC-02..08 y `MVP-STATUS.md` (ver el informe del drift-checker).
+**A `/module-sync`:** DD-04 (`docs/ARCHITECTURE.md`: `jobApplications?`, `CROSS_SITE_REQUEST`, el guard, `rejectBody`,
+`text-search.ts`), DD-05 (`docs/SETUP.md`: el seed son 10 ofertas), `technical.md`, `functional.md`, UC-02..08 y
+`MVP-STATUS.md`.
 
-**Observaciones que no bloquean:** SEC-02 (guarda de estado en el SQL), SEC-03 (la cierra HU-03), SEC-04 (Host),
-DP-01 y DP-02 (para HU-05), el foco en Safari de `use-job-actions.ts:62-63` y `JobDetailScreen.actions.test.tsx` en
-300 líneas.
+**Avisos para las HU siguientes:** HU-03 cierra SEC-03 (`details` acotado, DT-10) y reutiliza `foldSearchText`; HU-05
+conecta el puerto de inscripciones dentro de la transacción del cierre (con retención y `StageChange`) y sustituye el
+test de EC-14.
 
 ---
-Ronda: 1 · «Requiere cambios» previos: 0 (máximo 2; al tercero se para y se escala a la persona)
+Ronda: 2 · «Requiere cambios» previos: 1 (máximo 2; al tercero se para y se escala a la persona)
 
-VERDICT: Requiere cambios
+VERDICT: Aprobado con observaciones

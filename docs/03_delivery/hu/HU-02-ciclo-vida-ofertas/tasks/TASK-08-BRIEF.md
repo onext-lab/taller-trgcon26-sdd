@@ -94,7 +94,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** CA-18 (decisión de quien aprueba el PRD): la web ofrece solo 20, 50 y 100 en «Por página», alineada con el PRD. Quita la opción extra que hoy añade `apps/web/src/features/jobs/JobFilters.tsx:45` cuando la URL trae un `pageSize` válido distinto de esos tres: en ese caso la interfaz usa 20 (selector y petición). La API sigue aceptando 1-100. Ajusta el test de `apps/web/test/features/jobs/JobListScreen.filters.test.tsx:123` (o donde esté el de `pageSize=7`) para fijar el comportamiento nuevo.

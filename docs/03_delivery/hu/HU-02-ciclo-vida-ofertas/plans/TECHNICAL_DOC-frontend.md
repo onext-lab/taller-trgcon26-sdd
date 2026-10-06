@@ -357,11 +357,11 @@ Ficheros de test en `apps/web/test/features/jobs/` salvo que se indique.
 | EC-39 | `toSearch` | `encodeURIComponent` por valor | `%` → `q=%25`; `a&status=closed` → `q=a%26status%3Dclosed` (no inyecta parámetros) | `list-query.test.ts` `[adversarial]` |
 | EC-40 | — | N/A — `GET` sin efectos | — | — |
 | EC-41 | — | N/A — la ficha no recibe entrada | — | — |
-| EC-42 | `JobDetails` | pintar solo las fechas no nulas | `closed`: tres fechas; `draft`: solo creación | `JobDetailScreen.states.test.tsx` |
+| EC-42 | `JobDetails` | pintar solo las fechas no nulas | `closed`: tres fechas; `draft`: solo creación | `JobDetailScreen.states.test.tsx:82,120` |
 | EC-43 | `requestJson` (red) | mostrar y rehabilitar | En «Publicar», «Cerrar oferta» y «Duplicar»: `role="alert"`, estado anterior, botón habilitado | `JobDetailScreen.actions.test.tsx`, `CloseJobAction.adversarial.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
 | EC-44 | `job-form-errors.ts` (409) | mensaje + recarga (DD-06) | `ClosedJobNotice` con el `message`; «Ver la oferta» lleva a la ficha en solo lectura | `JobFormScreen.published.test.tsx`, `e2e/jobs-lifecycle.spec.ts` |
 | EC-45 | — | N/A — la base impone la coherencia estado-fechas | — | — |
-| EC-46 | React (escapado) | texto JSX | Título con HTML en una `closed`: texto literal, 0 `b` | `JobDetailScreen.states.test.tsx` `[adversarial]` |
+| EC-46 | React (escapado) | texto JSX | Título con HTML en una `closed`: texto literal, 0 `b` | `JobDetailScreen.states.test.tsx:82,120` `[adversarial]` |
 | EC-47 | — | N/A — `GET` | — | — |
 | EC-48 | API | API: ver TECHNICAL_DOC-backend; la web no normaliza ni filtra en cliente | `Pena` se envía tal cual; la web pinta lo que devuelva | — (backend) |
 | EC-49 | API (DEC-12) | API: ver TECHNICAL_DOC-backend; la web no puede provocarlo (mismo origen por el *proxy* de Vite) | Si llegara un 403 `CROSS_SITE_REQUEST`, se muestra su `message` («Petición no permitida desde otro sitio.») en el `role="alert"` de la acción | — (backend) |
@@ -405,6 +405,8 @@ puede llevar el texto a la URL (regla de la web: nada de datos personales en la 
 - **Elegida:** C, en `apps/web/src/features/jobs/list-query.ts`: `readListQuery(search)`, `toSearch(query)`,
   `listView(query)` (valores tolerantes para los controles), `listPath(change)`, `pagePath(query, page)`,
   `clearFiltersPath(query)`, `hasFilters(query)`, `validateSearchText(raw)`, `totalPages(total, pageSize)`.
+  `listRequest(query)` construye la petición a la API: un `pageSize` **válido** que no sea 20, 50 ni 100 (p. ej. 7) se
+  pide como 20 (CA-18, `PAGE_SIZES`); uno **inválido** (`abc`, `101`, vacío) va en bruto y la API responde 400.
 - **Razón:** una sola fuente de verdad de las reglas (la API, DT-05); la web solo valida `q` al enviar, que es lo que
   escribe la persona; el mismo `toSearch` sirve para la URL de la web y la de la API, y los tests de `fetch` simulado
   casan con una URL exacta.
@@ -548,8 +550,8 @@ Vitest + Testing Library en `apps/web/test/` (jsdom), como HU-01: consultas por 
 | RF-02 | `CloseJobAction.test.tsx` → foco en «Cancelar», «Comprobando…» y confirmar deshabilitado, «Se rechazarán 0 inscripciones activas.» (CA-05, EC-11); cancelar y `simulateCancel` sin `POST` y con la lectura abortada (CA-06); 200 → ficha cerrada (CA-05, EC-13); 500 → alerta en el diálogo, sigue publicada (CA-09, EC-12); error de la lectura; 409 y 404; `CloseJobAction.adversarial.test.tsx` → `[adversarial]` doble clic = 1 `POST` (EC-16), título hostil (EC-15) y red al confirmar (EC-43). `ConfirmDialog.test.tsx` → `confirmDisabled` y `children`. `labels.test.ts` → `activeApplicationsText` 0/1/2 | `jobs-lifecycle.spec.ts`: «Cerrar» → foco en «Cancelar» → `Escape` (sigue publicada) → «Cerrar oferta» → solo lectura con fecha de cierre (CA-05, CA-06) |
 | RF-03 | `JobFormScreen.published.test.tsx` → etiquetas «(obligatorio)»; descripción en espacios → error sin `PATCH` (CA-11, EC-17); 400 del servidor junto al campo; solo banda (EC-19); 500 (EC-20); 409 → `ClosedJobNotice` con el `message` (CA-12, EC-21, EC-44); URL de una cerrada → `ClosedJobNotice` sin formulario (CA-10). `job-form-model.published.test.ts` → reglas y `toPatch` sin `status` (EC-23). `DeleteJobAction.test.tsx` → `[adversarial]` 409 → `onConflict` (EC-21) | `jobs-lifecycle.spec.ts`: CA-11 en la interfaz; CA-12/EC-44 con dos páginas (una cierra, la otra guarda) |
 | RF-04 | `JobDetailScreen.actions.test.tsx` → 201 → navega a `/jobs/{nuevo}` con «Oferta duplicada.» y la original no se toca (CA-14, CA-15, EC-26); 404 (EC-25); 500 (EC-27); `[adversarial]` doble clic = 1 `POST` (EC-31). `api.test.ts` → `duplicateJob` | `jobs-lifecycle.spec.ts`: duplicar la cerrada → ficha nueva «Borrador», mismo título, sin fecha de publicación; la original sigue cerrada (`page.request`) (CA-14) |
-| RF-05 | `list-query.test.ts` → lectura, orden canónico, omisión de valores por defecto, claves desconocidas fuera (EC-32), `encodeURIComponent` `[adversarial]` (EC-39), `q` 100/101 y control (EC-33, EC-34), sin normalizar (EC-35), `totalPages`. `JobListScreen.filters.test.tsx` → enviar Estado + texto navega a `/jobs?status=published&q=gestion` y pide esa URL (CA-16); vacío con filtros + «Quitar filtros»; «Atrás» resincroniza los controles. `JobListScreen.pagination.test.tsx` → «Siguiente» → `page=2`, foco al h1 (CA-18); «Por página» 50 → página 1 y mismo filtro, solo opciones 20/50/100 y `pageSize=7` en la URL → petición con 20 y selector en 20 (CA-18); 20 de 20 sin «Siguiente», 21 con «Página 1 de 2» (EC-34); página más allá (CA-17). `JobListScreen.filters-adversarial.test.tsx` → URL hostil: 400 con `details` + «Quitar filtros» sin «Reintentar» (EC-32; CA-19 a CA-21 vistos desde la web); `q` con control (EC-33); red con controles conservados (EC-36). `router.test.tsx` → `useSearch` | `jobs-list.spec.ts` (DD-09): CA-16 con Estado «Publicada» y «gestion» → «GESTIÓN de proveedores» y la del seed; CA-18 con «Oferta de paginación 01-21» publicadas (siguiente, 50 por página, «Atrás»); EC-36 con `page.route` abortado al filtrar; `/jobs?pageSize=101` → alerta + «Quitar filtros» |
-| RF-06 | `JobDetailScreen.test.tsx` → draft: 4 acciones y solo fecha de creación (CA-23). `JobDetailScreen.states.test.tsx` → published: 3 acciones, dos fechas y sin «Borrar» (EC-24); closed: solo «Duplicar», tres fechas y aviso de solo lectura (CA-22, EC-42); 22:30Z → 07/10/2026 (EC-04, EC-11); `[adversarial]` HTML en una cerrada (EC-46). `use-resource.test.tsx` → `setData` | `jobs-lifecycle.spec.ts`: acciones por estado a lo largo del ciclo (CA-22, CA-23) |
+| RF-05 | `list-query.test.ts` → lectura, orden canónico, omisión de valores por defecto, claves desconocidas fuera (EC-32), `encodeURIComponent` `[adversarial]` (EC-39), `q` 100/101 y control (EC-33, EC-34), sin normalizar (EC-35), `totalPages`. `JobListScreen.filters.test.tsx` → enviar Estado + texto navega a `/jobs?status=published&q=gestion` y pide esa URL (CA-16); solo opciones 20/50/100 y `pageSize=7` en la URL → petición con 20 y selector en 20 (CA-18, `:94`, `:123`); 400 con `details` + «Quitar filtros» sin «Reintentar» (CA-19 a CA-21 vistos desde la web, `:166`); vacío con filtros + «Quitar filtros»; «Atrás» resincroniza los controles. `JobListScreen.pagination.test.tsx` → «Siguiente» → `page=2`, foco al h1 (CA-18); «Por página» 50 → página 1 y mismo filtro (CA-18); 20 de 20 sin «Siguiente», 21 con «Página 1 de 2» (EC-34); página más allá (CA-17). `JobListScreen.filters-adversarial.test.tsx` → `[adversarial]` URL hostil (EC-32); `q` con control (EC-33); red con controles conservados (EC-36). `router.test.tsx` → `useSearch` | `jobs-list.spec.ts` (DD-09): CA-16 con Estado «Publicada» y «gestion» → «GESTIÓN de proveedores» y la del seed; CA-18 con «Oferta de paginación 01-21» publicadas (siguiente, 50 por página, «Atrás»); EC-36 con `page.route` abortado al filtrar; `/jobs?pageSize=101` → alerta + «Quitar filtros» |
+| RF-06 | `JobDetailScreen.test.tsx` → draft: 4 acciones y solo fecha de creación (CA-23). `JobDetailScreen.states.test.tsx:82,120` → sin «Editar» en una cerrada (CA-10); published: 3 acciones, dos fechas y sin «Borrar» (EC-24); closed: solo «Duplicar», tres fechas y aviso de solo lectura (CA-22, EC-42); 22:30Z → 07/10/2026 (EC-04, EC-11); `[adversarial]` HTML en una cerrada (EC-46). `use-resource.test.tsx` → `setData` | `jobs-lifecycle.spec.ts`: acciones por estado a lo largo del ciclo (CA-22, CA-23) |
 
 **Tests de HU-01 que cambian:**
 
@@ -573,13 +575,13 @@ con el reloj del portátil. CA-02, CA-04, CA-07, CA-08, CA-13 (parte API), CA-19
 pura: los prueba el backend con `fastify.inject`.
 
 **Criterio → test (parte web):** CA-01 → `JobDetailScreen.actions.test.tsx` + e2e; CA-03 → `JobDetailScreen.actions`
-+ e2e; CA-05, CA-06, CA-09 → `CloseJobAction.test.tsx` + e2e (CA-05, CA-06); CA-10 → `JobDetailScreen.test.tsx` (sin
++ e2e; CA-05, CA-06, CA-09 → `CloseJobAction.test.tsx` + e2e (CA-05, CA-06); CA-10 → `JobDetailScreen.states.test.tsx:82` (sin
 «Editar») + `JobFormScreen.published.test.tsx`; CA-11, CA-12 → `JobFormScreen.published.test.tsx` + e2e; CA-13 →
 `JobDetailScreen.states.test.tsx` (sin «Borrar») + `DeleteJobAction.test.tsx` (409); CA-14, CA-15 →
 `JobDetailScreen.actions.test.tsx` + e2e (CA-14); CA-16 → `JobListScreen.filters.test.tsx` + e2e; CA-17 →
-`JobListScreen.pagination.test.tsx`; CA-18 → `JobListScreen.pagination.test.tsx` + e2e; CA-19 a CA-21 →
-`JobListScreen.filters-adversarial.test.tsx` (400 mostrado) + e2e (`pageSize=101`); CA-22 →
-`JobDetailScreen.states.test.tsx` + e2e; CA-23 → `JobDetailScreen.test.tsx` + e2e.
+`JobListScreen.pagination.test.tsx`; CA-18 → `JobListScreen.pagination.test.tsx` y
+`JobListScreen.filters.test.tsx:94,123` + e2e; CA-19 a CA-21 → `JobListScreen.filters.test.tsx:166` (400 mostrado) +
+e2e (`pageSize=101`); CA-22 → `JobDetailScreen.states.test.tsx:82,120` + e2e; CA-23 → `JobDetailScreen.test.tsx` + e2e.
 
 ## Checklist de implementación
 
@@ -591,15 +593,17 @@ Orden: tipos y cliente → presentacionales → contenedores → tests (cada pas
 2. **Cliente y URL:** `types.ts` (`ClosePreview`), `api.ts` (5 funciones), `list-query.ts`, `labels.ts` +
    `api.test.ts`, `list-query.test.ts`, `labels.test.ts`.
 3. **Ficha por estado:** `JobDetails.tsx` (fechas, aviso, `headingRef`) y `JobActions.tsx` con botones sin lógica +
-   cambios en `JobDetailScreen.test.tsx` (CA-22, CA-23, EC-42, EC-46).
+   cambios en `JobDetailScreen.test.tsx` (CA-23) y `JobDetailScreen.states.test.tsx` (CA-10, CA-22, EC-42, EC-46).
 4. **Publicar y duplicar:** `use-job-actions.ts` + contenedor `JobDetailScreen.tsx` (`key`, aviso local, alerta,
    «ya no existe», foco) + `JobDetailScreen.actions.test.tsx` `[adversarial]`.
-5. **Cerrar:** `CloseJobAction.tsx` + `CloseJobAction.test.tsx` `[adversarial]`.
+5. **Cerrar:** `CloseJobAction.tsx` + `CloseJobAction.test.tsx` y `CloseJobAction.adversarial.test.tsx`
+   `[adversarial]`.
 6. **Editar y borrar según el estado:** `job-form-model.ts` (`published`), `JobForm.tsx`, `job-form-errors.ts`
    (extraído), `JobFormScreen.tsx` (409, `ClosedJobNotice`), `DeleteJobAction.tsx` (`onConflict`) + tests
    `job-form-model.published.test.ts`, `JobFormScreen.published.test.tsx`, `DeleteJobAction.test.tsx` `[adversarial]`.
 7. **Listado:** `JobFilters.tsx`, `JobPagination.tsx`, `JobListScreen.tsx`, `styles.css` + cambios en
-   `JobListScreen.test.tsx` y `JobListScreen.filters.test.tsx` `[adversarial]` (URL manipulada).
+   `JobListScreen.test.tsx`, `JobListScreen.filters.test.tsx`, `JobListScreen.pagination.test.tsx` y
+   `JobListScreen.filters-adversarial.test.tsx` `[adversarial]` (URL manipulada).
 8. **E2E** (cuando el backend esté integrado): ajustes de `e2e/jobs.spec.ts`, `e2e/jobs-lifecycle.spec.ts` y
    `e2e/jobs-list.spec.ts`; dos `npm run e2e` seguidos con el mismo resultado.
 

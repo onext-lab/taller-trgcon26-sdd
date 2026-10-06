@@ -97,7 +97,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** SEC-01 (enmienda de DEC-12, ya escrita en `docs/07_architecture_principles/DECISIONS.md`): invierte el guard de `apps/api/src/http/cross-site.ts`. Se rechaza con 403 `CROSS_SITE_REQUEST` toda petición cuyo método NO sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` (en minúsculas y recortado) no vale `same-origin` ni `none`; si la cabecera falta, pasa. Tests en `apps/api/test/http/cross-site.test.ts` (o un hermano si pasa de 300): `same-site` → 403 en POST, PATCH y DELETE; un método no listado (`PUT` contra una ruta existente o inexistente) con `cross-site` → 403 antes del 404; `Same-Origin` con mayúsculas y espacios → pasa; `same-origin`, `none` y sin cabecera → 2xx; GET con `cross-site` → 200. Ajusta los tests existentes que hoy esperan que `same-site` pase.

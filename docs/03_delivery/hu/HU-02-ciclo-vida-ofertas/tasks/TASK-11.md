@@ -103,7 +103,7 @@ tarea `[adversarial]` TASK-12.
 - `mockFetch` con la URL exacta; datos inventados.
 
 ## Reapertura · review ronda 1 (2026-10-06)
-- **Origen:** `review/REVIEW.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
+- **Origen:** `review/REVIEW-ronda-1.md` (ronda 1, `VERDICT: Requiere cambios`), §9.
 - **Qué hay que hacer:** `splitServerError` (`apps/web/src/features/jobs/job-form-errors.ts:18`) tiene unas 14 ramas y el umbral es 10: pásalo a funciones pequeñas o a una tabla de clasificación (404, 409, 400 con details, resto) sin cambiar su comportamiento ni sus textos.
 - **Ficheros:** `apps/web/src/features/jobs/job-form-errors.ts`
 - **Criterios de done:** `npm test -w @ats/web -- JobFormScreen job-form` en verde con el mismo número de tests que antes; `npm run typecheck -w @ats/web`; `npx eslint` del fichero; ninguna función pasa de 10 ramas (justifícalo).

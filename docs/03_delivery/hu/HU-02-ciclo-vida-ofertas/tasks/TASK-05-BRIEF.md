@@ -100,7 +100,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** Bajo de la review: `apps/api/test/jobs/performance.test.ts` tiene dos tests casi homónimos de RNF-02 (el de HU-01 «RNF-02 POST, PATCH y DELETE…» y el nuevo de HU-02). Quita el duplicado conservando la medición de `POST /api/jobs` (del alta) dentro del test de HU-02, para no perder cobertura.

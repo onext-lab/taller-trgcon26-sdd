@@ -105,7 +105,7 @@ INTEGRACION rc=0
 
 
 ## 8. Reapertura · review ronda 1
-> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW-ronda-1.md` (ronda 1). Rigen las mismas secciones 2 a 6 de este
 > brief. **La task es el contrato:** su sección «Reapertura · review ronda 1».
 
 - **Qué hacer:** `splitServerError` (`apps/web/src/features/jobs/job-form-errors.ts:18`) tiene unas 14 ramas y el umbral es 10: pásalo a funciones pequeñas o a una tabla de clasificación (404, 409, 400 con details, resto) sin cambiar su comportamiento ni sus textos.

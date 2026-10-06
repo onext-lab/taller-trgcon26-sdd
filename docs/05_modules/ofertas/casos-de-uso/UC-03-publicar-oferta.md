@@ -56,9 +56,9 @@ Ninguno.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-02 | CA-01 | |
-| A1 | HU-02 | CA-02 | |
-| E1 | HU-02 | CA-03 | |
-| E2 | HU-02 | CA-04 | |
+| P | HU-02 | CA-01 | `apps/api/test/jobs/publish.test.ts:51` |
+| A1 | HU-02 | CA-02 | `apps/api/test/jobs/publish.test.ts:65` |
+| E1 | HU-02 | CA-03 | `apps/api/test/jobs/publish.test.ts:165` |
+| E2 | HU-02 | CA-04 | `apps/api/test/jobs/publish.test.ts:197` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
