@@ -110,7 +110,7 @@ Pregunta: *«Responde **`aprobado`** (aplico todo), **`solo factual`** (sin conv
 
 **Reemplazos, no añadidos**: los dos documentos son el estado actual, no un log. La única excepción es el historial del MVP, que suma **una** fila. No toques «Propósito» ni «Alcance objetivo» salvo que la HU cambie el alcance del módulo. Si una sección pasa de 8 elementos o un documento de 500 líneas, sugiere partirlo.
 
-Después, relee lo tocado (tablas sin romper, sin duplicados, conteos que cuadran), pasa `npm run check:harness` (enlaces) y haz commit en `main`: `docs(HU-NN): module-sync {módulo}`.
+Después, relee lo tocado (tablas sin romper, sin duplicados, conteos que cuadran), pasa `npm run check:harness` (enlaces) y haz commit en `main`, nombrando `functional.md`, `technical.md`, `casos-de-uso/` (UC e índice) y `docs/MVP-STATUS.md`: `docs(HU-NN): module-sync {módulo}`.
 
 ### Paso 7 — Resumen
 
