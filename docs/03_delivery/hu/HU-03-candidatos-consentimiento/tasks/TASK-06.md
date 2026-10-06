@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** test
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (gate 4 de RF-01, RF-02 y RF-07 en el alta)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 
