@@ -4,7 +4,7 @@
 - **HU:** HU-03 · **Feature:** FEAT-02
 - **Scope:** test
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (recorridos de RF-01 a RF-06 de punta a punta)
 - **Complejidad:** L (2–4 h; estimada 3 h)
 
