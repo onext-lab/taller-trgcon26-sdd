@@ -4,6 +4,7 @@ import { buildApp } from '../../src/app.ts';
 import type { Clock } from '../../src/clock.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
+import type { Job } from '../../src/modules/jobs/schemas.ts';
 
 /** App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. */
 export function createTestApp({ now }: { now?: Clock } = {}): {
@@ -14,6 +15,15 @@ export function createTestApp({ now }: { now?: Clock } = {}): {
   migrate(db);
   const app = buildApp({ db, now });
   return { app, db };
+}
+
+/** Crea una oferta con `POST /api/jobs` y la devuelve; falla si la respuesta no es 201. */
+export async function createJob(app: FastifyInstance, body: Record<string, unknown>): Promise<Job> {
+  const response = await app.inject({ method: 'POST', url: '/api/jobs', payload: body });
+  if (response.statusCode !== 201) {
+    throw new Error(`POST /api/jobs respondió ${response.statusCode}: ${response.body}`);
+  }
+  return response.json<Job>();
 }
 
 export type WriteOperation = 'INSERT' | 'UPDATE' | 'DELETE';

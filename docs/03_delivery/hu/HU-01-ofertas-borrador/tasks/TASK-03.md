@@ -3,7 +3,7 @@
 ## Metadata
 - **HU:** HU-01 · **Feature:** FEAT-01
 - **Scope:** backend
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must
 - **Complejidad:** L (2–4 h; estimada 3,5 h)
 
