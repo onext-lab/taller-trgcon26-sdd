@@ -1,12 +1,12 @@
 ---
 id: IDEA-002
 titulo: "Gestión de candidatos"
-estado: idea            # idea | aceptada | descartada | completada
+estado: aceptada        # idea | aceptada | descartada | completada
 fecha: 2026-10-06
 autor: "equipo del taller"
 modulos_afectados: [candidatos]
 prioridad: null         # alta | media | baja (la fija la persona)
-feature: null           # FEAT-NN cuando se acepte
+feature: FEAT-02        # FEAT-NN cuando se acepte
 completada_en: null
 ---
 
@@ -31,4 +31,4 @@ Módulo `candidatos` (API y web).
 - Ejemplo inventado: «Lucía Ferrer Soler», `lucia.ferrer@example.com`, skills `typescript`, `sql`.
 
 ## Decisión
-<Se rellena al aceptar (con su FEAT-NN) o al descartar (con el motivo).>
+Promovida a FEAT-02 el 2026-10-06.
