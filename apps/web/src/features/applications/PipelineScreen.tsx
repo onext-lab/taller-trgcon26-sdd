@@ -4,10 +4,13 @@ import { Link, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
 import { useResource } from '../../components/use-resource.ts';
+import type { CandidateListItem } from '../candidates/types.ts';
 import { getPipeline } from './api.ts';
+import { EnrollPanel } from './EnrollPanel.tsx';
 import { PipelineBoard } from './PipelineBoard.tsx';
 import { parsePipelineJobId } from './paths.ts';
 import type { Pipeline } from './types.ts';
+import { useEnrollPanel } from './use-enroll-panel.ts';
 
 const TITLE = 'Pipeline de la oferta';
 const DRAFT_TEXT = 'Esta oferta es un borrador: publícala para inscribir candidatos.';
@@ -25,23 +28,37 @@ function isNotFound(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 404 || error.status === 400);
 }
 
-// The enroll panel (`aria-controls`) arrives with TASK-12.
-function EnrollButton() {
+type PanelProps = ReturnType<typeof useEnrollPanel>;
+
+function EnrollButton({ panel, triggerRef }: Pick<PanelProps, 'panel' | 'triggerRef'>) {
   return (
     <p>
-      <button type="button" aria-expanded="false">
+      <button
+        type="button"
+        ref={triggerRef}
+        aria-expanded={panel.open}
+        aria-controls="enroll-panel"
+        onClick={panel.toggle}
+      >
         Inscribir candidato
       </button>
     </p>
   );
 }
 
-function PipelineContent({ pipeline }: { pipeline: Pipeline }) {
+// Enrolling a result is connected in TASK-13.
+function enrollLater(_candidate: CandidateListItem): void {}
+
+function PipelineContent({ pipeline, ...props }: PanelProps & { pipeline: Pipeline }) {
+  const { panel, triggerRef, inputRef, alertRef } = props;
   const { status } = pipeline.job;
   if (status === 'draft') return <p>{DRAFT_TEXT}</p>;
   return (
     <>
-      {status === 'published' ? <EnrollButton /> : null}
+      {status === 'published' ? <EnrollButton panel={panel} triggerRef={triggerRef} /> : null}
+      {panel.open && status === 'published' ? (
+        <EnrollPanel panel={panel} inputRef={inputRef} alertRef={alertRef} onEnroll={enrollLater} />
+      ) : null}
       {pipeline.items.length === 0 ? <p>{EMPTY_TEXT}</p> : <PipelineBoard items={pipeline.items} />}
     </>
   );
@@ -49,6 +66,8 @@ function PipelineContent({ pipeline }: { pipeline: Pipeline }) {
 
 function PipelineLoader({ id, jobPath, notFound }: ScreenProps & { id: number }) {
   const pipeline = useResource((signal) => getPipeline(id, signal), [id]);
+  const published = pipeline.state === 'success' && pipeline.data.job.status === 'published';
+  const enrollPanel = useEnrollPanel(published);
   if (pipeline.state === 'error' && isNotFound(pipeline.error)) return notFound;
   return (
     <>
@@ -60,7 +79,9 @@ function PipelineLoader({ id, jobPath, notFound }: ScreenProps & { id: number })
       {pipeline.state === 'error' ? (
         <ErrorMessage message={userMessage(pipeline.error)} onRetry={pipeline.retry} />
       ) : null}
-      {pipeline.state === 'success' ? <PipelineContent pipeline={pipeline.data} /> : null}
+      {pipeline.state === 'success' ? (
+        <PipelineContent pipeline={pipeline.data} {...enrollPanel} />
+      ) : null}
     </>
   );
 }
