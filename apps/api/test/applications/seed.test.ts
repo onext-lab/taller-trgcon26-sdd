@@ -185,7 +185,7 @@ describe('seed de inscripciones — estados (EC-54)', () => {
 });
 
 describe('seed de inscripciones — candidatos (EC-55)', () => {
-  it('EC-55 reparto de candidatos: 10 con dos inscripciones publicadas (≥ 3 con dos abiertas) y 25-29 en las dos cerradas', () => {
+  it('EC-54/RF-11 reparto de candidatos: 10 con dos inscripciones publicadas (≥ 3 con dos abiertas) y 25-29 en las dos cerradas', () => {
     const ids = candidateIds(db);
     const jobs = jobIds(db);
     const inPublished = db

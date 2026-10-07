@@ -118,3 +118,9 @@ rendimiento.
 - **Ficheros:** `apps/api/test/applications/seed-invariants.test.ts`
 - **Criterios de done:** `npm test -w @ats/api -- applications/seed` en verde; el fichero ≤ 300 líneas; eslint a 0.
 - **Resultado (2026-10-07):** en verde (`npm test -w @ats/api -- applications/seed`: 2 files / 19 tests; eslint 0; 266 líneas). El test encuentra los candidatos 6 y 10 y el comentario usa los IDs reales de la base. Ciclo 0/2.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Etiqueta de test: `apps/api/test/applications/seed.test.ts:188` se llama «EC-55» pero comprueba el reparto de candidatos; el EC-55 real lo cubre `seed-invariants.test.ts`. Corrige el nombre del test (p. ej. a «EC-54/RF-11 reparto de candidatos») sin cambiar sus aserciones.
+- **Ficheros:** `apps/api/test/applications/seed.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- applications/seed` en verde; eslint a 0.

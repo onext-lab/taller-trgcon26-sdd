@@ -97,3 +97,35 @@ INTEGRACION rc=0
 - **Resultado:** en verde. `npm run db:reset` (×2): 40 inscripciones, 115 StageChange, 10 ofertas y 30 candidatos (15 con retención null). Los e2e de jobs, jobs-list, candidates y candidates-list (25) pasan con el seed nuevo (builder).
 - **Commit:** el de esta tarea (`[HU-04 TASK-06]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** Etiqueta de test: `apps/api/test/applications/seed.test.ts:188` se llama «EC-55» pero comprueba el reparto de candidatos; el EC-55 real lo cubre `seed-invariants.test.ts`. Corrige el nombre del test (p. ej. a «EC-54/RF-11 reparto de candidatos») sin cambiar sus aserciones.
+- **Ficheros:** `apps/api/test/applications/seed.test.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/api -- applications/seed` en verde; eslint a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm run typecheck
+exit=0
+$ npm run lint
+exit=0
+$ npm test
+ Test Files  58 passed (58)
+      Tests  715 passed (715)
+ Test Files  48 passed (48)
+      Tests  628 passed (628)
+exit=0
+$ npm run e2e
+  39 passed (22.0s)
+exit=0
+$ npm run check:harness
+check:harness: todo en verde.
+exit=0
+INTEGRACION COMPLETA rc=0
+```
+
+- **Resultado:** en verde: el test de `seed.test.ts:188` pasa a «EC-54/RF-11 reparto de candidatos».
+
