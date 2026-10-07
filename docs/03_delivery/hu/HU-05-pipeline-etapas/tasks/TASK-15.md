@@ -4,7 +4,7 @@
 - **HU:** HU-05 · **Feature:** FEAT-03
 - **Scope:** test
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-05, RF-06, RF-07, RF-08; recorre RF-01 a RF-03)
 - **Complejidad:** L (2–4 h; estimada 3 h)
 
