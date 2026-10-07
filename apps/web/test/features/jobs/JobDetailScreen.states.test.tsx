@@ -74,9 +74,22 @@ describe('JobDetailScreen por estado', () => {
     expect(terms().slice(-2)).toEqual(['Fecha de creación', 'Fecha de publicación']);
     expect(terms()).not.toContain('Fecha de cierre');
     expect(dateValues()).toEqual(['30/09/2026', '01/10/2026']);
-    expect(controls()).toEqual(['Editar', 'Cerrar', 'Duplicar']);
+    expect(controls()).toEqual(['Ver pipeline', 'Editar', 'Cerrar', 'Duplicar']);
     expect(screen.queryByRole('button', { name: 'Borrar' })).toBeNull();
     expect(screen.queryByText(CLOSED_TEXT)).toBeNull();
+  });
+
+  it('RF-07: «Ver pipeline» con href="/jobs/7/pipeline" solo en published; ausente en draft y closed', async () => {
+    await renderDetail(PUBLISHED);
+    expect(screen.getByRole('link', { name: 'Ver pipeline' }).getAttribute('href')).toBe(
+      '/jobs/7/pipeline',
+    );
+    cleanup();
+    for (const job of [DRAFT, CLOSED]) {
+      await renderDetail(job);
+      expect(screen.queryByRole('link', { name: 'Ver pipeline' })).toBeNull();
+      cleanup();
+    }
   });
 
   it('CA-22, EC-42, CA-10, CA-13, EC-24: una cerrada muestra 3 fechas, el aviso y solo «Duplicar»', async () => {

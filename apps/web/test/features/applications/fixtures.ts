@@ -1,5 +1,9 @@
-import type { CandidatePage } from '../../../src/features/candidates/types.ts';
+import { render } from '@testing-library/react';
+import { createElement } from 'react';
+import { PipelineScreen } from '../../../src/features/applications/PipelineScreen.tsx';
 import type { Pipeline, PipelineItem } from '../../../src/features/applications/types.ts';
+import type { CandidatePage } from '../../../src/features/candidates/types.ts';
+import { mockFetch, type FetchMock, type MockRoute } from '../../helpers/fetch.ts';
 
 /** Invented data only: no real people; emails always `@example.com`. */
 
@@ -66,3 +70,19 @@ export const EMPTY_CANDIDATE_PAGE: CandidatePage = candidatePage(0, 0);
 export const TEN_CANDIDATES_PAGE: CandidatePage = candidatePage(10, 10);
 /** `total > 10`: ten rows and the «more results» note. */
 export const ELEVEN_CANDIDATES_PAGE: CandidatePage = candidatePage(10, 11);
+
+/** Stand-in for the `NotFoundScreen` of `App.tsx`, which reaches the screen by prop (DD-09). */
+export const NOT_FOUND_HEADING = 'Página no encontrada';
+
+/** Starts at `path`, simulates the network with `routes` and renders the pipeline screen. */
+export function renderPipeline(path: string, routes: Record<string, MockRoute>): FetchMock {
+  window.history.replaceState(null, '', path);
+  const mock = mockFetch(routes);
+  render(
+    createElement(PipelineScreen, {
+      jobPath: (id: number) => `/jobs/${id}`,
+      notFound: createElement('h1', null, NOT_FOUND_HEADING),
+    }),
+  );
+  return mock;
+}
