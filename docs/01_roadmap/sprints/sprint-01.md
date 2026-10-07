@@ -181,3 +181,21 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   - Regla nueva: quien implementa no rebaja la severidad de un hallazgo de su revisor; la propone y decide el
     responsable técnico (review de HU-06, DD-01).
   - Etiqueta `paso-2-sprint-01`: la pone el responsable técnico tras revisar el cierre.
+
+## Traspaso (2026-10-07, 17:20)
+- **Dónde se quedó:** sprint-01 cerrado en la rama de integración `worktree-paso-2-sprint-01`, commit
+  `chore(sprint-01): cierre del sprint`, con el árbol limpio. `main` sigue en `fcce2b2` (T-02, base del paso 2): el
+  avance de `main` por *fast-forward* lo decide el responsable técnico.
+- **Siguiente paso exacto:**
+  1. El responsable técnico revisa el cierre y pone la etiqueta local `paso-2-sprint-01` en el commit de cierre (o
+     autoriza a la sesión a ponerla).
+  2. *Fast-forward* de `main` hasta ese commit.
+  3. paso-3, antes del ensayo del 15/10: A-02, A-03, A-07 y A-10 de la auditoría, junto con los puntos de publicación.
+- **Avisos:**
+  - `npm run db:reset` en cada base anterior a HU-06. Exige Node 24 en el PATH: con Node 20, `npm` lanza
+    `node src/db/reset.ts` y falla con `node:sqlite`.
+  - `npm run check:harness` incluye ahora `scripts/check-passive-effects.mjs`, con 0 excepciones y 2 marcas aprobadas.
+    Una aserción síncrona nueva sobre foco, título o `dialog` lo pone en rojo.
+  - Las ramas `hu/HU-01..06` siguen existiendo (todas mergeadas); se pueden borrar al publicar.
+  - En algunos entornos de agente, `git` del sistema pide aceptar la licencia de Xcode y `check:harness` falla en
+    `git ls-files`; con el `git` de Homebrew en el PATH pasa.
