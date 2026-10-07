@@ -4,7 +4,7 @@
 - **HU:** HU-06 · **Feature:** FEAT-03
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-01, RF-02, RF-03)
 - **Complejidad:** L (2–4 h; estimada 3 h)
 

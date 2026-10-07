@@ -14,7 +14,7 @@ import type { CandidateProcessesPort } from './modules/candidates/processes-port
 import { createCandidatesRepository } from './modules/candidates/repository.ts';
 import { candidatesRoutes } from './modules/candidates/routes.ts';
 import { createCandidatesService } from './modules/candidates/service.ts';
-import { noJobApplications, type JobApplicationsPort } from './modules/jobs/applications-port.ts';
+import type { JobApplicationsPort } from './modules/jobs/applications-port.ts';
 import { createJobStatusReader } from './modules/jobs/job-status.ts';
 import { createJobsRepository } from './modules/jobs/repository.ts';
 import { jobsRoutes } from './modules/jobs/routes.ts';
@@ -25,7 +25,7 @@ export interface AppOptions {
   logger?: FastifyServerOptions['logger'];
   /** Reloj inyectado (DEC-09) que reciben los servicios; `systemClock` por defecto. */
   now?: Clock;
-  /** Puerto de `jobs` hacia `inscripciones` (DD-03); `noJobApplications` hasta que HU-05 aporte el real. */
+  /** Puerto de `jobs` hacia `inscripciones` (DD-03); por defecto, la implementación real de `applications` (HU-06): solo se inyecta en tests. */
   jobApplications?: JobApplicationsPort;
   /** Puerto de `candidates` hacia `inscripciones` (DD-06); por defecto, el lector real de `applications`. */
   candidateProcesses?: CandidateProcessesPort;
@@ -54,13 +54,72 @@ function registerHealth(app: FastifyInstance, db: DatabaseSync): void {
   );
 }
 
+interface Services {
+  jobs: ReturnType<typeof createJobsService>;
+  candidates: ReturnType<typeof createCandidatesService>;
+  applications: ReturnType<typeof createApplicationsService>;
+}
+
+type Ports = Pick<AppOptions, 'jobApplications' | 'candidateProcesses' | 'jobStatus'>;
+
+/**
+ * Único punto de composición (DD-09): sin singletons, cada módulo recibe sus dependencias. Orden (DD-06): repositorios
+ * de `jobs` y `applications`, servicio de `candidates`, de `applications` y de `jobs`, que necesita el anterior.
+ */
+function composeServices(
+  db: DatabaseSync,
+  now: Clock,
+  { jobApplications, candidateProcesses, jobStatus }: Ports,
+): Services {
+  const jobsRepository = createJobsRepository(db);
+  const applicationsRepository = createApplicationsRepository(db);
+
+  // DD-01: ningún módulo importa a otro; el lector de `applications` cumple `CandidateProcessesPort` por tipado
+  // estructural y esta asignación lo comprueba al compilar.
+  const processesPort: CandidateProcessesPort =
+    candidateProcesses ?? createCandidateProcessesReader(applicationsRepository);
+  const candidates = createCandidatesService({
+    repository: createCandidatesRepository(db),
+    now,
+    transaction: (fn) => withTransaction(db, fn),
+    processes: processesPort,
+  });
+
+  // DD-01 y DD-08: `applications` define sus puertos; `jobs` y `candidates` los cumplen por tipado estructural.
+  const jobStatusPort: JobStatusPort = jobStatus ?? createJobStatusReader(jobsRepository);
+  const applications = createApplicationsService({
+    repository: applicationsRepository,
+    now,
+    transaction: (fn) => withTransaction(db, fn),
+    jobStatus: jobStatusPort,
+    candidates: {
+      exists: (id) => candidates.exists(id),
+      findNames: (ids) => candidates.findNames(ids),
+    },
+    recalculateRetention: (id) => {
+      candidates.recalculateRetention(id);
+    },
+  });
+
+  // DD-06: `jobs` recibe dos lambdas, no el servicio entero; la asignación tipada comprueba la forma (DEC-06).
+  const jobApplicationsPort: JobApplicationsPort = jobApplications ?? {
+    countActiveApplications: (jobId) => applications.countActiveApplications(jobId),
+    rejectActiveApplications: (input) => applications.rejectActiveApplications(input),
+  };
+  const jobs = createJobsService({
+    repository: jobsRepository,
+    now,
+    transaction: (fn) => withTransaction(db, fn),
+    applications: jobApplicationsPort,
+  });
+  return { jobs, candidates, applications };
+}
+
 export function buildApp({
   db,
   logger = false,
   now = systemClock,
-  jobApplications = noJobApplications,
-  candidateProcesses,
-  jobStatus,
+  ...ports
 }: AppOptions): FastifyInstance {
   const app = Fastify({ logger, ajv: ajvOptions });
   // Antes de cualquier ruta o módulo, para que todos hereden el envelope de error y la guarda entre sitios (DEC-12).
@@ -73,45 +132,10 @@ export function buildApp({
 
   registerHealth(app, db);
 
-  // Único punto de composición (DD-09): sin singletons, cada módulo recibe sus dependencias.
-  const jobsRepository = createJobsRepository(db);
-  const jobsService = createJobsService({
-    repository: jobsRepository,
-    now,
-    transaction: (fn) => withTransaction(db, fn),
-    applications: jobApplications,
-  });
-  app.register(jobsRoutes, { prefix: '/api/jobs', service: jobsService });
-
-  // DD-01: ningún módulo importa a otro; el lector de `applications` cumple `CandidateProcessesPort` por tipado
-  // estructural y esta asignación lo comprueba al compilar.
-  const applicationsRepository = createApplicationsRepository(db);
-  const processesPort: CandidateProcessesPort =
-    candidateProcesses ?? createCandidateProcessesReader(applicationsRepository);
-  const candidatesService = createCandidatesService({
-    repository: createCandidatesRepository(db),
-    now,
-    transaction: (fn) => withTransaction(db, fn),
-    processes: processesPort,
-  });
-  app.register(candidatesRoutes, { prefix: '/api/candidates', service: candidatesService });
-
-  // DD-01 y DD-08: `applications` define sus puertos; `jobs` y `candidates` los cumplen por tipado estructural.
-  const jobStatusPort: JobStatusPort = jobStatus ?? createJobStatusReader(jobsRepository);
-  const applicationsService = createApplicationsService({
-    repository: applicationsRepository,
-    now,
-    transaction: (fn) => withTransaction(db, fn),
-    jobStatus: jobStatusPort,
-    candidates: {
-      exists: (id) => candidatesService.exists(id),
-      findNames: (ids) => candidatesService.findNames(ids),
-    },
-    recalculateRetention: (id) => {
-      candidatesService.recalculateRetention(id);
-    },
-  });
-  app.register(applicationsRoutes, { prefix: '/api', service: applicationsService });
+  const services = composeServices(db, now, ports);
+  app.register(jobsRoutes, { prefix: '/api/jobs', service: services.jobs });
+  app.register(candidatesRoutes, { prefix: '/api/candidates', service: services.candidates });
+  app.register(applicationsRoutes, { prefix: '/api', service: services.applications });
 
   return app;
 }
