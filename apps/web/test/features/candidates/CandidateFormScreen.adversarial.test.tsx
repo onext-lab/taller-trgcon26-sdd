@@ -291,7 +291,7 @@ describe('CandidateFormScreen · edición · adversarial', () => {
     await openEditor({});
 
     await waitFor(() => expect(document.title).toBe('Editar candidato · ATS'));
-    expect(document.title).not.toContain('Lucía');
+    await waitFor(() => expect(document.title).not.toContain('Lucía'));
     const { pathname, search, hash } = window.location;
     expect(`${pathname}${search}${hash}`).toBe('/candidates/7/edit');
   });

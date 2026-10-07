@@ -4,6 +4,7 @@ import { DeleteJobAction } from '../../../src/features/jobs/DeleteJobAction.tsx'
 import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx';
 import { installDialogPolyfill, simulateCancel } from '../../helpers/dialog.ts';
 import { mockFetch } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const TITLE = 'Desarrollador/a backend (Node.js)';
@@ -27,14 +28,14 @@ describe('DeleteJobAction', () => {
     vi.unstubAllGlobals();
   });
 
-  it('abre el diálogo que nombra la oferta, con el foco en «Cancelar» (DT-02)', () => {
+  it('abre el diálogo que nombra la oferta, con el foco en «Cancelar» (DT-02)', async () => {
     const mock = mockFetch({});
     render(<DeleteJobAction id={7} title={TITLE} />);
 
     const dialog = openDialog();
 
     expect(dialog.textContent).toContain(`Vas a borrar «${TITLE}». No se puede deshacer.`);
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }));
+    await expectFocusOn(() => screen.getByRole('button', { name: 'Cancelar' }));
     expect(screen.getByRole('button', { name: 'Borrar oferta' })).toBeDefined();
     expect(mock.calls).toEqual([]);
   });
@@ -49,7 +50,7 @@ describe('DeleteJobAction', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
-    expect(document.activeElement).toBe(trigger);
+    await expectFocusOn(() => trigger);
     expect(mock.calls).toEqual([]);
     expect(window.location.pathname).toBe('/jobs/7');
   });

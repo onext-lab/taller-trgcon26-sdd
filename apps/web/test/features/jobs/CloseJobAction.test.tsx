@@ -88,11 +88,11 @@ describe('CloseJobAction', () => {
     expect(dialog.textContent).toContain(
       'Una oferta cerrada no se puede reabrir: para volver a publicarla, duplícala.',
     );
-    expect(document.activeElement).toBe(button('Cancelar'));
     expect(within(dialog).getByRole('status').textContent).toBe(
       'Comprobando las inscripciones activas…',
     );
     expect(button('Cerrar oferta').disabled).toBe(true);
+    await expectFocusOn(() => button('Cancelar'));
 
     await waitFor(() =>
       expect(within(dialog).getByRole('status').textContent).toBe(
@@ -128,7 +128,7 @@ describe('CloseJobAction', () => {
 
     await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(previewSignal().aborted).toBe(true);
-    expect(document.activeElement).toBe(button('Cerrar'));
+    await expectFocusOn(() => button('Cerrar'));
     expect(postCalls(mock)).toBe(0);
     expect(screen.getByText('Publicada')).toBeDefined();
   });
@@ -141,7 +141,7 @@ describe('CloseJobAction', () => {
 
     await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(previewSignal().aborted).toBe(true);
-    expect(document.activeElement).toBe(button('Cerrar'));
+    await expectFocusOn(() => button('Cerrar'));
     expect(postCalls(mock)).toBe(0);
   });
 

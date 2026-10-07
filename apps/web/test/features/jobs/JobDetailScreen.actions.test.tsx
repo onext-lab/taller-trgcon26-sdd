@@ -95,7 +95,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(screen.getByText('Borrador')).toBeDefined();
     const button = screen.getByRole('button', { name: 'Publicar' }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
-    expect(document.activeElement).toBe(button);
+    await expectFocusOn(() => button);
   });
 
   it('un 400 sin lista de campos muestra su message', async () => {
@@ -175,7 +175,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect((await screen.findByRole('alert')).textContent).toBe('Error interno del servidor.');
     const button = screen.getByRole('button', { name: 'Publicar' }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
-    expect(document.activeElement).toBe(button);
+    await expectFocusOn(() => button);
     expect(screen.getByText('Borrador')).toBeDefined();
   });
 
@@ -188,7 +188,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(window.location.pathname).toBe('/jobs/7');
     const button = screen.getByRole('button', { name: 'Duplicar' }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
-    expect(document.activeElement).toBe(button);
+    await expectFocusOn(() => button);
   });
 
   it('EC-06/EC-25: un 404 al publicar o duplicar muestra «Esta oferta ya no existe.» sin acciones', async () => {
@@ -253,7 +253,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(screen.getByText('Borrador')).toBeDefined();
     const button = screen.getByRole('button', { name: 'Publicar' }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
-    expect(document.activeElement).toBe(button);
+    await expectFocusOn(() => button);
   });
 
   it('EC-27 [adversarial] un 500 al duplicar → alerta, sigue en la ficha original y «Duplicar» habilitado con el foco', async () => {
@@ -268,7 +268,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     expect(screen.getByRole('heading', { level: 1, name: DRAFT.title })).toBeDefined();
     const button = screen.getByRole('button', { name: 'Duplicar' }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
-    expect(document.activeElement).toBe(button);
+    await expectFocusOn(() => button);
   });
 
   it('EC-09 [adversarial] doble clic en Publicar = 1 POST', async () => {

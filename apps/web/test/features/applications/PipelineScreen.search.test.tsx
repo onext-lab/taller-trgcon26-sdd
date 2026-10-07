@@ -289,7 +289,7 @@ describe('PipelineScreen: errores y cierre del panel', () => {
     await screen.findByRole('table');
 
     expect(window.location.href).toBe(before.href);
-    expect(document.title).toBe(before.title);
+    await waitFor(() => expect(document.title).toBe(before.title));
     expect(window.history.state).toBeNull();
     expect(window.localStorage.length).toBe(0);
     expect(window.sessionStorage.length).toBe(0);

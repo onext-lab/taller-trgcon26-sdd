@@ -217,7 +217,7 @@ describe('JobListScreen · filtros, paginación y estados', () => {
     expect(document.getElementById('q-error')?.textContent).toBe(
       'La búsqueda no puede pasar de 100 caracteres.',
     );
-    expect(document.activeElement).toBe(input);
+    await expectFocusOn(() => input);
     expect(currentUrl()).toBe('/jobs');
     expect(mock.calls).toHaveLength(1);
   });

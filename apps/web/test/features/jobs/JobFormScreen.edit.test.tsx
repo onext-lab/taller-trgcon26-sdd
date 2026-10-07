@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../../src/App.tsx';
 import { mockFetch, type FetchMock, type MockRoute } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const JOB = {
@@ -116,7 +117,7 @@ describe('JobFormScreen · edición', () => {
     save();
 
     expect(errorOf('Título (obligatorio)')).toBe('Escribe un título.');
-    expect(document.activeElement).toBe(field('Título (obligatorio)'));
+    await expectFocusOn(() => field('Título (obligatorio)'));
     expect(patchBodies(mock)).toEqual([]);
     expect(window.location.pathname).toBe('/jobs/7/edit');
   });

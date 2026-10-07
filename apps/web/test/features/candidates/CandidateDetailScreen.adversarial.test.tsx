@@ -101,7 +101,7 @@ describe('CandidateDetailScreen · HTML y título (RNF-06, RNF-09)', () => {
     await renderDetail({ ...NEVER, fullName: '<img src=x onerror=alert(1)>' });
 
     await waitFor(() => expect(document.title).toBe('Ficha de candidato · ATS'));
-    expect(document.title).not.toContain('img');
+    await waitFor(() => expect(document.title).not.toContain('img'));
     expect(window.location.pathname).toBe('/candidates/7');
     expect(window.location.search).toBe('');
     expect(JSON.stringify(window.history.state ?? null)).not.toContain('img');

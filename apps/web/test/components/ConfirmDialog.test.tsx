@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ConfirmDialog } from '../../src/components/ConfirmDialog.tsx';
 import { installDialogPolyfill, simulateCancel } from '../helpers/dialog.ts';
+import { expectFocusOn } from '../helpers/focus.ts';
 
 type HarnessProps = {
   withoutDescription?: boolean;
@@ -67,7 +68,7 @@ describe('ConfirmDialog', () => {
   afterAll(() => uninstall());
   afterEach(() => cleanup());
 
-  it('abre como modal con nombre, descripción y el foco inicial en «Cancelar»', () => {
+  it('abre como modal con nombre, descripción y el foco inicial en «Cancelar»', async () => {
     render(<Harness />);
     expect(screen.queryByRole('dialog')).toBeNull();
 
@@ -79,10 +80,10 @@ describe('ConfirmDialog', () => {
     expect(document.getElementById(descriptionId)?.textContent).toBe(
       'Vas a borrar «Desarrollador backend». No se puede deshacer.',
     );
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }));
+    await expectFocusOn(() => screen.getByRole('button', { name: 'Cancelar' }));
   });
 
-  it('sin description no pinta el párrafo ni aria-describedby', () => {
+  it('sin description no pinta el párrafo ni aria-describedby', async () => {
     render(<Harness withoutDescription extra="Contenido del cuerpo" />);
 
     openDialog();
@@ -92,10 +93,10 @@ describe('ConfirmDialog', () => {
     expect(dialog.querySelector('p.long-text')).toBeNull();
     expect(dialog.querySelectorAll('p')).toHaveLength(1);
     expect(screen.getByRole('status').textContent).toBe('Contenido del cuerpo');
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }));
+    await expectFocusOn(() => screen.getByRole('button', { name: 'Cancelar' }));
   });
 
-  it('el evento cancel (Escape) cierra y devuelve el foco al disparador sin confirmar', () => {
+  it('el evento cancel (Escape) cierra y devuelve el foco al disparador sin confirmar', async () => {
     const onConfirm = vi.fn();
     render(<Harness onConfirm={onConfirm} />);
     const trigger = openDialog();
@@ -103,11 +104,11 @@ describe('ConfirmDialog', () => {
     act(() => simulateCancel(getDialog()));
 
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(document.activeElement).toBe(trigger);
+    await expectFocusOn(() => trigger);
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it('«Cancelar» cierra, devuelve el foco y no llama a onConfirm', () => {
+  it('«Cancelar» cierra, devuelve el foco y no llama a onConfirm', async () => {
     const onConfirm = vi.fn();
     render(<Harness onConfirm={onConfirm} />);
     const trigger = openDialog();
@@ -115,7 +116,7 @@ describe('ConfirmDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(document.activeElement).toBe(trigger);
+    await expectFocusOn(() => trigger);
     expect(onConfirm).not.toHaveBeenCalled();
   });
 

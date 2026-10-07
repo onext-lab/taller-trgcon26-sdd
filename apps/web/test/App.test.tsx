@@ -45,8 +45,8 @@ describe('App', () => {
       'page',
     );
     // The redirect is part of the first load: focus and title do not move.
-    expect(document.activeElement).not.toBe(screen.getByRole('main'));
-    expect(document.title).toBe('ATS');
+    await waitFor(() => expect(document.activeElement).not.toBe(screen.getByRole('main')));
+    await waitFor(() => expect(document.title).toBe('ATS'));
   });
 
   it('una ruta desconocida muestra «Página no encontrada» con el enlace «Ir a las ofertas»', async () => {
@@ -67,7 +67,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: 'Ofertas' })).toBeDefined();
     expect(window.location.pathname).toBe('/jobs');
-    expect(document.activeElement).toBe(screen.getByRole('main'));
+    await expectFocusOn(() => screen.getByRole('main'));
     await waitFor(() => expect(document.title).toBe('Ofertas · ATS'));
   });
 
@@ -97,7 +97,7 @@ describe('App', () => {
       within(nav).getByRole('link', { name: 'Ofertas' }).getAttribute('aria-current'),
     ).toBeNull();
     await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
-    expect(document.activeElement).toBe(screen.getByRole('main'));
+    await expectFocusOn(() => screen.getByRole('main'));
   });
 
   it('la carga directa de /candidates fija el título «Candidatos · ATS» y marca el enlace', async () => {
@@ -137,7 +137,7 @@ describe('App', () => {
     ).toBeDefined();
     expect(window.location.pathname).toBe('/jobs/7/pipeline');
     await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
-    expect(document.activeElement).toBe(screen.getByRole('main'));
+    await expectFocusOn(() => screen.getByRole('main'));
     expect(mock.calls.filter((call) => call.url.endsWith('/applications'))).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Volver a la oferta' }).getAttribute('href')).toBe(
       '/jobs/7',

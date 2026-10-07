@@ -4,6 +4,7 @@ import { CandidateListScreen } from '../../../src/features/candidates/CandidateL
 import { INITIAL_LIST_QUERY, saveListState } from '../../../src/features/candidates/list-state.ts';
 import type { CandidateListItem, CandidatePage } from '../../../src/features/candidates/types.ts';
 import { mockFetch, type MockReply } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 function item(id: number): CandidateListItem {
@@ -81,7 +82,7 @@ describe('CandidateListScreen · búsqueda, paginación y estado sin URL', () =>
     ]);
     expect(screen.queryByRole('button', { name: 'Siguiente' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Anterior' })).toBeDefined();
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
   });
 
   it('CA-19 «Por página» 100 pide pageSize=100 y página 1 con la búsqueda aplicada, no los borradores', async () => {

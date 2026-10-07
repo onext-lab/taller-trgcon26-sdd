@@ -4,6 +4,7 @@ import { CONNECTION_MESSAGE } from '../../../src/components/http.ts';
 import { JobListScreen } from '../../../src/features/jobs/JobListScreen.tsx';
 import type { JobListItem, JobPage } from '../../../src/features/jobs/types.ts';
 import { mockFetch, type MockReply } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only. Hostile and failure cases of the list (EC-32, EC-33, EC-36).
 function item(id: number, title: string): JobListItem {
@@ -106,7 +107,7 @@ describe('JobListScreen · adversarial', () => {
     expect(
       document.getElementById(field().getAttribute('aria-describedby') ?? '')?.textContent,
     ).toBe(message);
-    expect(document.activeElement).toBe(field());
+    await expectFocusOn(() => field());
     expect(currentUrl()).toBe('/jobs');
     expect(mock.calls).toHaveLength(1);
   });
@@ -120,7 +121,7 @@ describe('JobListScreen · adversarial', () => {
 
     expect(await screen.findByText('La búsqueda no puede pasar de 100 caracteres.')).toBeDefined();
     expect(field().getAttribute('aria-invalid')).toBe('true');
-    expect(document.activeElement).toBe(field());
+    await expectFocusOn(() => field());
     expect(currentUrl()).toBe('/jobs');
     expect(mock.calls).toHaveLength(1);
   });

@@ -161,7 +161,8 @@ describe('PipelineScreen: rechazar', () => {
         name: 'Nota (opcional)',
       }) as HTMLTextAreaElement;
       expect(note.value).toBe('Ha aceptado otra oferta.');
-      expect(document.activeElement).not.toBe(alert);
+      await expectFocusOn(() => within(dialog).getByRole('button', { name: 'Cancelar' }));
+      await waitFor(() => expect(document.activeElement).not.toBe(alert));
       expect(screen.queryByRole('status')).toBeNull();
       expect(gets(mock)).toBe(1);
       expect(within(column('Entrevista')).getByText('Oriol Mas Puig')).toBeTruthy();

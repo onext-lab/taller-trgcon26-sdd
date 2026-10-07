@@ -74,6 +74,7 @@ describe('focusFirstError', () => {
 
     focusFirstError(form, FIELDS, { skills: 'x', email: 'y' });
 
+    // efecto-síncrono: la función pura focusFirstError llama a focus() en la propia llamada, sin efecto de React
     expect(document.activeElement).toBe(form.elements.namedItem('email'));
     form.remove();
   });
@@ -85,6 +86,7 @@ describe('focusFirstError', () => {
     focusFirstError(form, FIELDS, {});
     focusFirstError(form, ['ghost'], { ghost: 'x' });
 
+    // efecto-síncrono: la función pura focusFirstError llama a focus() en la propia llamada, sin efecto de React
     expect(document.activeElement).toBe(before);
     form.remove();
   });

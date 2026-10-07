@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../../src/App.tsx';
 import { JobFormScreen } from '../../../src/features/jobs/JobFormScreen.tsx';
 import { mockFetch } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const TITLE = 'Desarrollador/a backend (Node.js)';
@@ -107,7 +108,7 @@ describe('JobFormScreen · alta', () => {
     for (const value of options) expect(value.normalize('NFC')).toBe(value);
   });
 
-  it('con errores de cliente marca cada campo, enfoca el primero y no envía ninguna petición', () => {
+  it('con errores de cliente marca cada campo, enfoca el primero y no envía ninguna petición', async () => {
     const mock = mockFetch({});
     render(<JobFormScreen mode="create" />);
 
@@ -128,7 +129,7 @@ describe('JobFormScreen · alta', () => {
       'Escribe un número entero mayor que 0, sin puntos ni espacios.',
     );
     expect(screen.getByLabelText('Salario máximo (€/año)').getAttribute('aria-invalid')).toBeNull();
-    expect(document.activeElement).toBe(title);
+    await expectFocusOn(() => title);
     expect(mock.calls).toEqual([]);
     expect(window.location.pathname).toBe('/jobs/new');
   });
@@ -160,7 +161,7 @@ describe('JobFormScreen · alta', () => {
     expect(describedError(title).textContent).toBe('El título no es válido.');
     expect(workMode.getAttribute('aria-invalid')).toBe('true');
     expect(describedError(workMode).textContent).toBe('La modalidad no es válida.');
-    expect(document.activeElement).toBe(title);
+    await expectFocusOn(() => title);
     expect((title as HTMLInputElement).value).toBe(TITLE);
     expect(screen.queryByRole('alert')).toBeNull();
     expect(window.location.pathname).toBe('/jobs/new');

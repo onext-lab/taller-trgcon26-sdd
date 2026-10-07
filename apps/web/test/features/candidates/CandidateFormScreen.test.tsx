@@ -4,6 +4,7 @@ import { App } from '../../../src/App.tsx';
 import { CandidateFormScreen } from '../../../src/features/candidates/CandidateFormScreen.tsx';
 import { CONSENT_TEXT } from '../../../src/features/candidates/consent.ts';
 import { mockFetch } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const FULL_NAME = 'Lucía Ferrer Soler';
@@ -130,7 +131,7 @@ describe('CandidateFormScreen · alta', () => {
     });
   });
 
-  it('con errores de cliente marca cada campo, enfoca el primero y no envía ninguna petición (CA-04)', () => {
+  it('con errores de cliente marca cada campo, enfoca el primero y no envía ninguna petición (CA-04)', async () => {
     const mock = mockFetch({});
     render(<CandidateFormScreen mode="create" />);
 
@@ -146,7 +147,7 @@ describe('CandidateFormScreen · alta', () => {
     );
     expect(errorOf('Teléfono')).toContain('Escribe entre 6 y 20 dígitos');
     expect(field('Skills').getAttribute('aria-invalid')).toBeNull();
-    expect(document.activeElement).toBe(name);
+    await expectFocusOn(() => name);
     expect(field('Email (obligatorio)').value).toBe('ana.gil');
     expect(mock.calls).toEqual([]);
     expect(window.location.pathname).toBe('/candidates/new');
@@ -176,7 +177,7 @@ describe('CandidateFormScreen · alta', () => {
 
     await waitFor(() => expect(errorOf('Email (obligatorio)')).toBe('El email no es válido.'));
     expect(errorOf('Resumen')).toBe('El resumen es demasiado largo.');
-    expect(document.activeElement).toBe(field('Email (obligatorio)'));
+    await expectFocusOn(() => field('Email (obligatorio)'));
     expect(field('Resumen').value).toBe('Backend con Node.');
     expect(field('Nombre y apellidos (obligatorio)').value).toBe(FULL_NAME);
     expect(screen.queryByRole('alert')).toBeNull();
@@ -264,7 +265,7 @@ describe('CandidateFormScreen · alta', () => {
     expect(
       screen.getByRole('link', { name: 'Ver el candidato existente' }).getAttribute('href'),
     ).toBe('/candidates/42');
-    expect(document.activeElement).toBe(field('Email (obligatorio)'));
+    await expectFocusOn(() => field('Email (obligatorio)'));
     expect(mock.calls.filter((call) => call.url === '/api/candidates/42')).toEqual([]);
   });
 

@@ -62,8 +62,8 @@ describe('ApplicationDetailScreen: hostiles y datos de más (RF-07)', () => {
     expect(document.querySelector('[onerror]')).toBeNull();
     expect(document.body.innerHTML).toContain('&lt;img src=x onerror=alert(1)&gt;');
     await waitFor(() => expect(document.title).toBe('Inscripción · ATS'));
-    expect(document.title).not.toContain('Oriol');
-    expect(document.title).not.toContain(HOSTILE);
+    await waitFor(() => expect(document.title).not.toContain('Oriol'));
+    await waitFor(() => expect(document.title).not.toContain(HOSTILE));
     expect(window.location.href).not.toContain('img');
   });
 

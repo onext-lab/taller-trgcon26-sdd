@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../../src/App.tsx';
 import { navigate } from '../../../src/components/router.tsx';
 import { mockFetch, type FetchMock, type MockRoute } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const CANDIDATE = {
@@ -167,7 +168,7 @@ describe('CandidateFormScreen · edición', () => {
 
     await waitFor(() => expect(errorOf('Resumen')).toBe('El resumen es demasiado largo.'));
     expect(field('Resumen').value).toBe('a'.repeat(2000));
-    expect(document.activeElement).toBe(field('Resumen'));
+    await expectFocusOn(() => field('Resumen'));
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
@@ -196,7 +197,7 @@ describe('CandidateFormScreen · edición', () => {
     expect(
       screen.getByRole('link', { name: 'Ver el candidato existente' }).getAttribute('href'),
     ).toBe('/candidates/9');
-    expect(document.activeElement).toBe(field('Email (obligatorio)'));
+    await expectFocusOn(() => field('Email (obligatorio)'));
     expect(field('Email (obligatorio)').value).toBe('otra.persona@example.com');
     expect(window.location.pathname).toBe('/candidates/7/edit');
     expect(mock.calls.filter((call) => call.url === '/api/candidates/9')).toEqual([]);
@@ -210,10 +211,7 @@ describe('CandidateFormScreen · edición', () => {
     async (status, code) => {
       mockFetch({
         'GET /api/health': HEALTH,
-        'GET /api/candidates/7': {
-          status,
-          json: { error: { code, message: 'Mensaje de la API.' } },
-        },
+        'GET /api/candidates/7': { status, json: { error: { code, message: 'Mensaje.' } } },
       });
       render(<App />);
 

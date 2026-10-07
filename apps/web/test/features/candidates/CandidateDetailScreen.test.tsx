@@ -189,7 +189,7 @@ describe('CandidateDetailScreen', () => {
   it('el título es fijo y no contiene el nombre del candidato (RNF-09)', async () => {
     await showDetail(ACTIVE);
     await waitFor(() => expect(document.title).toBe('Ficha de candidato · ATS'));
-    expect(document.title).not.toContain('Lucía');
+    await waitFor(() => expect(document.title).not.toContain('Lucía'));
   });
 
   it('un 404 de la API muestra «Candidato no encontrado» sin datos (CA-23)', async () => {

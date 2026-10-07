@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../../src/App.tsx';
 import { mockFetch, type FetchMock, type MockRoute } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
 
 // Invented data only.
 const PUBLISHED = {
@@ -82,7 +83,7 @@ describe('JobFormScreen · edición de una publicada', () => {
     save();
 
     await waitFor(() => expect(errorOf('Descripción (obligatorio)')).toBe(REQUIRED));
-    expect(document.activeElement).toBe(screen.getByLabelText('Descripción (obligatorio)'));
+    await expectFocusOn(() => screen.getByLabelText('Descripción (obligatorio)'));
     expect(patches(mock)).toEqual([]);
   });
 
@@ -95,7 +96,7 @@ describe('JobFormScreen · edición de una publicada', () => {
 
     await waitFor(() => expect(errorOf('Ubicación (obligatorio)')).toBe(REQUIRED));
     expect(errorOf('Modalidad (obligatorio)')).toBe(REQUIRED);
-    expect(document.activeElement).toBe(screen.getByLabelText('Ubicación (obligatorio)'));
+    await expectFocusOn(() => screen.getByLabelText('Ubicación (obligatorio)'));
     expect(patches(mock)).toEqual([]);
   });
 
@@ -119,7 +120,7 @@ describe('JobFormScreen · edición de una publicada', () => {
     save();
 
     await waitFor(() => expect(errorOf('Descripción (obligatorio)')).toBe(REQUIRED));
-    expect(document.activeElement).toBe(screen.getByLabelText('Descripción (obligatorio)'));
+    await expectFocusOn(() => screen.getByLabelText('Descripción (obligatorio)'));
     expect((screen.getByLabelText('Salario mínimo (€/año)') as HTMLInputElement).value).toBe(
       '33000',
     );

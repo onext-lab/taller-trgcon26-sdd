@@ -76,7 +76,7 @@ describe('PipelineScreen: contratar', () => {
     const post = mock.calls.find((call) => call.method === 'POST');
     expect(post?.body).toBe('{"expectedStage":"offer","toStage":"hired"}');
     expect(posts(mock)).toBe(1);
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     const hired = await within(column('Contratado')).findByText('Berta Lluch Roca');
     const card = hired.closest('li') as HTMLElement;
     expect(within(card).queryAllByRole('button')).toHaveLength(0);
@@ -112,7 +112,8 @@ describe('PipelineScreen: contratar', () => {
     const alert = await within(dialog).findByRole('alert');
     expect(alert.textContent).toBe(SERVER_TEXT);
     expect(dialog.hasAttribute('open')).toBe(true);
-    expect(document.activeElement).not.toBe(alert);
+    await expectFocusOn(() => within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(document.activeElement).not.toBe(alert));
     expect(screen.queryByRole('status')).toBeNull();
     expect(mock.calls.filter((call) => call.method === 'GET')).toHaveLength(1);
     expect(within(column('Oferta')).getByText('Berta Lluch Roca')).toBeTruthy();

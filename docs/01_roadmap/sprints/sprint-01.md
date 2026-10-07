@@ -123,7 +123,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   aborta. Tarea S obligatoria en `/audit-sprint`, antes de la etiqueta. Decisión del responsable técnico: el historial
   inmutable es lo que la feature A enseña en directo.
 
-### T-06 · Ninguna aserción síncrona sobre lo que pone un efecto pasivo · estado: en curso
+### T-06 · Ninguna aserción síncrona sobre lo que pone un efecto pasivo · estado: hecha
 - **Tipo:** deuda de tests (auditoría del sprint, C-01 y A-01; prioridad alta del responsable técnico)
 - El foco, `document.title` y el cierre de un `dialog` los pone un efecto pasivo, que corre después del commit: un test
   que los aserta en seguida falla a veces (EC-46 de HU-02 y `DeleteJobAction` EC-21 en este sprint). Primero la

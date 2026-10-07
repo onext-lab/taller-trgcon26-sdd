@@ -21,89 +21,7 @@ const MARKER = /\/\/ efecto-síncrono: .{10,}/;
 
 // Excepciones explícitas y fechadas (tope del responsable técnico para T-06): fichero y número de aserciones que aún
 // no se han barrido. Vacía = barrido completo. Nunca se desactiva la comprobación.
-const EXCEPTIONS = [
-  { file: 'apps/web/test/App.test.tsx', count: 5, since: '2026-10-07' },
-  { file: 'apps/web/test/components/ConfirmDialog.test.tsx', count: 4, since: '2026-10-07' },
-  { file: 'apps/web/test/components/form-errors.test.ts', count: 2, since: '2026-10-07' },
-  {
-    file: 'apps/web/test/features/applications/ApplicationDetailScreen.adversarial.test.tsx',
-    count: 2,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/applications/PipelineScreen.hire.test.tsx',
-    count: 2,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/applications/PipelineScreen.reject.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/applications/PipelineScreen.search.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateDetailScreen.adversarial.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateDetailScreen.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateFormScreen.adversarial.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx',
-    count: 2,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateFormScreen.test.tsx',
-    count: 3,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/candidates/CandidateListScreen.filters.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  { file: 'apps/web/test/features/jobs/CloseJobAction.test.tsx', count: 3, since: '2026-10-07' },
-  { file: 'apps/web/test/features/jobs/DeleteJobAction.test.tsx', count: 2, since: '2026-10-07' },
-  {
-    file: 'apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx',
-    count: 5,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/jobs/JobFormScreen.edit.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/jobs/JobFormScreen.published.test.tsx',
-    count: 3,
-    since: '2026-10-07',
-  },
-  { file: 'apps/web/test/features/jobs/JobFormScreen.test.tsx', count: 2, since: '2026-10-07' },
-  {
-    file: 'apps/web/test/features/jobs/JobListScreen.filters-adversarial.test.tsx',
-    count: 2,
-    since: '2026-10-07',
-  },
-  {
-    file: 'apps/web/test/features/jobs/JobListScreen.filters.test.tsx',
-    count: 1,
-    since: '2026-10-07',
-  },
-];
+const EXCEPTIONS = [];
 
 /** Líneas (1-based) con una aserción síncrona sobre un efecto pasivo, fuera de `waitFor` y sin marca. */
 export function findPassiveAssertions(text) {
@@ -121,6 +39,18 @@ export function findPassiveAssertions(text) {
     found.push(i + 1);
   });
   return found;
+}
+
+/** Marcas `efecto-síncrono` de un texto: las que llevan motivo y las que no (estas son un fallo por sí mismas). */
+export function findMarkers(text) {
+  const lines = text.split('\n');
+  const valid = [];
+  const bare = [];
+  lines.forEach((line, i) => {
+    if (!line.includes('efecto-síncrono')) return;
+    (MARKER.test(line) ? valid : bare).push(i + 1);
+  });
+  return { valid, bare };
 }
 
 function balance(chunk) {
@@ -146,10 +76,21 @@ const SELF_TEST = [
   ["expect(dialog.hasAttribute('open')).toBe(true);", []],
 ];
 
+// Una marca sin motivo (o con menos de 10 caracteres) no exime y además es un fallo propio.
+const MARKER_SELF_TEST = [
+  ['// efecto-síncrono:\nexpect(document.activeElement).toBe(input);', { valid: [], bare: [1] }],
+  ['// efecto-síncrono: corto', { valid: [], bare: [1] }],
+  ['// efecto-síncrono: la función llama a focus() en la propia llamada', { valid: [1], bare: [] }],
+];
+
 function selfTest() {
-  return SELF_TEST.filter(
+  const assertions = SELF_TEST.filter(
     ([text, want]) => JSON.stringify(findPassiveAssertions(text)) !== JSON.stringify(want),
-  ).map(
+  );
+  const markers = MARKER_SELF_TEST.filter(
+    ([text, want]) => JSON.stringify(findMarkers(text)) !== JSON.stringify(want),
+  );
+  return [...assertions, ...markers].map(
     ([text, want]) => `autoprueba: «${text.split('\n')[0]}…» debía dar ${JSON.stringify(want)}`,
   );
 }
@@ -165,9 +106,15 @@ function walk(dir, out = []) {
 
 const failures = selfTest();
 let total = 0;
+const markers = [];
 for (const file of walk(TESTS)) {
   const rel = relative(ROOT, file).split('\\').join('/');
-  const lines = findPassiveAssertions(readFileSync(file, 'utf8'));
+  const text = readFileSync(file, 'utf8');
+  const lines = findPassiveAssertions(text);
+  const { valid, bare } = findMarkers(text);
+  markers.push(...valid.map((n) => `${rel}:${n}`));
+  if (bare.length > 0)
+    failures.push(`${rel}:${bare.join(',')}: marca efecto-síncrono sin motivo (10+ caracteres)`);
   total += lines.length;
   const allowed = EXCEPTIONS.find((e) => e.file === rel)?.count ?? 0;
   if (lines.length > allowed)
@@ -183,5 +130,5 @@ if (failures.length > 0) {
 }
 const pending = EXCEPTIONS.reduce((n, e) => n + e.count, 0);
 console.log(
-  `  ✔ efectos pasivos: ${SELF_TEST.length} casos de autoprueba; ${total} aserciones síncronas, ${pending} en excepciones fechadas`,
+  `  ✔ efectos pasivos: ${SELF_TEST.length + MARKER_SELF_TEST.length} casos de autoprueba; ${total} aserciones síncronas, ${pending} en excepciones fechadas; ${markers.length} marcas efecto-síncrono${markers.length ? ` (${markers.join(', ')})` : ''}`,
 );
