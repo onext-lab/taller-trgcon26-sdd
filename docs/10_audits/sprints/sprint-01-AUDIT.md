@@ -3,10 +3,12 @@
 ## Resumen
 - **Fecha:** 2026-10-07 · **HU auditadas:** HU-01, HU-02, HU-03, HU-04, HU-05, HU-06 (las 6 en estado `hecha`), más
   las tareas transversales T-01 a T-05
-- **Rango auditado:** `2cd8752..15fc488` (`base` del frontmatter del sprint → rama de integración del sprint) ·
-  **Commit auditado:** `15fc488`
-- **Commits:** 169 · **Ficheros tocados:** 530 (112 de `apps/*/src`, el resto tests, e2e y docs)
-- **Hallazgos confirmados:** críticos 0 · altos 0 · medios 9 · bajos 13 · info 10
+- **Rango auditado:** `2cd8752..a413140` (`base` del frontmatter del sprint → rama de integración del sprint) ·
+  **Commit auditado:** `a413140`. Primera pasada sobre `15fc488` y re-auditoría corta tras T-06 y T-07 (§7)
+- **Commits:** 173 · **Ficheros tocados:** 530 en la primera pasada (112 de `apps/*/src`, el resto tests, e2e y docs) y
+  40 más en la re-auditoría (tests web, `scripts/`, docs y `.claude/`; ninguno de `apps/*/src` ni de `e2e/`)
+- **Hallazgos confirmados:** críticos 0 · altos 0 · medios 9 · bajos 13 · info 10. Tras T-06 y T-07 quedan abiertos 3
+  medios: C-02, que pasa a paso-3, y D-01 y D-02, que pasan a `docs/RGPD.md` §7 para la feature A (§7)
 - Fuera de alcance: ningún commit sin HU o tarea del sprint. Los de T-01..T-05 y los de curado de cada review llevan su
   ID en el mensaje.
 
@@ -182,41 +184,88 @@ No aplica.
 
 ## 6. Acciones
 Por prioridad. Las de código van por el flujo de una tarea del sprint o de una HU; las de la feature A, a `docs/RGPD.md`
-§7 para su *shaping* en directo.
+§7 para su *shaping* en directo. Decisión del responsable técnico (2026-10-07):
+- A-01 y A-04, A-05, A-06 y A-08 se hacen antes de cerrar, como T-06 y T-07.
+- A-02, A-03, A-07 y A-10 van a **paso-3**, antes del ensayo del 15/10, junto con los puntos de publicación. No hay
+  sprint-02 antes del taller: las features en vivo son A y C.
+- A-09 va al backlog y es opcional.
 
-- [ ] **A-01 · prioridad alta (C-01)**: regla de tests «nada de aserciones síncronas sobre lo que pone un efecto pasivo»
+- [x] **A-01 · prioridad alta (C-01)** → T-06 (`0897979`, `a413140`): regla de tests «nada de aserciones síncronas sobre lo que pone un efecto pasivo»
       (foco, `document.title`, cierre de `dialog`).
   - Convención en `.claude/agents/web-builder.md` y en un doc vivo, con ejemplo: `apps/web/test/helpers/focus.ts` y
     `await waitFor(...)`.
   - Comprobación en `npm run check:harness`, con su test: falla si encuentra esas aserciones sin `waitFor` ni
     `expectFocusOn`.
   - Barrido de las 45 aserciones de §2 (incluidas las negativas de título, que deben esperar al título positivo).
-- [ ] **A-02 · deuda de demo** (pedida por el responsable técnico):
+- [ ] **A-02 · deuda de demo** → paso-3 (pedida por el responsable técnico):
   - (a) un script de integración con unitarios y e2e en serie y e2e con *workers* acotados;
   - (b) un *timeout* por test web fijado y justificado (no subirlo a ciegas);
   - (c) medir la pasada completa en una máquina modesta, limitando *workers*, para saber el tiempo en directo.
-- [ ] **A-03 (C-02)**: decidir el umbral de función.
+- [ ] **A-03 (C-02)** → paso-3: decidir el umbral de función.
   - Opción 1: escribir en QUALITY-GATES la excepción de las factorías de objeto y los plugins de rutas, y medirla con
     lint.
   - Opción 2 (recomendada): partir `createJobsRepository` y las otras tres factorías con el patrón `createXOperations`
     de `applications`, y los dos plugins de rutas en funciones de registro por grupo.
   - En las dos, añadir `max-lines-per-function` a `npm run lint`.
-- [ ] **A-04 (C-03)**: segunda aclaración de DEC-06, trazable, con `CandidateLookupPort`: cuatro puertos y una viñeta
+- [x] **A-04 (C-03)** → T-07 (`5759526`): segunda aclaración de DEC-06, trazable, con `CandidateLookupPort`: cuatro puertos y una viñeta
       de dirección correcta para los cuatro, sin cambiar la decisión.
-- [ ] **A-05 (C-04, C-05)**: poner al día `.claude/skills/module-sync/SKILL.md:40`, `.claude/agents/product-owner.md:16`
+- [x] **A-05 (C-04, C-05)** → T-07: poner al día `.claude/skills/module-sync/SKILL.md:40`, `.claude/agents/product-owner.md:16`
       y los agentes builder y arquitectos (DEC-06 aclarado, puertos y `module-boundaries.test.ts`).
-- [ ] **A-06 (C-06, C-07 y los bajos de docs)**: corregir la cita de UC-12 · A1, `inscripciones/technical.md:263-265` y
+- [x] **A-06 (C-06, C-07 y los bajos de docs)** → T-07: corregir la cita de UC-12 · A1, `inscripciones/technical.md:263-265` y
       `:299`, la cabecera y la línea 28 de `ofertas/technical.md`, `next-id.mjs` con `uc`, `WORKFLOW.md:188`,
       `SETUP.md` (`ATS_DB_PATH`, `WEB_PORT`) y DEC-02 (`check:clean`).
-- [ ] **A-07 · convenciones**: decidir cuáles de las 8 de §2 (info) pasan a «Convenciones del repo», con un ejemplo de
+- [ ] **A-07 · convenciones** → paso-3: decidir cuáles de las 8 de §2 (info) pasan a «Convenciones del repo», con un ejemplo de
       código cada una (pedido por el responsable técnico).
-- [ ] **A-08 · feature A (D-01, D-02 y la info de §3)**:
+- [x] **A-08 · feature A (D-01, D-02 y la info de §3)** → T-07 (`docs/RGPD.md` §7, cuestiones 7, 8 y 9):
   - añadir a `docs/RGPD.md` §7 la cuestión de las operaciones propias de `candidatos`, el mecanismo contra residuos
     (`secure_delete` o `VACUUM`) y qué se conserva al anonimizar;
   - sin resolverlas: van al *shaping* en directo.
-- [ ] **A-09 · seguridad (SEC-S1)**: lista de `Host` permitidos en la guarda `onRequest`; es opcional y la decide el
+- [ ] **A-09 · seguridad (SEC-S1)** → backlog: lista de `Host` permitidos en la guarda `onRequest`; es opcional y la decide el
       responsable técnico.
 - [ ] **A-10 · paso-3** (ya planificado, no es de este sprint): rutas absolutas de los briefs de HU-01 a HU-04 y la
       regla de `check-clean`.
+
+## 7. Re-auditoría corta tras T-06 y T-07
+Desde `15fc488` hasta `a413140` hay 4 commits y 40 ficheros: tests web, `scripts/check-passive-effects.mjs`,
+`package.json`, docs y `.claude/`. **Ninguno de `apps/*/src` ni de `e2e/`**, así que la dimensión de seguridad y datos
+personales no cambia. En lugar de relanzar los auditores, la sesión verificó lo tocado:
+- **C-01:** 45 → 0 aserciones síncronas. `scripts/check-passive-effects.mjs` corre en `npm run check:harness`, se
+  autoprueba con 11 casos, rechaza la marca `efecto-síncrono` sin motivo y no tiene excepciones. Hay 2 marcas, en
+  `apps/web/test/components/form-errors.test.ts:77` y `:89` (función pura que enfoca en la propia llamada), **revisadas
+  y aprobadas por el responsable técnico el 2026-10-07**. La suite web queda en 754/754 con las semillas 42, 7, 2024, 11
+  y 99.
+- **C-03:** `docs/07_architecture_principles/DECISIONS.md:95` dice «Hoy hay cuatro» e incluye `CandidateLookupPort`,
+  con la aclaración fechada (`:119`).
+- **C-04:** `.claude/skills/module-sync/SKILL.md:40` (caso residual).
+- **C-05:** `api-builder`, `backend-architect` y `frontend-architect` citan DEC-06 aclarado y
+  `apps/api/test/module-boundaries.test.ts`.
+- **C-06:** `docs/05_modules/candidatos/casos-de-uso/UC-12-ver-ficha.md:62` → `:31`.
+- **C-07:** `docs/05_modules/inscripciones/technical.md:264`.
+- **D-01 y D-02:** pasan a `docs/RGPD.md` §7, cuestiones 7, 8 y 9, sin resolver.
+- **Abierto:** C-02, el umbral de función, va a paso-3 (A-03).
+
+Suite sobre `a413140`:
+
+```
+$ npm run typecheck
+exit=0
+$ npm run lint
+exit=0
+$ npm test
+ Test Files  78 passed (78)
+      Tests  1097 passed (1097)
+ Test Files  59 passed (59)
+      Tests  754 passed (754)
+exit=0
+$ npm run e2e
+  47 passed (23.7s)
+exit=0
+$ npm run check:harness
+check:harness: todo en verde.
+  ✔ efectos pasivos: 11 casos de autoprueba; 0 aserciones síncronas, 0 en excepciones fechadas; 2 marcas efecto-síncrono (apps/web/test/components/form-errors.test.ts:77, apps/web/test/components/form-errors.test.ts:89)
+exit=0
+```
+
+`SUITE_VERDICT: VERDE`.
 
 VERDICT: Aprobado con observaciones
