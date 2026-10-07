@@ -4,7 +4,7 @@
 - **HU:** HU-05 · **Feature:** FEAT-03
 - **Scope:** frontend
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (base de RF-05, RF-06 y RF-07)
 - **Complejidad:** L (2–4 h; estimada 2,5 h). El TD-frontend la marca «M, ~2,5 h»: por horas es L (M = 1–2 h)
 

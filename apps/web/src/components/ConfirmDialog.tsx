@@ -6,7 +6,8 @@ import { useEffect, useId, useRef, type ReactNode, type SyntheticEvent } from 'r
 export type ConfirmDialogProps = {
   open: boolean;
   title: string;
-  description: string;
+  /** Optional: without it neither the paragraph nor `aria-describedby` is rendered (DD-03 of HU-05). */
+  description?: string;
   confirmLabel: string;
   busy?: boolean;
   /** Disables only the confirm button (e.g. while a figure shown in the dialog is still loading). */
@@ -73,14 +74,16 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      aria-describedby={descriptionId}
+      aria-describedby={description === undefined ? undefined : descriptionId}
       onCancel={handleCancelEvent}
       onClose={handleCloseEvent}
     >
       <h2 id={titleId}>{title}</h2>
-      <p id={descriptionId} className="long-text">
-        {description}
-      </p>
+      {description === undefined ? null : (
+        <p id={descriptionId} className="long-text">
+          {description}
+        </p>
+      )}
       {children}
       {error ? (
         <p role="alert" className="error-text">

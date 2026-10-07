@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   groupByStage,
+  nextStage,
   rejectionReasonLabel,
   stageLabel,
 } from '../../../src/features/applications/labels.ts';
@@ -26,6 +27,21 @@ describe('etiquetas de inscripciones', () => {
       'Otro',
       'Oferta cerrada',
     ]);
+  });
+});
+
+describe('nextStage', () => {
+  it('sigue la tabla de INV-04 en las 6 etapas', () => {
+    expect(STAGES.map(nextStage)).toEqual(['screening', 'interview', 'offer', 'hired', null, null]);
+  });
+
+  it('EC-04 nextStage nunca devuelve received ni rejected; null en hired y rejected', () => {
+    const results = STAGES.map(nextStage);
+
+    expect(results).not.toContain('received');
+    expect(results).not.toContain('rejected');
+    expect(nextStage('hired')).toBeNull();
+    expect(nextStage('rejected')).toBeNull();
   });
 });
 

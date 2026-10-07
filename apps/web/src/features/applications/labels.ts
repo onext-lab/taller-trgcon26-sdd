@@ -24,6 +24,20 @@ export function rejectionReasonLabel(reason: RejectionReason): string {
   return REJECTION_REASON_LABELS[reason];
 }
 
+const NEXT_STAGE: Record<Stage, Stage | null> = {
+  received: 'screening',
+  screening: 'interview',
+  interview: 'offer',
+  offer: 'hired',
+  hired: null,
+  rejected: null,
+};
+
+/** Next stage of the pipeline (INV-04); `null` in `hired` and `rejected`. It never returns `received` or `rejected`. */
+export function nextStage(stage: Stage): Stage | null {
+  return NEXT_STAGE[stage];
+}
+
 /** Groups the items by stage keeping the order received (DD-08); the six stages are always present. */
 export function groupByStage(items: readonly PipelineItem[]): Record<Stage, PipelineItem[]> {
   const groups: Record<Stage, PipelineItem[]> = {
