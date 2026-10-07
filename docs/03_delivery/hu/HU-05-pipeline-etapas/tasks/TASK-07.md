@@ -4,7 +4,7 @@
 - **HU:** HU-05 · **Feature:** FEAT-03
 - **Scope:** test
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-01, RF-02)
 - **Complejidad:** M (1–2 h; estimada 1,5 h)
 
