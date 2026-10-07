@@ -32,6 +32,11 @@ export function invalidTransition(message: string): AppError {
   return new AppError('INVALID_TRANSITION', 409, message);
 }
 
+/** 409 de concurrencia (DEC-07, DD-05): la etapa esperada por el cliente ya no es la actual. Sin `details`. */
+export function stageMismatch(message: string): AppError {
+  return new AppError('STAGE_MISMATCH', 409, message);
+}
+
 export function validationError(details: ErrorDetail[]): AppError {
   return new AppError('VALIDATION_ERROR', 400, 'Hay campos con errores.', details);
 }

@@ -49,64 +49,70 @@ function toPipelineItems(rows: PipelineRow[], names: Map<number, string>): Pipel
   });
 }
 
-export function createApplicationsService({
-  repository,
-  now,
-  transaction,
-  jobStatus,
-  candidates,
-  recalculateRetention,
-}: ApplicationsServiceDeps): ApplicationsService {
-  /** Las tres guardas, en el orden del diseño: oferta (404) → candidato (404) → estado (409). */
-  function assertCanEnroll({ jobId, candidateId }: EnrollInput): void {
-    const status = jobStatus.getJobStatus(jobId);
-    if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
-    if (!candidates.exists(candidateId)) throw notFound(CANDIDATE_NOT_FOUND_MESSAGE);
-    if (status !== 'published') throw invalidTransition(NOT_PUBLISHED_MESSAGE);
-  }
+/** Las tres guardas, en el orden del diseño: oferta (404) → candidato (404) → estado (409). */
+function assertCanEnroll(
+  { jobStatus, candidates }: ApplicationsServiceDeps,
+  input: EnrollInput,
+): void {
+  const status = jobStatus.getJobStatus(input.jobId);
+  if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
+  if (!candidates.exists(input.candidateId)) throw notFound(CANDIDATE_NOT_FOUND_MESSAGE);
+  if (status !== 'published') throw invalidTransition(NOT_PUBLISHED_MESSAGE);
+}
 
-  /** Inserta en `received`; el choque con el índice único (sin `SELECT` previo, DD-03) se traduce en `DUPLICATE`. */
-  function insertReceived({ jobId, candidateId }: EnrollInput, instant: string): Application {
-    try {
-      return repository.insert({
-        candidateId,
-        jobId,
-        stage: 'received',
-        createdAt: instant,
-        lastChangeAt: instant,
-      });
-    } catch (error) {
-      if (!repository.isDuplicatePairError(error)) throw error;
-      // La transacción sigue abierta tras el fallo: el ID del existente es coherente con lo que decidió el índice.
-      const existingId = repository.findIdByPair(candidateId, jobId);
-      if (existingId === undefined) throw error;
-      throw duplicate({ field: 'candidateId', message: DUPLICATE_MESSAGE, existingId });
-    }
-  }
-
-  function enroll(input: EnrollInput): Application {
-    assertCanEnroll(input);
-    const instant = now().toISOString();
-    const application = insertReceived(input, instant);
-    repository.insertStageChange({
-      applicationId: application.id,
-      fromStage: null,
-      toStage: 'received',
-      changedAt: instant,
-      reason: null,
-      note: null,
+/** Inserta en `received`; el choque con el índice único (sin `SELECT` previo, DD-03) se traduce en `DUPLICATE`. */
+function insertReceived(
+  { repository }: ApplicationsServiceDeps,
+  { jobId, candidateId }: EnrollInput,
+  instant: string,
+): Application {
+  try {
+    return repository.insert({
+      candidateId,
+      jobId,
+      stage: 'received',
+      createdAt: instant,
+      lastChangeAt: instant,
     });
-    recalculateRetention(input.candidateId);
-    return application;
+  } catch (error) {
+    if (!repository.isDuplicatePairError(error)) throw error;
+    // La transacción sigue abierta tras el fallo: el ID del existente es coherente con lo que decidió el índice.
+    const existingId = repository.findIdByPair(candidateId, jobId);
+    if (existingId === undefined) throw error;
+    throw duplicate({ field: 'candidateId', message: DUPLICATE_MESSAGE, existingId });
   }
+}
 
-  function getPipeline(jobId: number): Pipeline {
-    const status = jobStatus.getJobStatus(jobId);
-    if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
-    const rows = repository.listByJob(jobId);
-    const names = candidates.findNames(rows.map((row) => row.candidateId));
-    return { job: { id: jobId, status }, items: toPipelineItems(rows, names) };
-  }
+function enroll(deps: ApplicationsServiceDeps, input: EnrollInput): Application {
+  assertCanEnroll(deps, input);
+  const instant = deps.now().toISOString();
+  const application = insertReceived(deps, input, instant);
+  deps.repository.insertStageChange({
+    applicationId: application.id,
+    fromStage: null,
+    toStage: 'received',
+    changedAt: instant,
+    reason: null,
+    note: null,
+  });
+  deps.recalculateRetention(input.candidateId);
+  return application;
+}
 
-  return { enroll: (input) => transaction(() => enroll(input)), getPipeline };
+function getPipeline(
+  { jobStatus, repository, candidates }: ApplicationsServiceDeps,
+  jobId: number,
+): Pipeline {
+  const status = jobStatus.getJobStatus(jobId);
+  if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
+  const rows = repository.listByJob(jobId);
+  const names = candidates.findNames(rows.map((row) => row.candidateId));
+  return { job: { id: jobId, status }, items: toPipelineItems(rows, names) };
+}
+
+export function createApplicationsService(deps: ApplicationsServiceDeps): ApplicationsService {
+  return {
+    enroll: (input) => deps.transaction(() => enroll(deps, input)),
+    getPipeline: (jobId) => getPipeline(deps, jobId),
+  };
 }
