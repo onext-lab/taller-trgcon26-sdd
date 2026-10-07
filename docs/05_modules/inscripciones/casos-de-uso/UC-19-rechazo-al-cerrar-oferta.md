@@ -70,10 +70,10 @@ No escribe texto libre. Cierra procesos de candidatos, lo que recalcula su fecha
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-06 | | |
-| A1 | HU-06 | | |
-| A2 | HU-06 | | |
-| E1 | HU-06 | | |
-| E2 | HU-06 | | |
+| P | HU-06 | CA-01, CA-02, CA-12, CA-16 | |
+| A1 | HU-06 | CA-04 | |
+| A2 | HU-06 | CA-05 | |
+| E1 | HU-06 | CA-06, CA-11 | |
+| E2 | HU-06 | CA-07 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
