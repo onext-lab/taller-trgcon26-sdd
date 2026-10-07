@@ -126,7 +126,7 @@ describe('CloseJobAction', () => {
 
     fireEvent.click(button('Cancelar'));
 
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(previewSignal().aborted).toBe(true);
     expect(document.activeElement).toBe(button('Cerrar'));
     expect(postCalls(mock)).toBe(0);
@@ -139,7 +139,7 @@ describe('CloseJobAction', () => {
 
     act(() => simulateCancel(dialog));
 
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(previewSignal().aborted).toBe(true);
     expect(document.activeElement).toBe(button('Cerrar'));
     expect(postCalls(mock)).toBe(0);

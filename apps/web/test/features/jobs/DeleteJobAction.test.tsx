@@ -39,7 +39,7 @@ describe('DeleteJobAction', () => {
     expect(mock.calls).toEqual([]);
   });
 
-  it('«Cancelar» cierra el diálogo, devuelve el foco a «Borrar» y no llama a la API', () => {
+  it('«Cancelar» cierra el diálogo, devuelve el foco a «Borrar» y no llama a la API', async () => {
     const mock = mockFetch({});
     render(<DeleteJobAction id={7} title={TITLE} />);
     const trigger = screen.getByRole('button', { name: 'Borrar' });
@@ -48,20 +48,20 @@ describe('DeleteJobAction', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(document.activeElement).toBe(trigger);
     expect(mock.calls).toEqual([]);
     expect(window.location.pathname).toBe('/jobs/7');
   });
 
-  it('Escape cierra el diálogo sin llamar a la API', () => {
+  it('Escape cierra el diálogo sin llamar a la API', async () => {
     const mock = mockFetch({});
     render(<DeleteJobAction id={7} title={TITLE} />);
     const dialog = openDialog() as HTMLDialogElement;
 
     act(() => simulateCancel(dialog));
 
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(mock.calls).toEqual([]);
   });
 
@@ -153,7 +153,7 @@ describe('DeleteJobAction', () => {
 
     await waitFor(() => expect(onConflict).toHaveBeenCalledWith(message));
     expect(onConflict).toHaveBeenCalledTimes(1);
-    expect(dialog.hasAttribute('open')).toBe(false);
+    await waitFor(() => expect(dialog.hasAttribute('open')).toBe(false));
     expect(screen.queryByRole('alert')).toBeNull();
     expect(mock.calls).toHaveLength(1);
     expect(window.location.pathname).toBe('/jobs/7');
