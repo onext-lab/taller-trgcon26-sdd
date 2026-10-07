@@ -10,8 +10,8 @@ import {
 
 // Enrollment of a candidate from the job pipeline (HU-04, RF-07, RF-08 and RF-10) against the real API and web, on
 // a database regenerated at start (playwright.config.ts). Each test prepares its own published job and candidate
-// through the API with a unique token and an `@example.com` email: no ID of the seed is relied on. No test closes a
-// job that has applications (DT-10).
+// through the API with a unique token and an `@example.com` email: no ID of the seed is relied on. Closing a job that
+// has applications is covered by `jobs-close-applications.spec.ts` (HU-06).
 
 function enrollPanel(page: Page) {
   return page.getByRole('region', { name: 'Inscribir candidato', exact: true });

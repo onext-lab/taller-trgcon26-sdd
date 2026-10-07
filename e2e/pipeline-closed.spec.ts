@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { stageRegion } from './support/applications.ts';
 
-// Pipeline of a closed job in read-only mode (HU-05, RF-08) against the real API and web. The closed job comes from
-// the seed and is only read: no e2e closes a job that has applications (DT-10), and no ID is fixed, the job is found
-// through the API.
+// Pipeline of a closed job in read-only mode (HU-05, RF-08) against the real API and web. The closed job is only read
+// and no ID is fixed: it is found through the API, and it may come from the seed or be one that
+// `jobs-close-applications.spec.ts` closes before (HU-06); the assertions hold for either.
 
 type ClosedPipeline = { jobId: number; applicationId: number; candidateName: string };
 
