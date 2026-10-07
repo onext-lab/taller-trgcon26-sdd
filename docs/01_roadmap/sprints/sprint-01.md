@@ -113,7 +113,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   serie de ficción `+34 600 000 0xx` (`docs/RGPD.md` §6). Sale del PRD de HU-04 (era su RF-13) para adelgazarla;
   la copia local de `CandidateNotFound` sigue como deuda en `docs/05_modules/candidatos/technical.md`.
 
-### T-05 · Historial inmutable también frente a `INSERT OR REPLACE` · estado: pendiente (bloquea la etiqueta)
+### T-05 · Historial inmutable también frente a `INSERT OR REPLACE` · estado: hecha
 - **Tipo:** seguridad de datos (review de HU-04, SEC-09)
 - Sin `recursive_triggers`, un `INSERT OR REPLACE` sobre un `StageChange` existente lo borra sin disparar
   `stage_changes_no_delete`. Activar `PRAGMA recursive_triggers = ON` al abrir la conexión

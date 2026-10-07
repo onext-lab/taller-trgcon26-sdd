@@ -12,6 +12,8 @@ export function openDatabase(
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
   db.exec('PRAGMA foreign_keys = ON;');
+  // SEC-09: sin esto, REPLACE borra la fila en conflicto sin disparar los triggers BEFORE DELETE (INV-03).
+  db.exec('PRAGMA recursive_triggers = ON;');
   if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
   return db;
 }
