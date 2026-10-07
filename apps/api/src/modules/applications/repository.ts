@@ -65,6 +65,10 @@ const PROCESS_FACTS_SQL = `SELECT
   FROM applications
   WHERE candidate_id = ?`;
 
+const FIND_ID_BY_PAIR_SQL = `SELECT id FROM applications WHERE candidate_id = ? AND job_id = ?`;
+
+const SQLITE_CONSTRAINT_UNIQUE = 2067;
+
 /** Acceso a `applications` y `stage_changes` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
 export function createApplicationsRepository(db: DatabaseSync) {
   return {
@@ -84,6 +88,19 @@ export function createApplicationsRepository(db: DatabaseSync) {
         change.changedAt,
         change.reason,
         change.note,
+      );
+    },
+    /** ID de la inscripción de la pareja, si existe: solo para el 409 tras el choque con el índice único (DD-03). */
+    findIdByPair(candidateId: number, jobId: number): number | undefined {
+      const row = db.prepare(FIND_ID_BY_PAIR_SQL).get(candidateId, jobId);
+      return typeof row?.id === 'number' ? row.id : undefined;
+    },
+    /** ¿El error es el choque con el índice único `(candidate_id, job_id)`? (INV-01, DEC-08). */
+    isDuplicatePairError(error: unknown): boolean {
+      if (!(error instanceof Error)) return false;
+      const { errcode } = error as Error & { errcode?: number };
+      return (
+        errcode === SQLITE_CONSTRAINT_UNIQUE && error.message.includes('applications.candidate_id')
       );
     },
     /** Total, abiertas y fecha del último cierre del candidato (0, 0 y `null` si no tiene inscripciones). */

@@ -1,3 +1,4 @@
+import type { FastifyInstance } from 'fastify';
 import type { DatabaseSync } from 'node:sqlite';
 import type { JobStatus, JobStatusPort } from '../../src/modules/applications/ports.ts';
 
@@ -15,6 +16,11 @@ export function createJobStatusStub({
       return status;
     },
   };
+}
+
+/** `POST /api/applications` con `{ jobId, candidateId }`; devuelve la respuesta del `inject` sin interpretarla. */
+export function enroll(app: FastifyInstance, jobId: number, candidateId: number) {
+  return app.inject({ method: 'POST', url: '/api/applications', payload: { jobId, candidateId } });
 }
 
 export interface JobStatusSpy {
