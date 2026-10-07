@@ -123,22 +123,32 @@ export interface FailWritesTarget {
   table?: string;
   /** Solo `UPDATE`: falla únicamente si la sentencia toca esta columna (`UPDATE OF <column>`). */
   column?: string;
+  /** Falla solo la fila cuyo `NEW.<column>` es `equals` (p. ej., la 2.ª de 3). */
+  whenNew?: { column: 'id' | 'application_id'; equals: number };
 }
 
 /**
  * Hace fallar las siguientes escrituras `op` en una tabla (`job_openings` por defecto) con un error real de SQLite
- * (un trigger con `RAISE(ABORT, 'fallo simulado')`), sin mocks. Un trigger por tabla, operación y columna.
+ * (un trigger con `RAISE(ABORT, 'fallo simulado')`), sin mocks. Un trigger por tabla, operación, columna y fila.
+ * Con `whenNew` solo falla la fila cuyo `NEW.<column>` vale `equals`. Excepción anotada de RNF-05: SQLite no admite
+ * parámetros en `CREATE TRIGGER`, así que el DDL se compone solo con literales del test y un entero validado, que
+ * lanza antes de ejecutar nada si no lo es.
  */
 export function failWrites(
   db: DatabaseSync,
   op: WriteOperation,
-  { table = 'job_openings', column }: FailWritesTarget = {},
+  { table = 'job_openings', column, whenNew }: FailWritesTarget = {},
 ): void {
-  const suffix = column === undefined ? '' : `_${column}`;
-  const name = `fail_${table}_${op.toLowerCase()}${suffix}`;
+  if (whenNew !== undefined && !Number.isSafeInteger(whenNew.equals)) {
+    throw new Error('failWrites: whenNew.equals debe ser un entero seguro');
+  }
+  const columnSuffix = column === undefined ? '' : `_${column}`;
+  const rowSuffix = whenNew === undefined ? '' : `_when_${whenNew.column}_${whenNew.equals}`;
+  const name = `fail_${table}_${op.toLowerCase()}${columnSuffix}${rowSuffix}`;
   const scope = column === undefined ? '' : ` OF ${column}`;
+  const when = whenNew === undefined ? '' : ` WHEN NEW.${whenNew.column} = ${whenNew.equals}`;
   db.exec(
-    `CREATE TRIGGER ${name} BEFORE ${op}${scope} ON ${table} BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`,
+    `CREATE TRIGGER ${name} BEFORE ${op}${scope} ON ${table}${when} BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END`,
   );
 }
 
