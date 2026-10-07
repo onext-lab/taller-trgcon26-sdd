@@ -262,7 +262,7 @@ describe('POST /api/applications/:id/reject — oferta cerrada (DT-09)', () => {
     });
   });
 
-  it('DT-09 (HU-06 lo revisa) rechazar una activa de una closed → 200 y StageChange interview → rejected', async () => {
+  it('CA-13/EC-23 defensa en profundidad: activa en una closed creada por SQL (inalcanzable por la API) → reject 200 y StageChange interview → rejected', async () => {
     // DD-09: la oferta se cierra vacía por la API y la inscripción se escribe después por SQL.
     const closedJob = await closeJob(app, (await createPublishedJob(app)).id);
     expect(closedJob.status).toBe('closed');
@@ -284,7 +284,7 @@ describe('POST /api/applications/:id/reject — oferta cerrada (DT-09)', () => {
     });
   });
 
-  it('DT-09 (HU-06 lo revisa) ni advance ni reject llaman al puerto de estado: espía sin llamadas', async () => {
+  it('CA-13 DT-01 (mantiene DT-09) ni advance ni reject llaman al puerto de estado: espía sin llamadas', async () => {
     const otherJob = await createPublishedJob(app, { title: 'Otra oferta inventada' });
     const toAdvance = seedAt('screening', { job: otherJob.id });
     const toReject = seedAt('screening', { job: (await createPublishedJob(app)).id });

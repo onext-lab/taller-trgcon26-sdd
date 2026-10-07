@@ -4,7 +4,7 @@
 - **HU:** HU-06 · **Feature:** FEAT-03
 - **Scope:** backend (tests y documentación de arquitectura)
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-03, RF-04); Should (RF-06, DEC-06)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 

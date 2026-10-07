@@ -280,7 +280,7 @@ describe('POST /api/applications/:id/advance — oferta cerrada (DT-09)', () => 
     candidate = await newCandidate('candidata.cerrada@example.com');
   });
 
-  it('CA-39 (DT-09, HU-06 lo revisa) activa de una oferta closed → advance 200 y StageChange interview → offer', async () => {
+  it('CA-13/EC-23 defensa en profundidad: activa en una closed creada por SQL (inalcanzable por la API) → advance 200 y StageChange interview → offer', async () => {
     // DD-09: la oferta se cierra vacía por la API y la inscripción se escribe después por SQL.
     const closedJob = await closeJob(app, (await createPublishedJob(app)).id);
     expect(closedJob.status).toBe('closed');

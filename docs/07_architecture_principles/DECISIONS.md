@@ -91,14 +91,25 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     que el iniciador llama **dentro de su transacción** de `node:sqlite` (`BEGIN … COMMIT`, `ROLLBACK` ante cualquier
     error).
   - Una lectura de otro módulo va por un **puerto** (interfaz) que define el módulo que la necesita y que implementa el
-    dueño de los datos. Hoy hay dos:
+    dueño de los datos. Hoy hay tres:
     - **Procesos del candidato:** lo define `candidatos` (fórmula de retención, S-06) y lo implementa `inscripciones`.
     - **Estado de la oferta:** lo define `inscripciones` (inscribir solo en `published`, RV-17 y UC-14 · E1; pipeline en
       solo lectura de una oferta `closed`, S-18) y lo implementa `ofertas`.
+    - **Inscripciones activas de una oferta** (`JobApplicationsPort`, en `apps/api/src/modules/jobs/applications-port.ts`):
+      lo define `ofertas` y lo implementa `inscripciones`, en la dirección de las llamadas (`ofertas → inscripciones`).
+      Reúne la lectura del recuento del diálogo de cierre (`countActiveApplications`) y la operación interna de UC-19
+      (`rejectActiveApplications`), que `ofertas` invoca dentro de su transacción de cierre. Se conecta en
+      `apps/api/src/app.ts`, como los otros dos.
   - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos` es la dirección de las llamadas que
-    compone `apps/api/src/app.ts`; los puertos los implementa el módulo de la izquierda y se conectan allí. **Ningún
-    módulo importa a otro**, tampoco sus tipos: la implementación cumple el puerto por tipado estructural y `app.ts`
-    lo comprueba al conectarla.
+    compone `apps/api/src/app.ts`. Los puertos de lectura que van contra la dirección de las llamadas (procesos del
+    candidato, estado de la oferta) los implementa el módulo de la izquierda; el que va en la dirección de las llamadas
+    (`JobApplicationsPort`) lo implementa el de la derecha; todos se conectan allí. **Ningún módulo importa a otro**,
+    tampoco sus tipos: la implementación cumple el puerto por tipado estructural y `app.ts` lo comprueba al conectarla.
+  - *Aclaración 2026-10-07 (HU-06, DT-04):* cambian dos frases. «Hoy hay dos» pasa a «Hoy hay tres», y «los puertos
+    los implementa el módulo de la izquierda» pasa a distinguir el sentido de cada puerto. El motivo es el tercer
+    puerto, `JobApplicationsPort`: va en la dirección de las llamadas (`ofertas → inscripciones`), lo define `ofertas` y
+    lo implementa `inscripciones`, el módulo de la derecha. La decisión no cambia: ningún módulo importa a otro y los
+    puertos se conectan en `apps/api/src/app.ts` por tipado estructural.
   - **Las claves foráneas entre tablas de módulos distintos son integridad referencial de la base, no un acoplamiento
     de código.** Las declara la migración del módulo dueño de la tabla que referencia (p. ej.,
     `003-create-applications.sql`: `applications.candidate_id → candidates.id` y `applications.job_id →
@@ -110,7 +121,7 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   Ningún módulo importa nada de otro: cada puerto se cumple por tipado estructural y `apps/api/src/app.ts` lo comprueba
   al conectarlo (`apps/api/test/module-boundaries.test.ts` lo vigila). `inscripciones` lee el estado de la oferta y
   los datos del candidato por sus puertos; HU-04 los implementa.
-- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro).
+- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro); aclarada en el diseño de HU-06 (tercer puerto, `JobApplicationsPort`, sin cambiar la decisión).
 
 ## DEC-07 · Códigos HTTP y validación de la API
 
