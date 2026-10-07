@@ -4,7 +4,7 @@
 - **HU:** HU-05 · **Feature:** FEAT-03
 - **Scope:** test
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-05, RF-06, RF-07, RF-08)
 - **Complejidad:** M (1–2 h; estimada 2 h). El TD-frontend la estima en «M, ~2,5 h»; para que sea M (gate 4) sin pasar
   de 15 tareas, dos comprobaciones no hostiles van a su tarea natural (ver «Notas»)
