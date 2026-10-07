@@ -46,6 +46,13 @@ const statusPort: JobStatusPort = {
     const row = db.prepare('SELECT status FROM job_openings WHERE id = ?').get(jobId);
     return row ? (row.status as 'draft' | 'published' | 'closed') : null;
   },
+  getJobSummary(jobId) {
+    if (failStatus) throw new Error('fallo simulado del puerto de estado');
+    const row = db.prepare('SELECT status, title FROM job_openings WHERE id = ?').get(jobId);
+    return row
+      ? { status: row.status as 'draft' | 'published' | 'closed', title: String(row.title) }
+      : null;
+  },
 };
 
 /** Funciona en el alta del candidato y falla después, cuando `failProcesses` está activo (EC-22). */

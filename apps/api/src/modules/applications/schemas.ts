@@ -13,6 +13,8 @@ export const REJECTION_REASONS = [
   'job_closed',
 ] as const;
 export type RejectionReason = (typeof REJECTION_REASONS)[number];
+/** Motivos que puede elegir la persona al rechazar (S-15): nunca `job_closed`. */
+export type ManualRejectionReason = Exclude<RejectionReason, 'job_closed'>;
 
 /** ID entero positivo dentro del rango seguro de JavaScript (sin coerción: `"1"` no vale, DEC-11.1). */
 const ID = { type: 'integer', minimum: 1, maximum: 9007199254740991 } as const;
@@ -105,6 +107,18 @@ export interface Application {
   stage: Stage;
   createdAt: string;
   lastChangeAt: string;
+}
+
+/** Un paso del historial, del más antiguo al más reciente (orden de `stage_changes.id`). */
+export interface StageChangeEntry {
+  /** `null` solo en el cambio inicial (INV-04). */
+  fromStage: Stage | null;
+  toStage: Stage;
+  changedAt: string;
+  /** No nulo si y solo si `toStage === 'rejected'` (INV-07). */
+  reason: RejectionReason | null;
+  /** Solo en el cambio de rechazo; único sitio donde sale la nota (RNF-05). */
+  note: string | null;
 }
 
 /** Una inscripción en el pipeline: solo el nombre del candidato, nunca email, teléfono ni nota (RNF-04). */

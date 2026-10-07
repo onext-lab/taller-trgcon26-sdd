@@ -1,5 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
-import type { Application, RejectionReason, Stage } from './schemas.ts';
+import type { Application, RejectionReason, Stage, StageChangeEntry } from './schemas.ts';
 
 /** Fila de `applications` tal como la devuelve SQLite (los CHECK de la migración 003 garantizan los dominios). */
 interface ApplicationRow {
@@ -94,7 +94,60 @@ const LIST_BY_JOB_SQL = `SELECT a.id, a.candidate_id, a.stage, a.last_change_at,
 
 const FIND_ID_BY_PAIR_SQL = `SELECT id FROM applications WHERE candidate_id = ? AND job_id = ?`;
 
+const FIND_BY_ID_SQL = `SELECT id, job_id, candidate_id, stage, created_at, last_change_at
+  FROM applications WHERE id = ?`;
+
+// DD-02: la guarda de la etapa esperada va en el propio UPDATE (SEC-02 de HU-04); 0 filas → `undefined`.
+const UPDATE_STAGE_SQL = `UPDATE applications SET stage = ?, last_change_at = ?
+  WHERE id = ? AND stage = ?
+  RETURNING id, job_id, candidate_id, stage, created_at, last_change_at`;
+
+// Orden por `id` (autoincremental): el historial en el orden en que se escribió; usa `stage_changes_application_idx`.
+const LIST_HISTORY_SQL = `SELECT from_stage, to_stage, changed_at, reason, note
+  FROM stage_changes WHERE application_id = ? ORDER BY id`;
+
+/** Cambio de etapa ya decidido por `transitions.ts`; el repositorio solo aplica la guarda del `WHERE`. */
+export interface StageUpdate {
+  id: number;
+  fromStage: Stage;
+  toStage: Stage;
+  changedAt: string;
+}
+
+function toStageChangeEntry(row: Record<string, unknown>): StageChangeEntry {
+  return {
+    fromStage: (row.from_stage as Stage | null) ?? null,
+    toStage: row.to_stage as Stage,
+    changedAt: String(row.changed_at),
+    reason: (row.reason as RejectionReason | null) ?? null,
+    note: typeof row.note === 'string' ? row.note : null,
+  };
+}
+
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
+
+/** Lecturas de una inscripción y su historial, y el cambio de etapa guardado (HU-05); parte de `createApplicationsRepository`. */
+function createStageOperations(db: DatabaseSync) {
+  return {
+    /** La inscripción con sus 6 campos, o `undefined` si no existe. */
+    findById(id: number): Application | undefined {
+      const row = db.prepare(FIND_BY_ID_SQL).get(id);
+      return row ? toApplication(row as unknown as ApplicationRow) : undefined;
+    },
+    /**
+     * Pasa la inscripción a `toStage` solo si sigue en `fromStage` (guarda en el `WHERE`, DD-02). `undefined` si no
+     * existe o la etapa ya no es `fromStage`; no decide si la transición es válida.
+     */
+    updateStage({ id, fromStage, toStage, changedAt }: StageUpdate): Application | undefined {
+      const row = db.prepare(UPDATE_STAGE_SQL).get(toStage, changedAt, id, fromStage);
+      return row ? toApplication(row as unknown as ApplicationRow) : undefined;
+    },
+    /** Historial de la inscripción, del más antiguo al más reciente; `note` sale tal cual se guardó. */
+    listHistory(applicationId: number): StageChangeEntry[] {
+      return db.prepare(LIST_HISTORY_SQL).all(applicationId).map(toStageChangeEntry);
+    },
+  };
+}
 
 /** Acceso a `applications` y `stage_changes` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
 export function createApplicationsRepository(db: DatabaseSync) {
@@ -122,6 +175,7 @@ export function createApplicationsRepository(db: DatabaseSync) {
       const row = db.prepare(FIND_ID_BY_PAIR_SQL).get(candidateId, jobId);
       return typeof row?.id === 'number' ? row.id : undefined;
     },
+    ...createStageOperations(db),
     /** ¿El error es el choque con el índice único `(candidate_id, job_id)`? (INV-01, DEC-08). */
     isDuplicatePairError(error: unknown): boolean {
       if (!(error instanceof Error)) return false;
