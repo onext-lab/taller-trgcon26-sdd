@@ -129,6 +129,51 @@ export const pipelineSchema = {
   },
 } as const;
 
+const JOB_STATUS = { type: 'string', enum: ['draft', 'published', 'closed'] } as const;
+
+/**
+ * Respuesta 200 de `GET /api/applications/:id` (DT-07): `candidate` solo con `id` y `fullName` (nunca email ni
+ * teléfono, DP-02) y `history` con la nota, único sitio donde sale (RNF-05). Todo `required` y sin claves de más.
+ */
+export const applicationDetailSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'stage', 'createdAt', 'lastChangeAt', 'candidate', 'job', 'history'],
+  properties: {
+    id: { type: 'integer' },
+    stage: STAGE,
+    createdAt: { type: 'string' },
+    lastChangeAt: { type: 'string' },
+    candidate: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'fullName'],
+      properties: { id: { type: 'integer' }, fullName: { type: 'string' } },
+    },
+    job: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'title', 'status'],
+      properties: { id: { type: 'integer' }, title: { type: 'string' }, status: JOB_STATUS },
+    },
+    history: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['fromStage', 'toStage', 'changedAt', 'reason', 'note'],
+        properties: {
+          fromStage: { type: ['string', 'null'], enum: [...STAGES, null] },
+          toStage: STAGE,
+          changedAt: { type: 'string' },
+          reason: { type: ['string', 'null'], enum: [...REJECTION_REASONS, null] },
+          note: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+} as const;
+
 /** Entrada ya validada de `enroll`. */
 export interface EnrollInput {
   jobId: number;
@@ -155,6 +200,17 @@ export interface StageChangeEntry {
   reason: RejectionReason | null;
   /** Solo en el cambio de rechazo; único sitio donde sale la nota (RNF-05). */
   note: string | null;
+}
+
+/** Detalle de una inscripción con su historial (1 a 5 cambios, en orden de `id`); sin email ni teléfono (DP-02). */
+export interface ApplicationDetail {
+  id: number;
+  stage: Stage;
+  createdAt: string;
+  lastChangeAt: string;
+  candidate: { id: number; fullName: string };
+  job: { id: number; title: string; status: JobStatus };
+  history: StageChangeEntry[];
 }
 
 /** Una inscripción en el pipeline: solo el nombre del candidato, nunca email, teléfono ni nota (RNF-04). */

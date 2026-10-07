@@ -1,7 +1,8 @@
-import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync, preValidationHookHandler } from 'fastify';
 import { idParamsSchema, trimTextFields, type IdParams } from '../../http/validation.ts';
 import {
   advanceBodySchema,
+  applicationDetailSchema,
   applicationSchema,
   enrollBodySchema,
   pipelineParamsSchema,
@@ -19,6 +20,33 @@ const trimNote: preValidationHookHandler = (request, _reply, done) => {
   trimTextFields(request.body, { trim: ['note'], emptyToNull: ['note'] });
   done();
 };
+
+/** Lecturas (sin cuerpo): detalle de una inscripción y pipeline de una oferta; ninguna admite querystring. */
+function registerReads(app: FastifyInstance, service: ApplicationsService): void {
+  app.get<{ Params: IdParams }>(
+    '/applications/:id',
+    {
+      schema: {
+        params: idParamsSchema,
+        querystring: pipelineQuerySchema,
+        response: { 200: applicationDetailSchema },
+      },
+    },
+    (request) => service.getDetail(Number(request.params.id)),
+  );
+
+  app.get<{ Params: { jobId: string } }>(
+    '/jobs/:jobId/applications',
+    {
+      schema: {
+        params: pipelineParamsSchema,
+        querystring: pipelineQuerySchema,
+        response: { 200: pipelineSchema },
+      },
+    },
+    (request) => service.getPipeline(Number(request.params.jobId)),
+  );
+}
 
 /**
  * Plugin del módulo applications: recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador.
@@ -59,15 +87,5 @@ export const applicationsRoutes: FastifyPluginAsync<{ service: ApplicationsServi
     (request) => service.reject(Number(request.params.id), request.body),
   );
 
-  app.get<{ Params: { jobId: string } }>(
-    '/jobs/:jobId/applications',
-    {
-      schema: {
-        params: pipelineParamsSchema,
-        querystring: pipelineQuerySchema,
-        response: { 200: pipelineSchema },
-      },
-    },
-    (request) => service.getPipeline(Number(request.params.jobId)),
-  );
+  registerReads(app, service);
 };

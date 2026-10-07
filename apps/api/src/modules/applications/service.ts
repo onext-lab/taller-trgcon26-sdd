@@ -5,6 +5,7 @@ import type { ApplicationsRepository, PipelineRow } from './repository.ts';
 import type {
   AdvanceInput,
   Application,
+  ApplicationDetail,
   EnrollInput,
   Pipeline,
   PipelineItem,
@@ -39,6 +40,11 @@ export interface ApplicationsService {
    * oferta (DT-09).
    */
   reject(id: number, input: RejectInput): Application;
+  /**
+   * Detalle con candidato, oferta e historial (RF-03): 404 si no existe; 500 sin datos si faltan la oferta o el
+   * candidato. Lecturas síncronas sin transacción (DD-08).
+   */
+  getDetail(id: number): ApplicationDetail;
 }
 
 export interface ApplicationsServiceDeps {
@@ -190,11 +196,37 @@ function getPipeline(
   return { job: { id: jobId, status }, items: toPipelineItems(rows, names) };
 }
 
+/**
+ * Lecturas síncronas sin transacción (DD-08). La FK de la base garantiza oferta y candidato: si el puerto no los
+ * devolviera es una incoherencia (500 sin datos), nunca un nombre ni un título inventados.
+ */
+function getDetail(deps: ApplicationsServiceDeps, id: number): ApplicationDetail {
+  const application = deps.repository.findById(id);
+  if (application === undefined) throw notFound(APPLICATION_NOT_FOUND_MESSAGE);
+  const history = deps.repository.listHistory(id);
+  const job = deps.jobStatus.getJobSummary(application.jobId);
+  if (job === null) throw new Error('Inscripción sin oferta');
+  const fullName = deps.candidates
+    .findNames([application.candidateId])
+    .get(application.candidateId);
+  if (fullName === undefined) throw new Error('Inscripción sin candidato');
+  return {
+    id: application.id,
+    stage: application.stage,
+    createdAt: application.createdAt,
+    lastChangeAt: application.lastChangeAt,
+    candidate: { id: application.candidateId, fullName },
+    job: { id: application.jobId, title: job.title, status: job.status },
+    history,
+  };
+}
+
 export function createApplicationsService(deps: ApplicationsServiceDeps): ApplicationsService {
   return {
     enroll: (input) => deps.transaction(() => enroll(deps, input)),
     advance: (id, input) => deps.transaction(() => advance(deps, id, input)),
     reject: (id, input) => deps.transaction(() => reject(deps, id, input)),
     getPipeline: (jobId) => getPipeline(deps, jobId),
+    getDetail: (id) => getDetail(deps, id),
   };
 }
