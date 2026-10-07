@@ -95,14 +95,21 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     - **Procesos del candidato:** lo define `candidatos` (fórmula de retención, S-06) y lo implementa `inscripciones`.
     - **Estado de la oferta:** lo define `inscripciones` (inscribir solo en `published`, RV-17 y UC-14 · E1; pipeline en
       solo lectura de una oferta `closed`, S-18) y lo implementa `ofertas`.
-  - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos`. Un módulo solo importa a los que
-    están a su derecha; los puertos los implementa el módulo de la izquierda y se conectan en `apps/api/src/app.ts`.
+  - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos` es la dirección de las llamadas que
+    compone `apps/api/src/app.ts`; los puertos los implementa el módulo de la izquierda y se conectan allí. **Ningún
+    módulo importa a otro**, tampoco sus tipos: la implementación cumple el puerto por tipado estructural y `app.ts`
+    lo comprueba al conectarla.
+  - **Las claves foráneas entre tablas de módulos distintos son integridad referencial de la base, no un acoplamiento
+    de código.** Las declara la migración del módulo dueño de la tabla que referencia (p. ej.,
+    `003-create-applications.sql`: `applications.candidate_id → candidates.id` y `applications.job_id →
+    job_openings.id`, con `ON DELETE RESTRICT`) y no autorizan a ningún módulo a consultar ni escribir con SQL las
+    tablas de otro.
 - **Alternativas.** Eventos en proceso (consistencia eventual y más piezas para una demo); SQL directo entre módulos
   (acoplamiento y transacciones repartidas); endpoints HTTP internos (sin transacción común).
 - **Consecuencias.** Cada efecto cruzado tiene un test que inyecta un fallo y comprueba que no queda nada a medias.
   `candidatos` no importa nada de los otros dos módulos, e `inscripciones` no importa nada de `ofertas`: lee el estado
   de la oferta por su puerto. HU-04 implementa los dos puertos; hasta entonces, `ofertas` no los necesita.
-- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1.
+- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro).
 
 ## DEC-07 · Códigos HTTP y validación de la API
 

@@ -70,7 +70,11 @@ describe('migración 002-create-candidates', () => {
   it('RF-07 migrate aplica 001 y 002 sobre :memory:, las registra y crea los dos índices', () => {
     const fresh = openDatabase(':memory:');
     try {
-      expect(migrate(fresh)).toEqual(['001-create-job-openings.sql', '002-create-candidates.sql']);
+      expect(migrate(fresh)).toEqual([
+        '001-create-job-openings.sql',
+        '002-create-candidates.sql',
+        '003-create-applications.sql',
+      ]);
       const indexes = fresh
         .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'candidates'")
         .all()
