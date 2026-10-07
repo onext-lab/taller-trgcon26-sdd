@@ -2,10 +2,10 @@
 id: HU-05
 feature: FEAT-03
 titulo: "Pipeline con cambio de etapa e historial"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha        # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [inscripciones, ofertas]
-sprint: null             # sprint-NN
+sprint: sprint-01             # sprint-NN
 rama: "hu/HU-05-pipeline-etapas"
 ---
 

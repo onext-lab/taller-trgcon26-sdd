@@ -1,7 +1,7 @@
 ---
 id: FEAT-01
 titulo: "Gestión de ofertas de empleo"
-estado: priorizada
+estado: entregada
 prioridad: null
 idea_origen: IDEA-001
 modulos_afectados: [ofertas]
@@ -209,3 +209,7 @@ Las HU las crea el `product-owner` con `node scripts/next-id.mjs hu`; `/crear-sp
    declarado aquí para que la cobertura de flujos de FEAT-01 esté completa.
 
 **HU creadas (2026-10-06):** HU-01 y HU-02; UC-04 · A1 lo cubre HU-06 (FEAT-03; era HU-05 hasta la decisión del 2026-10-07).
+
+## Cierre
+Entregada en sprint-01 el 2026-10-07: HU-01 (`e852e04`) y HU-02 (`a96a1b2`); UC-04 · A1 lo entregó HU-06 (`47211a8`) de FEAT-03. Review «Aprobado con observaciones» en cada HU y auditoría del
+sprint «Aprobado con observaciones» (`docs/10_audits/sprints/sprint-01-AUDIT.md`).

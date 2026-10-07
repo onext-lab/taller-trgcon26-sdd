@@ -2,7 +2,7 @@
 id: HU-01
 feature: FEAT-01
 titulo: "Crear, editar y consultar ofertas en borrador"
-estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [ofertas]
 sprint: sprint-01        # sprint-NN

@@ -2,7 +2,7 @@
 id: HU-03
 feature: FEAT-02
 titulo: "Alta, edición y búsqueda de candidatos, con consentimiento"
-estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [candidatos]
 sprint: sprint-01        # sprint-NN

@@ -89,9 +89,9 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
 
 ## 7. Cuestiones abiertas para la feature A (supresión y retención)
 
-Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9), de HU-05
-(`docs/03_delivery/hu/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9) y de HU-06
-(`docs/03_delivery/hu/HU-06-cerrar-oferta-inscripciones-activas/review/REVIEW.md` §4 y §9, que no añade cuestiones
+Salen de las reviews de HU-04 (`docs/03_delivery/hu/completadas/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9), de HU-05
+(`docs/03_delivery/hu/completadas/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9) y de HU-06
+(`docs/03_delivery/hu/completadas/HU-06-cerrar-oferta-inscripciones-activas/review/REVIEW.md` §4 y §9, que no añade cuestiones
 nuevas pero agrava la 2, la 4 y la 5). Las 7, 8 y 9 salen de la auditoría del sprint-01
 (`docs/10_audits/sprints/sprint-01-AUDIT.md` §3: D-02, D-01 y el inventario de datos personales, acción A-08). Se dejan
 abiertas a propósito para el *shaping* de la feature A.

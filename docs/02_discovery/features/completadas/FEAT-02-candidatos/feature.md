@@ -1,7 +1,7 @@
 ---
 id: FEAT-02
 titulo: "Gestión de candidatos"
-estado: priorizada
+estado: entregada
 prioridad: null
 idea_origen: IDEA-002
 modulos_afectados: [candidatos]
@@ -196,3 +196,7 @@ Ninguna. Las preguntas del shaping se respondieron el 2026-10-06 y están en reg
   - **Dependencias:** ninguna.
 
 **HU creadas (2026-10-06):** HU-03; UC-12 · A1 lo cubre HU-04 (FEAT-03).
+
+## Cierre
+Entregada en sprint-01 el 2026-10-07: HU-03 (`cda892e`). Review «Aprobado con observaciones» en cada HU y auditoría del
+sprint «Aprobado con observaciones» (`docs/10_audits/sprints/sprint-01-AUDIT.md`).

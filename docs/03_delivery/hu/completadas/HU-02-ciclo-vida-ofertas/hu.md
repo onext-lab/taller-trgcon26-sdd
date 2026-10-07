@@ -2,7 +2,7 @@
 id: HU-02
 feature: FEAT-01
 titulo: "Publicar, cerrar, duplicar y listar ofertas con filtros"
-estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [ofertas]
 sprint: sprint-01        # sprint-NN

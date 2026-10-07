@@ -3,9 +3,9 @@ sprint: 01
 objetivo: "Núcleo del ATS funcionando de principio a fin: ofertas con su ciclo de vida, candidatos con su consentimiento y retención, e inscripciones con su pipeline e historial."
 inicio: 2026-10-06
 fin: 2026-10-07            # por defecto, inicio + 1 (2 días)
-estado: en curso           # planificado | en curso | completado | cerrado
+estado: completado         # planificado | en curso | completado | cerrado
 base: 2cd8752              # sha de main al abrir el sprint; /audit-sprint audita base..main
-cerrado_en: null
+cerrado_en: 2026-10-07
 audit-override: null       # solo con razón ≥ 20 caracteres
 ---
 
@@ -17,9 +17,11 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 6 / total 6 · en curso 0 · bloqueadas 0
-- Última actualización: 2026-10-07 (HU-06 hecha: review «Aprobado con observaciones», merge y module-sync; tras el
-  merge, `npm run db:reset`; siguen `/audit-sprint` y `/cerrar-sprint`)
+- HU: hechas 6 / total 6 · en curso 0 · bloqueadas 0 · tareas sin HU: 7 / 7 (T-01 a T-07)
+- **Cerrado el 2026-10-07.** Las 6 HU con review «Aprobado con observaciones» (HU-01 y HU-02 en la ronda 2, tras un «Requiere cambios»; HU-03 a HU-06 en la 1), mergeadas
+  y con `/module-sync`; ofertas, candidatos e inscripciones al 100 % MVP. Auditoría del sprint «Aprobado con
+  observaciones» (`docs/10_audits/sprints/sprint-01-AUDIT.md`, re-auditada tras T-06 y T-07). IDEA-001..003, FEAT-01..03
+  y HU-01..06 archivadas en sus `completadas/`.
 
 ## Historias de usuario
 
@@ -82,8 +84,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] reviewer
 - [x] merge a main
 - [x] module-sync
-- [ ] `npm run db:reset` tras el merge, en cada portátil o base creada durante la ventana de INV-05 (lo hace cada
-  persona; no lo marca `/module-sync`)
+- **Nota:** `npm run db:reset` tras el merge, en cada portátil o base creada durante la ventana de INV-05 (lo hace cada
+  persona, con Node 24 en el PATH). Hecho en la base de la rama de integración el 2026-10-07.
 
 ## Tareas sin HU
 
@@ -166,3 +168,16 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - 2026-10-07 · Decisión del responsable («Sí, sprint de 6 HU»): por el techo de 15 tareas de
   `docs/07_architecture_principles/QUALITY-GATES.md` §2 (incluidas las adversariales), UC-19 y UC-04 · A1 salen de
   HU-05 y forman HU-06, «Cerrar una oferta con inscripciones activas», dentro de este sprint.
+- 2026-10-07 · **Cierre del sprint** (decisiones del responsable técnico):
+  - Deuda que pasa a **paso-3**, antes del ensayo del 15/10 y junto con los puntos de publicación (no hay sprint-02
+    antes del taller; las features en vivo son A y C): A-02 (deuda de demo: integración en serie con e2e de *workers*
+    acotados, *timeout* web justificado y medida en una máquina modesta), A-03 (umbral de 50 líneas por función: partir
+    las factorías con `createXOperations` y medirlo con lint), A-07 (qué convenciones pasan a convención del repo) y
+    A-10 (rutas absolutas de los briefs de HU-01 a HU-04 y su regla de `check-clean`).
+  - Al backlog, opcional: A-09 (lista de `Host` permitidos en la guarda `onRequest`, SEC-S1).
+  - Para la feature A, sin resolver: `docs/RGPD.md` §7, cuestiones 1 a 9.
+  - Las 2 marcas `// efecto-síncrono:` de `apps/web/test/components/form-errors.test.ts:77` y `:89` (función pura que
+    enfoca en la propia llamada) las **revisó y aprobó el responsable técnico el 2026-10-07**.
+  - Regla nueva: quien implementa no rebaja la severidad de un hallazgo de su revisor; la propone y decide el
+    responsable técnico (review de HU-06, DD-01).
+  - Etiqueta `paso-2-sprint-01`: la pone el responsable técnico tras revisar el cierre.

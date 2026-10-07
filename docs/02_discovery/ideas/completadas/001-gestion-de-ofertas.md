@@ -1,13 +1,13 @@
 ---
 id: IDEA-001
 titulo: "Gestión de ofertas de empleo"
-estado: aceptada        # idea | aceptada | descartada | completada
+estado: completada        # idea | aceptada | descartada | completada
 fecha: 2026-10-06
 autor: "equipo del taller"
 modulos_afectados: [ofertas]
 prioridad: null         # alta | media | baja (la fija la persona)
 feature: FEAT-01        # FEAT-NN cuando se acepte
-completada_en: null
+completada_en: "sprint-01"
 ---
 
 # IDEA-001 — Gestión de ofertas de empleo
@@ -24,9 +24,10 @@ Módulo `ofertas` (API y web). Toca a `inscripciones` en un punto: qué pasa con
 
 ## Notas
 - Reglas ya validadas que aplican: RV-01 a RV-08 y RV-25 de
-  [reglas-validadas.md](../reglas-validadas.md).
-- Toca UI: principios en [06_design_principles/README.md](../../06_design_principles/README.md).
+  [reglas-validadas.md](../../reglas-validadas.md).
+- Toca UI: principios en [06_design_principles/README.md](../../../06_design_principles/README.md).
 - Ejemplo inventado: «Desarrollador/a backend (Node.js)», híbrida, Valencia, 32 000-40 000 €/año.
 
 ## Decisión
 Promovida a FEAT-01 el 2026-10-06.
+Completada en sprint-01 el 2026-10-07 (FEAT-01: HU-01 y HU-02 (UC-04 · A1, con HU-06 de FEAT-03)).

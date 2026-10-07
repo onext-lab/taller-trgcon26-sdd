@@ -1,7 +1,7 @@
 ---
 id: FEAT-03
 titulo: "Inscripciones y pipeline de selección"
-estado: priorizada          # shaping | priorizada | en delivery | entregada
+estado: entregada          # shaping | priorizada | en delivery | entregada
 prioridad: null          # alta | media | baja (la fija la persona)
 idea_origen: IDEA-003
 modulos_afectados: [inscripciones]
@@ -256,3 +256,7 @@ de un candidato anonimizado queda aplazado de forma explícita a la feature A _(
    feature A, y su HU lo cubrirá y probará _(S-05)_.
 
 **HU creadas (2026-10-06):** HU-04 y HU-05. **2026-10-07:** HU-06, desgajada de HU-05.
+
+## Cierre
+Entregada en sprint-01 el 2026-10-07: HU-04 (`3d935ac`), HU-05 (`b0e950b`) y HU-06 (`47211a8`). Review «Aprobado con observaciones» en cada HU y auditoría del
+sprint «Aprobado con observaciones» (`docs/10_audits/sprints/sprint-01-AUDIT.md`).

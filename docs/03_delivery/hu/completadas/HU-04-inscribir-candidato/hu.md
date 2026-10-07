@@ -2,10 +2,10 @@
 id: HU-04
 feature: FEAT-03
 titulo: "Inscribir en una oferta publicada, sin duplicados"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha        # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [inscripciones, candidatos, ofertas]
-sprint: null             # sprint-NN
+sprint: sprint-01             # sprint-NN
 rama: "hu/HU-04-inscribir-candidato"
 ---
 

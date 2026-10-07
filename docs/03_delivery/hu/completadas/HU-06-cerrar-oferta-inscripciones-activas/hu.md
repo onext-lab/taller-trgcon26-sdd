@@ -2,7 +2,7 @@
 id: HU-06
 feature: FEAT-03
 titulo: "Cerrar una oferta con inscripciones activas"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha        # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [inscripciones, ofertas, candidatos]
 sprint: sprint-01        # sprint-NN
