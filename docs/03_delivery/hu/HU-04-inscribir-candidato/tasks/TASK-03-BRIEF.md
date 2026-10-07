@@ -96,3 +96,35 @@ INTEGRACION rc=0
 - **Resultado:** en verde. Ningún import entre módulos (`module-boundaries.test.ts`); ningún `SELECT *` nuevo sobre candidates; las suites de candidates y jobs (36 files / 496 tests) sin tocar sus tests.
 - **Commit:** el de esta tarea (`[HU-04 TASK-03]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** DD-07 (bajo): el JSDoc de `noCandidateProcesses` en `apps/api/src/modules/candidates/processes-port.ts:23` dice «Implementación por defecto mientras no existe `applications`»; desde TASK-03 el defecto de `buildApp` es el lector real. Cámbialo a «stub para tests y para el seed de candidatos, antes de que existan inscripciones». Sin cambio de comportamiento.
+- **Ficheros:** `apps/api/src/modules/candidates/processes-port.ts`
+- **Verificación que debes pegar:** Solo cambia el comentario; eslint a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm run typecheck
+exit=0
+$ npm run lint
+exit=0
+$ npm test
+ Test Files  58 passed (58)
+      Tests  715 passed (715)
+ Test Files  48 passed (48)
+      Tests  628 passed (628)
+exit=0
+$ npm run e2e
+  39 passed (22.0s)
+exit=0
+$ npm run check:harness
+check:harness: todo en verde.
+exit=0
+INTEGRACION COMPLETA rc=0
+```
+
+- **Resultado:** en verde: solo el JSDoc de `noCandidateProcesses` (DD-07).
+

@@ -125,3 +125,9 @@ asignarla.
 - `recalculateRetention` sigue usando su `findById` (que no se copia ni se cambia).
 - Formas duplicadas (DD-01): `JobStatus` existe en `applications` y en `jobs`; un desfase no compila en `app.ts`.
 - Los errores del puerto o del lector no se envuelven con datos de contexto ni se registran (DP-01).
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** DD-07 (bajo): el JSDoc de `noCandidateProcesses` en `apps/api/src/modules/candidates/processes-port.ts:23` dice «Implementación por defecto mientras no existe `applications`»; desde TASK-03 el defecto de `buildApp` es el lector real. Cámbialo a «stub para tests y para el seed de candidatos, antes de que existan inscripciones». Sin cambio de comportamiento.
+- **Ficheros:** `apps/api/src/modules/candidates/processes-port.ts`
+- **Criterios de done:** Solo cambia el comentario; eslint a 0.
