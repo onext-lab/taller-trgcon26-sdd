@@ -81,3 +81,8 @@ y el pipeline (DD-05, DD-06, DD-10).
 - **DD-04:** `reload()` no pasa por `loading`, así el panel sigue montado en el 409 `DUPLICATE`.
 - La alerta del 409 `DUPLICATE` no lleva ni el nombre ni el `existingId` (RNF-05).
 - Datos inventados (`@example.com`).
+
+## Nota · review ronda 1 (2026-10-07)
+Se creó además `apps/web/test/features/applications/enroll-fixtures.ts` (helpers sacados del test para no pasar de
+300 líneas), y el disparador «Inscribir candidato» queda deshabilitado mientras hay una inscripción en curso
+(`apps/web/src/features/applications/PipelineScreen.tsx`), para que no cierre el panel a mitad del envío.

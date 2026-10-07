@@ -218,3 +218,10 @@ Ningún RF del PRD queda sin cubrir en los TD. Matices para la validación:
 | Ficheros de más de 300 líneas | Regla del aprobador | Hermanos previstos (A-3, A-7) y criterio de done con `wc -l` tras Prettier en cada tarea |
 | e2e sobre la base compartida | TD-frontend, prob. 2, imp. 2 | Datos propios con *token* único; la `closed` por `GET /api/jobs?status=closed`, sin IDs fijos; `tsconfig` de `e2e/` sin `dom` |
 | Tests de rendimiento inestables en portátiles lentos | Este plan | Varias repeticiones y el peor caso contra el umbral, como `apps/api/test/jobs/performance.test.ts` |
+
+## Nota · review ronda 1 (2026-10-07)
+- Los matices 1 y 2 de «Coherencia PRD ↔ diseño» quedaron resueltos en el PRD v1.1 (DT-12 y CA-15).
+- Reparto real de los tests (A-3): EC-08, EC-23 y EC-53 están en `apps/api/test/applications/enroll-retention.test.ts`;
+  EC-05, EC-18, EC-22, EC-52 y CA-11, en `apps/api/test/applications/enroll-failures-adversarial.test.ts`; EC-15,
+  CA-27 y la excepción RGPD §5, en `apps/api/test/applications/migration-triggers.test.ts`; EC-51, en
+  `apps/api/test/applications/seed-invariants.test.ts`. Los TD citan el fichero previsto antes del reparto.

@@ -107,8 +107,9 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
 - **Alternativas.** Eventos en proceso (consistencia eventual y más piezas para una demo); SQL directo entre módulos
   (acoplamiento y transacciones repartidas); endpoints HTTP internos (sin transacción común).
 - **Consecuencias.** Cada efecto cruzado tiene un test que inyecta un fallo y comprueba que no queda nada a medias.
-  `candidatos` no importa nada de los otros dos módulos, e `inscripciones` no importa nada de `ofertas`: lee el estado
-  de la oferta por su puerto. HU-04 implementa los dos puertos; hasta entonces, `ofertas` no los necesita.
+  Ningún módulo importa nada de otro: cada puerto se cumple por tipado estructural y `apps/api/src/app.ts` lo comprueba
+  al conectarlo (`apps/api/test/module-boundaries.test.ts` lo vigila). `inscripciones` lee el estado de la oferta y
+  los datos del candidato por sus puertos; HU-04 los implementa.
 - **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro).
 
 ## DEC-07 · Códigos HTTP y validación de la API
