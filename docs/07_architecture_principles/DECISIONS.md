@@ -28,7 +28,8 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
 - **Contexto.** API, web y e2e comparten versiones de TypeScript, ESLint y Prettier, y el asistente tiene que
   arrancarlo todo con un comando.
 - **Decisión.** Un único repo con **npm workspaces** (`apps/api`, `apps/web`) y `e2e/` en la raíz. Scripts raíz:
-  `dev`, `build`, `test`, `typecheck`, `lint`, `format`, `e2e`, `db:reset`, `check:env` y `check:harness`.
+  `dev`, `build`, `test`, `typecheck`, `lint`, `format`, `e2e`, `db:reset`, `check:env`, `check:harness` y
+  `check:clean` (busca términos prohibidos con una lista que vive fuera del repo: `--denylist <ruta>`).
 - **Alternativas.** pnpm o Turborepo (otra herramienta que instalar); dos repos (rompe la HU vertical).
 - **Consecuencias.** Un solo `package-lock.json`; los comandos acotados usan `-w apps/<app>`.
 - **Estado.** Aceptada (2026-10-06).
@@ -91,24 +92,38 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     que el iniciador llama **dentro de su transacción** de `node:sqlite` (`BEGIN … COMMIT`, `ROLLBACK` ante cualquier
     error).
   - Una lectura de otro módulo va por un **puerto** (interfaz) que define el módulo que la necesita y que implementa el
-    dueño de los datos. Hoy hay tres:
+    dueño de los datos. Hoy hay cuatro:
     - **Procesos del candidato:** lo define `candidatos` (fórmula de retención, S-06) y lo implementa `inscripciones`.
     - **Estado de la oferta:** lo define `inscripciones` (inscribir solo en `published`, RV-17 y UC-14 · E1; pipeline en
       solo lectura de una oferta `closed`, S-18) y lo implementa `ofertas`.
+    - **Candidato de una inscripción** (`CandidateLookupPort`, en `apps/api/src/modules/applications/ports.ts`): lo
+      define `inscripciones` (que el candidato exista al inscribir y su nombre, sin más datos, en el pipeline y la
+      ficha de la inscripción) y lo implementa `candidatos` (`exists` y `findNames`), en la dirección de las llamadas
+      (`inscripciones → candidatos`).
     - **Inscripciones activas de una oferta** (`JobApplicationsPort`, en `apps/api/src/modules/jobs/applications-port.ts`):
       lo define `ofertas` y lo implementa `inscripciones`, en la dirección de las llamadas (`ofertas → inscripciones`).
       Reúne la lectura del recuento del diálogo de cierre (`countActiveApplications`) y la operación interna de UC-19
       (`rejectActiveApplications`), que `ofertas` invoca dentro de su transacción de cierre. Se conecta en
-      `apps/api/src/app.ts`, como los otros dos.
+      `apps/api/src/app.ts`, como los demás.
   - Dirección de dependencias, sin ciclos: `ofertas → inscripciones → candidatos` es la dirección de las llamadas que
-    compone `apps/api/src/app.ts`. Los puertos de lectura que van contra la dirección de las llamadas (procesos del
-    candidato, estado de la oferta) los implementa el módulo de la izquierda; el que va en la dirección de las llamadas
-    (`JobApplicationsPort`) lo implementa el de la derecha; todos se conectan allí. **Ningún módulo importa a otro**,
-    tampoco sus tipos: la implementación cumple el puerto por tipado estructural y `app.ts` lo comprueba al conectarla.
+    compone `apps/api/src/app.ts`. Cada puerto lo define el módulo que necesita los datos y lo implementa su dueño, sea
+    cual sea el sentido: los puertos de lectura que van contra la dirección de las llamadas (procesos del candidato,
+    estado de la oferta) los implementa el módulo de la izquierda, y los que van en la dirección de las llamadas (`CandidateLookupPort` y
+    `JobApplicationsPort`), el de la derecha; todos se conectan allí. **Ningún módulo importa a otro**, tampoco sus
+    tipos: la implementación cumple el puerto por tipado estructural y `app.ts` lo comprueba al conectarla.
   - *Aclaración 2026-10-07 (HU-06, DT-04):* cambian dos frases. «Hoy hay dos» pasa a «Hoy hay tres», y «los puertos
     los implementa el módulo de la izquierda» pasa a distinguir el sentido de cada puerto. El motivo es el tercer
     puerto, `JobApplicationsPort`: va en la dirección de las llamadas (`ofertas → inscripciones`), lo define `ofertas` y
     lo implementa `inscripciones`, el módulo de la derecha. La decisión no cambia: ningún módulo importa a otro y los
+    puertos se conectan en `apps/api/src/app.ts` por tipado estructural.
+  - *Aclaración 2026-10-07 (auditoría del sprint-01, C-03):* cambian tres frases. «Hoy hay tres» pasa a «Hoy hay
+    cuatro»; «como los otros dos» pasa a «como los demás»; y «el que va en la dirección de las llamadas
+    (`JobApplicationsPort`) lo implementa el de la derecha» pasa a «los que van en la dirección de las llamadas
+    (`CandidateLookupPort` y `JobApplicationsPort`), el de la derecha», precedida de la regla que vale para los cuatro:
+    cada puerto lo define el módulo que necesita los datos y lo implementa su dueño. El motivo es el cuarto puerto,
+    `CandidateLookupPort` (`apps/api/src/modules/applications/ports.ts`), que existe desde HU-04 y que la aclaración de
+    HU-06 omitió: lo define `inscripciones`, lo implementa `candidatos` y va en la dirección de las llamadas
+    (`inscripciones → candidatos`). La decisión no cambia: ningún módulo importa a otro, ni sus tipos, y los cuatro
     puertos se conectan en `apps/api/src/app.ts` por tipado estructural.
   - **Las claves foráneas entre tablas de módulos distintos son integridad referencial de la base, no un acoplamiento
     de código.** Las declara la migración del módulo dueño de la tabla que referencia (p. ej.,
@@ -121,7 +136,7 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   Ningún módulo importa nada de otro: cada puerto se cumple por tipado estructural y `apps/api/src/app.ts` lo comprueba
   al conectarlo (`apps/api/test/module-boundaries.test.ts` lo vigila). `inscripciones` lee el estado de la oferta y
   los datos del candidato por sus puertos; HU-04 los implementa.
-- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro); aclarada en el diseño de HU-06 (tercer puerto, `JobApplicationsPort`, sin cambiar la decisión).
+- **Estado.** Aceptada (2026-10-06); ampliada con el puerto «estado de la oferta» en la revisión de paso-1; aclarada en el diseño de HU-04 (claves foráneas entre módulos; ningún módulo importa a otro); aclarada en el diseño de HU-06 (tercer puerto, `JobApplicationsPort`, sin cambiar la decisión); aclarada en la auditoría del sprint-01 (C-03: cuarto puerto, `CandidateLookupPort`, y dirección de los cuatro, sin cambiar la decisión).
 
 ## DEC-07 · Códigos HTTP y validación de la API
 

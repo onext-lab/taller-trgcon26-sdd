@@ -133,7 +133,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   Tope del responsable técnico: lo que no esté barrido a las 20:30 queda como excepción explícita y fechada de la
   comprobación (nunca desactivada) y pasa a paso-3.
 
-### T-07 · Docs y kit al día tras la auditoría · estado: en curso
+### T-07 · Docs y kit al día tras la auditoría · estado: hecha
 - **Tipo:** docs (auditoría del sprint, A-04, A-05, A-06 y A-08)
 - Segunda aclaración fechada de DEC-06 (cuatro puertos y la dirección de cada uno); skills y agentes al día (DEC-06
   aclarado, puertos y `apps/api/test/module-boundaries.test.ts`); citas y docs de módulo de C-06, C-07 y los bajos de

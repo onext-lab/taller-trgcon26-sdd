@@ -20,7 +20,7 @@ de una idea al código integrado, con especificaciones, gates comprobables y ver
 | `npm test` · `npm run typecheck` · `npm run lint` · `npm run e2e` | Verificaciones |
 | `npm test -w apps/api -- <patrón>` · `npx eslint <ficheros>` | Verificaciones acotadas |
 | `npm run check:env` · `npm run check:harness` | Portátil listo · kit SDD completo |
-| `node scripts/next-id.mjs <idea\|feat\|spike\|sprint\|hu\|task>` | Siguiente ID libre (nunca a mano) |
+| `node scripts/next-id.mjs <idea\|feat\|spike\|sprint\|hu\|task\|uc>` | Siguiente ID libre (nunca a mano) |
 
 ## El flujo (detalle en `docs/WORKFLOW.md`)
 

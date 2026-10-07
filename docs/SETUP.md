@@ -16,6 +16,16 @@ Lo que necesitas antes del taller y cómo comprobarlo. Hazlo en casa: el día de
 La API escucha en `API_HOST`:`API_PORT`, por defecto `127.0.0.1:3001`; un `API_HOST` vacío también cae a `127.0.0.1`
 (`apps/api/src/listen-options.ts`). No la expongas a la red: no tiene login (DEC-04).
 
+Variables de entorno que el repo lee (todas opcionales; sin ellas, los valores por defecto):
+
+| Variable | Por defecto | Quién la lee |
+|---|---|---|
+| `API_HOST` · `API_PORT` | `127.0.0.1` · `3001` | La API (`apps/api/src/listen-options.ts`); `API_PORT` también el proxy `/api` de Vite (`apps/web/vite.config.ts`) y `npm run check:env` (`scripts/check-env.mjs`) |
+| `WEB_PORT` | `5173` | El servidor de Vite (`apps/web/vite.config.ts`) y `npm run check:env` |
+| `ATS_DB_PATH` | `data/ats.db` en la raíz del repo | La conexión de la API (`apps/api/src/db/connection.ts`) y `npm run db:reset` (`apps/api/src/db/reset.ts`), que borra ese fichero y sus `-wal` y `-shm` antes de regenerarlo. Una ruta relativa se resuelve desde el directorio del proceso (`apps/api/` con `-w apps/api`) |
+
+Los e2e las fijan solos en `playwright.config.ts` (`data/e2e.db`, 3101 y 5174); no hace falta tocarlas para el taller.
+
 No hace falta Docker, ni Python, ni base de datos instalada, ni ninguna clave: la base de datos es un fichero SQLite que
 crea el propio Node.
 

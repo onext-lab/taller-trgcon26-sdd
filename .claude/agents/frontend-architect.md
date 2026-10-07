@@ -21,6 +21,7 @@ Eres el **arquitecto frontend** del ATS de ejemplo del taller. Traduces un PRD c
 
 - **React 19 + Vite 8**, TypeScript estricto, en `apps/web`. Sin librerías nuevas de estado, routing, formularios o UI salvo justificación en el documento y propuesta de `DEC-NN`; el punto de partida es React a secas.
 - **Features por carpeta**: `apps/web/src/features/{candidates,jobs,applications}/` con sus pantallas, componentes propios, cliente de API (`api.ts`) y tipos. Lo compartido por dos o más features va a `apps/web/src/components/`.
+- **Dirección entre features**: la misma que la API (`jobs → applications → candidates`, `docs/ARCHITECTURE.md`, «Módulos y puertos» y «Web»); una feature solo importa de las de su derecha y `App.tsx` las compone. En la API, DEC-06 aclarado: ningún módulo importa a otro, ni sus tipos; puertos por tipado estructural conectados en `apps/api/src/app.ts` y vigilados por `apps/api/test/module-boundaries.test.ts`.
 - **Contenedor y presentación separados**: el componente de pantalla obtiene datos y gestiona estado; los presentacionales reciben props y no hacen `fetch`.
 - **Datos**: `fetch` a rutas relativas `/api/...` (el proxy de Vite las lleva a la API). Un cliente por feature que tipa la respuesta y traduce el envelope de error `{ error: { code, message, details? } }` a mensajes para la persona. `AbortController` en los efectos.
 - **Estados de cada pantalla, siempre**: cargando, vacío, error (con reintento) y con datos. Botones deshabilitados mientras se envía para evitar dobles envíos.

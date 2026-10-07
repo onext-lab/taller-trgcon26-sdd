@@ -185,7 +185,7 @@ Los agentes los lanzan las skills; se invocan a mano solo para consultas puntual
 | `backend-architect` · `frontend-architect` | `/tech-design` | dudas de diseño sobre una HU con PRD `Ready` |
 | `api-builder` · `web-builder` | `/implementar-hu` (uno por task, según `Capa:`) | — |
 | `security-auditor` · `datos-personales-auditor` | `/reviewer`, `/audit-sprint` | revisar un cambio sensible antes de la review |
-| `doc-code-drift-checker` | `/reviewer`, `/module-sync` | comprobar que las rutas citadas en docs existen |
+| `doc-code-drift-checker` | `/reviewer`, `/module-sync`, `/audit-sprint` | comprobar que las rutas citadas en docs existen |
 | `qa-e2e-runner` | `/qa-e2e` | — |
 
 ## 7. Recetas cortas

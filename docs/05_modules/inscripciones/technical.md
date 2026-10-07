@@ -260,9 +260,12 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
   siguen hasta que llega la respuesta y un error pasa a `error`; reutiliza el `AbortController`, así que una respuesta
   vieja nunca pisa a la nueva); `Notice` acepta `ref` y, si lo recibe, `tabIndex={-1}`; `App.tsx` añade la ruta a `ROUTES`.
 - **Dirección entre features** (DD-01, DEC-06 por analogía): `jobs → applications → candidates`. `jobs` importa
-  `pipelinePath` de `apps/web/src/features/applications/paths.ts`; `applications` importa solo el cliente público de `candidates` (`api.ts`,
-  `types.ts`); lo que el pipeline y el detalle necesitan de `jobs` y `candidates` (los enlaces a la ficha y la pantalla
-  «Página no encontrada») se lo pasa `App.tsx` por props (`jobPath`, `notFound`). Ningún componente de una feature se importa desde otra.
+  `pipelinePath` de `apps/web/src/features/applications/paths.ts`; `applications` importa de `candidates` su cliente
+  (`api.ts`), sus tipos (`types.ts`) y sus rutas (`candidatePaths` de `apps/web/src/features/candidates/paths.ts`, para
+  el enlace a la ficha en `apps/web/src/features/applications/ApplicationDetails.tsx`), en la dirección permitida. Lo
+  que necesita de `jobs` y de `App.tsx` (el enlace «Volver a la oferta» del pipeline y la pantalla «Página no
+  encontrada») se lo pasa `App.tsx` por props (`jobPath`, `notFound`), porque `applications` no puede importar de `jobs`, que está a su izquierda. Ningún
+  componente de una feature se importa desde otra.
 
 ## Validación y errores
 
@@ -295,8 +298,8 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
 ## Gotchas
 
 - **El foco movido por un efecto pasivo se aserta con `expectFocusOn`** (`apps/web/test/helpers/focus.ts`): un `findBy*` puede
-  resolver antes de que corra el efecto y, con la CPU cargada, el test falla a veces. Los tests del panel y del aviso lo usan
-  (22 usos en `apps/web/test/features/applications/`); sin tiempos fijos ni *timeouts* más largos. Lo mismo vale para
+  resolver antes de que corra el efecto y, con la CPU cargada, el test falla a veces. Los tests del panel y del aviso
+  de `apps/web/test/features/applications/` lo usan; sin tiempos fijos ni *timeouts* más largos. Lo mismo vale para
   `document.title` y el cierre de un `dialog`: se asertan con `await waitFor` (T-03: EC-46 falló en 1 de 10 semillas de
   `--sequence.shuffle` antes del arreglo).
 - **El tsconfig de `e2e/` no incluye `dom`:** `history` o `document` no existen como tipos. `e2e/applications.spec.ts`

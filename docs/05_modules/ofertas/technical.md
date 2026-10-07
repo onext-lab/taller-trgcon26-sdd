@@ -1,12 +1,18 @@
 # Módulo `ofertas` (código `jobs`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-02** (2026-10-06, review «Aprobado con observaciones», ronda 2), con los cambios
-transversales de **HU-03** que tocan a ofertas (`details` acotado, piezas web compartidas, tabla `ROUTES`) y los de
-**HU-04** (2026-10-07: guardas de estado en el SQL, lector del puerto «estado de la oferta» y «Ver pipeline») y
-**HU-05** (2026-10-07: `getJobSummary` en el lector y «Ver pipeline» en una cerrada) y **HU-06** (2026-10-07: el
-puerto hacia `inscripciones` pasa a ser real). Lo
-mantiene `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo
-condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04 y HU-06) a DEC-12 de
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07). Lo que tocó a ofertas cada HU:
+
+| HU | Cambios en ofertas |
+|---|---|
+| HU-01 | Crear, editar, borrar y consultar ofertas en borrador |
+| HU-02 | Publicar, cerrar, duplicar y listar con filtros (review «Aprobado con observaciones», ronda 2) |
+| HU-03 | Transversales: `details` acotado (DEC-11.4), piezas web compartidas y tabla `ROUTES` |
+| HU-04 | Guardas de estado en el SQL, lector del puerto «estado de la oferta» (`getJobStatus`) y «Ver pipeline» |
+| HU-05 | `getJobSummary` en el lector y «Ver pipeline» en una oferta cerrada |
+| HU-06 | El puerto hacia `inscripciones` (`JobApplicationsPort`) pasa a ser real |
+
+Lo mantiene `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo
+condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04, HU-06 y la auditoría del sprint-01) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (DEC-11.4 enmendado en HU-03).
 
 **El ciclo de vida completo (`draft → published → closed`) está implementado, sin nada latente.** Desde HU-06, el
@@ -24,8 +30,8 @@ rechaza sus inscripciones activas en la misma transacción e INV-05 se cumple po
 | Servicio | `apps/api/src/modules/jobs/service.ts` | `createJobsService({ repository, now, transaction, applications })`: `create`, `get`, `update`, `remove`, `publish`, `close`, `closePreview`, `duplicate` y `list(query)` |
 | Reglas | `apps/api/src/modules/jobs/rules.ts` | Sin HTTP ni SQL: tabla acción × estado (`checkAction`: `apply`, `noop` o 409), obligatorios (`missingRequiredDetails`) y banda (`salaryRangeDetails`) |
 | Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications(jobId)`, `rejectActiveApplications({ jobId, closedAt })`), que implementa `applications` (`job-closing.ts`) y conecta `composeServices` desde HU-06; `noJobApplications` queda como doble neutro para los tests de `jobs` (DD-07 de HU-06) |
-| Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado (`update`, `deleteById`, `markPublished` y `markClosed`, **los cuatro con guarda de estado en el `WHERE`**, `findStatusById`, `listPage`, `count`), `toJob(row)` (`snake_case` → `camelCase`) |
-| Lector de estado | `apps/api/src/modules/jobs/job-status.ts` | `createJobStatusReader(repo)`: implementa el `JobStatusPort` de `applications` sin importarlo (`getJobStatus(id)` → `draft`, `published`, `closed` o `null`), sobre `findStatusById` (`SELECT status`); `app.ts` comprueba la forma por tipado estructural |
+| Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado (`update`, `deleteById`, `markPublished` y `markClosed`, **los cuatro con guarda de estado en el `WHERE`**, `findStatusById`, `findSummaryById`, `listPage`, `count`), `toJob(row)` (`snake_case` → `camelCase`) |
+| Lector de estado | `apps/api/src/modules/jobs/job-status.ts` | `createJobStatusReader(repo)`: implementa el `JobStatusPort` de `applications` sin importarlo: `getJobStatus(id)` → `draft`, `published`, `closed` o `null`, sobre `findStatusById` (`SELECT status`), y `getJobSummary(id)` → `{ status, title }` o `null` (HU-05), sobre `findSummaryById` (`SELECT status, title`); `app.ts` comprueba la forma por tipado estructural |
 | Esquemas | `apps/api/src/modules/jobs/schemas.ts` | Tipos (`Job`, `JobInput`, `JobPatch`, `JobListItem`, `JobPage`, `JobListQuery`, `ClosePreview`) y JSON Schema (`jobFieldsSchema`, `listQuerySchema`…); el alta y la edición declaran `id`, `status`, `createdAt`, `publishedAt` y `closedAt` con `forbiddenFields` (`apps/api/src/http/validation.ts`) para que sigan nombrados (DEC-11.4) |
 | Búsqueda | `apps/api/src/db/text-search.ts` | `foldSearchText` y `fold_search(texto)`, función SQL que el repositorio registra en su conexión |
 | Guarda entre sitios | `apps/api/src/http/cross-site.ts` | Hook `onRequest` global (DEC-12): 403 `CROSS_SITE_REQUEST` a las escrituras desde otro sitio |

@@ -13,7 +13,7 @@ Respondes en **castellano de España** (tuteo, sin voseo). Identificadores de c�
 - `AGENTS.md` (raíz): qué es el repo, comandos y reglas de oro.
 - `docs/WORKFLOW.md`: el flujo de delivery de punta a punta (discovery → feature → HU → SDD). Es el documento canónico.
 - `docs/_modules.md`: mapa módulo de docs ↔ módulo de código. `docs/MVP-STATUS.md`: estado agregado por módulo.
-- `docs/05_modules/{módulo}/`: `functional.md` (qué hace) y `technical.md` (estado técnico). Mientras no exista la primera HU de un módulo, solo hay un `README.md` «pendiente».
+- `docs/05_modules/{módulo}/`: `functional.md` (qué hace) y `technical.md` (estado técnico). Los tres módulos los tienen; solo un módulo nuevo, sin HU entregada, tendría únicamente su `README.md`.
 - `docs/ARCHITECTURE.md` y `docs/07_architecture_principles/DECISIONS.md` (bitácora `DEC-NN`): no planifiques nada que las contradiga.
 - `docs/07_architecture_principles/QUALITY-GATES.md`: gates por artefacto y las 7 categorías de casos límite.
 - `docs/RGPD.md`: ejemplo didáctico de tratamiento de datos de candidatos. Cualquier trabajo con datos personales lo respeta.
@@ -23,7 +23,7 @@ Respondes en **castellano de España** (tuteo, sin voseo). Identificadores de c�
 - **`docs/02_discovery/`** (producto): `ideas/NNN-slug.md` (frontmatter `id: IDEA-NNN`), `features/FEAT-NN-slug/feature.md` (shaping) y `spikes/SPIKE-NN-slug.md`.
 - **`docs/03_delivery/`** (ingeniería): una carpeta por HU en `hu/HU-NN-slug/` con `hu.md`, `specs/PRD.md`, `plans/`, `tasks/`, `review/` y `CHANGELOG.md`. Cada HU referencia su `FEAT-NN`.
 - **`docs/01_roadmap/sprints/`** (cuándo): un fichero `sprint-NN.md` por sprint.
-- **IDs** globales y nunca reutilizados: `IDEA-NNN`, `FEAT-NN`, `SPIKE-NN`, `HU-NN`, `T-NN`, `sprint-NN`. **Se calculan siempre con `node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task>`**, que recorre también `completadas/` y `descartadas/`. Nunca de memoria.
+- **IDs** globales y nunca reutilizados: `IDEA-NNN`, `FEAT-NN`, `SPIKE-NN`, `HU-NN`, `T-NN`, `sprint-NN`, `UC-NN`. **Se calculan siempre con `node scripts/next-id.mjs <idea|feat|spike|sprint|hu|task|uc>`**, que recorre también `completadas/` y `descartadas/`. Nunca de memoria.
 
 ## Del descubrimiento al desarrollo
 

@@ -92,7 +92,9 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
 Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9), de HU-05
 (`docs/03_delivery/hu/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9) y de HU-06
 (`docs/03_delivery/hu/HU-06-cerrar-oferta-inscripciones-activas/review/REVIEW.md` §4 y §9, que no añade cuestiones
-nuevas pero agrava la 2, la 4 y la 5). Se dejan abiertas a propósito para el *shaping* de la feature A.
+nuevas pero agrava la 2, la 4 y la 5). Las 7, 8 y 9 salen de la auditoría del sprint-01
+(`docs/10_audits/sprints/sprint-01-AUDIT.md` §3: D-02, D-01 y el inventario de datos personales, acción A-08). Se dejan
+abiertas a propósito para el *shaping* de la feature A.
 
 1. **¿Se puede inscribir, o encontrar en el buscador, a un candidato con la retención vencida que aún no se ha
    anonimizado?** Hoy sí: al inscribirlo su retención pasa a «mientras dure el proceso» (DT-06 del PRD de HU-04; lo fija
@@ -125,3 +127,30 @@ nuevas pero agrava la 2, la 4 y la 5). Se dejan abiertas a propósito para el *s
 6. **Texto libre en el historial.** La nota del rechazo (hasta 500 caracteres, solo con un aviso en la web) se guarda en
    un historial inmutable y sale tal cual en el detalle. Si la feature A no la vacía siempre (cuestión 3), el historial
    conserva texto libre que puede identificar a la persona, en contra de §5.
+7. **Marca de anonimizado en las operaciones propias de `candidatos`.** Las cuestiones 2 y 5 cubren el lado de
+   `inscripciones`; el de `candidatos` tampoco consulta ninguna marca (auditoría del sprint-01, D-02). En
+   `apps/api/src/modules/candidates/service.ts`, editar la ficha (`PATCH /api/candidates/:id`, `updateCandidate`), dar
+   el consentimiento (`POST /api/candidates/:id/consent`), retirarlo (`POST /api/candidates/:id/consent/withdrawal`)
+   y `recalculateRetention` solo comprueban que la ficha exista; el listado y la búsqueda
+   (`apps/api/src/modules/candidates/repository.ts`, `FILTER_SQL` de `listPage` y `count`) filtran solo por texto y
+   skill. Falta decidir: (a) qué responde cada escritura sobre un anonimizado, **409** (conflicto de estado, DEC-07) o
+   **410** (ya no existe como persona; sería un código nuevo que DEC-07 no recoge), o si alguna es un 200 sin cambios
+   como las repeticiones idempotentes (DEC-08); (b) si la guarda va en el `WHERE` de cada `UPDATE` (p. ej.,
+   `AND anonymized_at IS NULL`, como las guardas de estado de `jobs`) o en una comprobación previa en la transacción, y
+   (c) si el `WHERE` del listado y de la búsqueda excluye a los anonimizados siempre o solo por defecto (§5 dice que
+   «no aparece en búsquedas»).
+8. **Residuos tras anonimizar.** `apps/api/src/db/connection.ts` abre la base con `PRAGMA journal_mode = WAL` y sin
+   `secure_delete` (auditoría del sprint-01, D-01). Una anonimización por `UPDATE` dejaría el nombre, el email y el
+   teléfono anteriores en páginas libres del fichero y en el `-wal` hasta el siguiente *checkpoint* o `VACUUM`, y §5
+   pide una supresión irreversible. Hoy no hay riesgo porque la anonimización no existe. Falta decidir el mecanismo:
+   ¿`PRAGMA secure_delete = ON` en la conexión (sobrescribe con ceros lo borrado, a cambio de más escrituras; con WAL,
+   las copias del `-wal` siguen ahí hasta el *checkpoint*), o un `VACUUM` y un `wal_checkpoint(TRUNCATE)` tras cada
+   anonimización o tras cada pasada por vencimiento? ¿Y cómo se prueba que el dato anterior ya no está en el fichero?
+9. **Qué se conserva al anonimizar.** §5 enumera lo que se sustituye, pero no decide tres cosas (auditoría del
+   sprint-01, inventario de datos personales de §3): (a) si se conservan las fechas y la versión del consentimiento
+   (`consent_given_at`, `consent_version`, `consent_withdrawn_at`) y `created_at` como prueba del art. 7.1 (§2), o se
+   vacían por minimización; (b) qué valor final queda en `retention_ends_at` (la fecha que venció, la de la
+   anonimización o `NULL`) y que ningún recálculo posterior lo cambie (cuestión 5), y (c) cómo se genera el email
+   anonimizado: el índice `candidates_email_uq` (`apps/api/src/db/migrations/002-create-candidates.sql`) obliga a que
+   sea único, y no puede ser un *hash* reversible ni nada derivado del email original.
+   Para guardar la marca hará falta una migración nueva con `anonymized_at` (DEC-03).

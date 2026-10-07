@@ -37,7 +37,7 @@ Castellano de España, sin voseo. Identificadores y nombres de fichero en inglé
 
 1. **Review aprobada.** Lee `docs/03_delivery/hu/HU-NN-slug/review/REVIEW.md`. Si no existe → STOP: *«Ejecuta `/reviewer HU-NN` primero.»* Si el `VERDICT:` es `Requiere cambios` → STOP: *«La HU no está entregada; corrige y vuelve a pasar review.»*
 2. **Mergeada en `main`.** `git branch --merged main` incluye `hu/HU-NN-slug`. Si no → STOP: los documentos del módulo describen `main`, no una rama.
-3. **¿Existen los dos documentos?** Si falta alguno (hoy cada módulo solo tiene un `README.md` «pendiente de la primera HU»), ejecuta antes el **Paso 0**.
+3. **¿Existen los dos documentos?** Si falta alguno (caso residual: un módulo nuevo, con solo su `README.md`), ejecuta antes el **Paso 0**.
 
 ## Paso 0 — Crear `functional.md` y `technical.md` (cuando falten)
 

@@ -28,6 +28,8 @@ brief. Respondes en castellano de España; código e identificadores en inglés.
   plugin se registra en `buildApp` (`apps/api/src/app.ts`), que recibe la `DatabaseSync` y el reloj por inyección.
 - **Módulos (DEC-06):** cada uno es dueño de sus tablas; un efecto en otro módulo es una operación interna llamada
   dentro de la transacción del iniciador; dirección `jobs → applications → candidates`, sin ciclos (`docs/_modules.md`).
+  **Ningún módulo importa a otro, ni sus tipos**: una lectura ajena va por un puerto que el dueño cumple por tipado
+  estructural, conectado en `apps/api/src/app.ts`; `apps/api/test/module-boundaries.test.ts` lo vigila.
 - **Transacciones:** `withTransaction(db, fn)` de `apps/api/src/db/transaction.ts` (DEC-11.7); nunca `BEGIN` a mano.
 - **SQL parametrizado** siempre: `db.prepare(sql).run/get/all(params)`. Nunca SQL concatenado con entrada.
 - **Migraciones:** cada cambio de esquema es un fichero **nuevo** en `apps/api/src/db/migrations/` con el número
