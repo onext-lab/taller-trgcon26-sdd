@@ -78,14 +78,14 @@ de fin de retención del candidato (RGPD §3).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-05 | CA-01, CA-02 | |
-| A1 | HU-05 | CA-03 | |
-| A2 | HU-05 | CA-04, CA-05, CA-40 | |
-| E1 | HU-05 | CA-06 | |
-| E2 | HU-05 | CA-07 | |
-| E3 | HU-05 | CA-08 | |
-| E4 | HU-05 | CA-09 | |
-| E5 | HU-05 | CA-10 | |
-| E6 | HU-05 | CA-11 | |
+| P | HU-05 | CA-01, CA-02 | `apps/api/test/applications/advance.test.ts:98`, `apps/web/test/features/applications/PipelineScreen.advance.test.tsx:93` |
+| A1 | HU-05 | CA-03 | `apps/api/test/applications/advance.test.ts:118` |
+| A2 | HU-05 | CA-04, CA-05, CA-40 | `apps/api/test/applications/advance-hire.test.ts:67`, `apps/api/test/applications/advance-hire.test.ts:82`, `apps/web/test/features/applications/PipelineScreen.hire.test.tsx:62` |
+| E1 | HU-05 | CA-06 | `apps/api/test/applications/advance.test.ts:173` |
+| E2 | HU-05 | CA-07 | `apps/api/test/applications/advance.test.ts:196` |
+| E3 | HU-05 | CA-08 | `apps/api/test/applications/advance.test.ts:227` |
+| E4 | HU-05 | CA-09 | `apps/api/test/applications/stage-change-adversarial.test.ts:108` |
+| E5 | HU-05 | CA-10 | `apps/api/test/applications/advance.test.ts:250` |
+| E6 | HU-05 | CA-11 | `apps/api/test/applications/stage-change-failures-adversarial.test.ts:112` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

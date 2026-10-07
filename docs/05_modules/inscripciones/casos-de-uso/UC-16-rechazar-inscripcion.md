@@ -76,13 +76,13 @@ fin de retención (RGPD §3).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-05 | CA-12, CA-13, CA-21 | |
-| A1 | HU-05 | CA-14 | |
-| E1 | HU-05 | CA-15 | |
-| E2 | HU-05 | CA-16, CA-21 | |
-| E3 | HU-05 | CA-17 | |
-| E4 | HU-05 | CA-18 | |
-| E5 | HU-05 | CA-19 | |
-| E6 | HU-05 | CA-20 | |
+| P | HU-05 | CA-12, CA-13, CA-21 | `apps/api/test/applications/reject.test.ts:95`, `apps/web/test/features/applications/PipelineScreen.reject.test.tsx:60`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
+| A1 | HU-05 | CA-14 | `apps/api/test/applications/reject.test.ts:124` |
+| E1 | HU-05 | CA-15 | `apps/api/test/applications/reject.test.ts:195` |
+| E2 | HU-05 | CA-16, CA-21 | `apps/api/test/applications/reject-note.test.ts:57`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
+| E3 | HU-05 | CA-17 | `apps/api/test/applications/reject.test.ts:207` |
+| E4 | HU-05 | CA-18 | `apps/api/test/applications/reject.test.ts:224` |
+| E5 | HU-05 | CA-19 | `apps/api/test/applications/reject.test.ts:239` |
+| E6 | HU-05 | CA-20 | `apps/api/test/applications/stage-change-failures-adversarial.test.ts:131` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
