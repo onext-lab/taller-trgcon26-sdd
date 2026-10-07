@@ -111,8 +111,8 @@ describe('GET /api/jobs/:jobId/applications — pipeline', () => {
 
   it('CA-13 cada item con exactamente 5 claves; 0 email, phone ni note', async () => {
     const job = await createPublishedJob(app);
-    const withPhone = await newCandidate({ phone: '+34 600 111 222' });
-    const other = await newCandidate({ phone: '+34 600 333 444' });
+    const withPhone = await newCandidate({ phone: '+34 600 000 041' });
+    const other = await newCandidate({ phone: '+34 600 000 042' });
     enrollDirect(job.id, withPhone.id, [{ stage: 'received', at: at(1) }]);
     enrollDirect(job.id, other.id, [
       { stage: 'received', at: at(1) },

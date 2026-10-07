@@ -71,3 +71,9 @@ plana ordenada; la web agrupa por etapa (DD-07).
 - El `response` schema es la red de seguridad de RNF-04: nada que no esté declarado puede salir.
 - Errores de `params` (`jobId`) y de `querystring` los prueba TASK-09 (EC-26); el 500 de la base, también (EC-29).
 - Sin paginación (S-18, excepción declarada a DEC-10). RNF-01 lo mide TASK-06.
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** DP-01 (medio): `apps/api/test/applications/pipeline.test.ts:114-115` usa los teléfonos `+34 600 111 222` y `+34 600 333 444`, fuera de la serie de ficción `+34 600 000 0xx` (`docs/RGPD.md` §6). Cámbialos (p. ej. `+34 600 000 041` y `+34 600 000 042`), también en las aserciones que los citen.
+- **Ficheros:** `apps/api/test/applications/pipeline.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- applications/pipeline` en verde; ningún `600 111` ni `600 333` en `apps/api/test`; eslint a 0.

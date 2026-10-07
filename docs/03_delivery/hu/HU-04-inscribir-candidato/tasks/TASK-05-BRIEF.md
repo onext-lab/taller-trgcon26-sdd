@@ -95,3 +95,35 @@ INTEGRACION rc=0
 - **Resultado:** en verde (integración conjunta con TASK-07 y TASK-08). `listByJob` no toca `candidates`; los nombres llegan por `findNames`.
 - **Commit:** el de esta tarea (`[HU-04 TASK-05]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** DP-01 (medio): `apps/api/test/applications/pipeline.test.ts:114-115` usa los teléfonos `+34 600 111 222` y `+34 600 333 444`, fuera de la serie de ficción `+34 600 000 0xx` (`docs/RGPD.md` §6). Cámbialos (p. ej. `+34 600 000 041` y `+34 600 000 042`), también en las aserciones que los citen.
+- **Ficheros:** `apps/api/test/applications/pipeline.test.ts`
+- **Verificación que debes pegar:** `npm test -w @ats/api -- applications/pipeline` en verde; ningún `600 111` ni `600 333` en `apps/api/test`; eslint a 0.
+
+### Resultado de la integración (reapertura)
+```
+$ npm run typecheck
+exit=0
+$ npm run lint
+exit=0
+$ npm test
+ Test Files  58 passed (58)
+      Tests  715 passed (715)
+ Test Files  48 passed (48)
+      Tests  628 passed (628)
+exit=0
+$ npm run e2e
+  39 passed (22.0s)
+exit=0
+$ npm run check:harness
+check:harness: todo en verde.
+exit=0
+INTEGRACION COMPLETA rc=0
+```
+
+- **Resultado:** en verde: teléfonos `+34 600 000 041` y `042` en `pipeline.test.ts` (DP-01).
+
