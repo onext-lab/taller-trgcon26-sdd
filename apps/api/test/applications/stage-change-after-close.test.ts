@@ -71,7 +71,7 @@ function countOpen(): number {
 }
 
 describe('cambios de etapa y cierre de la oferta (puerto real)', () => {
-  it('CA-07 tras el cierre: advance 409 STAGE_MISMATCH; reject 200 sin cambios con job_closed y nota null', async () => {
+  it('CA-07/EC-25 tras el cierre: advance 409 STAGE_MISMATCH; reject 200 sin cambios con job_closed y nota null', async () => {
     const created = await applyAt(INTERVIEW);
     await closeAt(CLOSED_AT);
     const afterClose = { row: stored(created.id), history: history(created.id) };

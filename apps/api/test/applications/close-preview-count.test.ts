@@ -47,7 +47,7 @@ function jobIdWithStatus(status: 'draft' | 'closed'): number {
 }
 
 describe('GET /api/jobs/:id/close-preview — recuento real de activas', () => {
-  it('CA-08 previa: 6 etapas → 4, draft → 0, closed del seed → 0, solo activeApplications', async () => {
+  it('CA-08/EC-09 previa: 6 etapas → 4, draft → 0, closed del seed → 0, solo activeApplications', async () => {
     const job = await createPublishedJob(app, { title: 'Oferta de la previa' });
     const counts: number[] = [];
 
