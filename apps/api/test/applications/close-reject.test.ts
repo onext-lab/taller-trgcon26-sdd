@@ -159,7 +159,7 @@ describe('POST /api/jobs/:id/close — rechazo de las inscripciones activas (pue
     expect(count('applications')).toBe(2);
   });
 
-  it('CA-04 sin activas o todas finales: closed, 0 StageChange y retenciones iguales', async () => {
+  it('CA-04/EC-15 sin activas o todas finales: closed, 0 StageChange y retenciones iguales', async () => {
     const withFinals = await createPublishedJob(app, { title: 'Oferta con finales' });
     const hired = await applyAt(withFinals.id, HIRED);
     const rejected = await applyAt(withFinals.id, ['received', 'rejected'], {
@@ -282,7 +282,7 @@ describe('POST /api/jobs/:id/close — rechazo de las inscripciones activas (pue
     expect(history(hired.application.id)).toEqual(untouched[0]?.history);
   });
 
-  it('EC-05 inscrita con la retención vencida → cierre + 6 meses (RGPD §7, cuestión 4)', async () => {
+  it('EC-05 retención vencida simulada por SQL (la app no la produce) → cierre + 6 meses (RGPD §7, cuestión 4)', async () => {
     const { candidate, application } = await applyAt(job.id, RECEIVED);
     db.prepare('UPDATE candidates SET retention_ends_at = ? WHERE id = ?').run(
       '2026-01-01',

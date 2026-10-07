@@ -43,7 +43,7 @@ Las carpetas de módulo se crean con la primera HU que las necesite; hoy existen
 (`docs/05_modules/ofertas/`, `docs/05_modules/candidatos/` y `docs/05_modules/inscripciones/` tienen su `functional.md` y
 su `technical.md`). El mapa vivo está en [_modules.md](_modules.md).
 
-**Módulos y puertos (DEC-06, aclarada en HU-04):** ningún módulo importa a otro, **ni siquiera sus tipos**. La dirección
+**Módulos y puertos (DEC-06, aclarada en HU-04 y HU-06):** ningún módulo importa a otro, **ni siquiera sus tipos**. La dirección
 de las llamadas es `ofertas → inscripciones → candidatos` y la compone `apps/api/src/app.ts`. Lo que un módulo necesita de
 otro lo define él como un puerto y lo implementa el módulo que tiene los datos, que cumple la forma del puerto por tipado
 estructural; `buildApp` lo conecta y la propia asignación lo comprueba al compilar (una forma desfasada no compila).
@@ -54,7 +54,7 @@ estructural; `buildApp` lo conecta y la propia asignación lo comprueba al compi
 | `JobStatusPort` (estado de una oferta) | `applications` | `jobs` (`job-status.ts`) | Real (HU-04) |
 | `CandidateLookupPort` (¿existe? y nombres) | `applications` | `candidates` (`exists`, `findNames`) | Real (HU-04) |
 | `CandidateProcessesPort` (procesos del candidato) | `candidates` | `applications` (`candidate-processes.ts`) | Real (HU-04); el stub `noCandidateProcesses` solo para tests y el seed de candidatos |
-| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` | Stub `noJobApplications` hasta HU-06 |
+| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` (`job-closing.ts`) | Real (HU-06); el stub `noJobApplications` solo para tests |
 
 **Integridad de la base entre módulos:** las claves foráneas entre tablas de módulos distintos (`applications.candidate_id →
 candidates.id` y `applications.job_id → job_openings.id`, ambas `ON DELETE RESTRICT`) son integridad referencial de la
