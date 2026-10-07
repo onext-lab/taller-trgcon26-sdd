@@ -20,8 +20,9 @@
 
 ## 2. Veredicto
 **Aprobado con observaciones.** Sin altos. El auditor de drift marcó un **crítico** (DD-01): la tabla de puertos de
-`docs/ARCHITECTURE.md:57` seguía diciendo «Stub `noJobApplications` hasta HU-06». Se reclasifica como **medio** y se
-curó en `e10ebab`. Es la misma clase de fallo que el DD-01 de HU-05: un doc vivo que afirma el estado anterior, se
+`docs/ARCHITECTURE.md:57` seguía diciendo «Stub `noJobApplications` hasta HU-06». Se curó en `e10ebab`. La
+reclasificación como **medio**, sin ronda 2, la **decidió el responsable técnico** (2026-10-07) a propuesta de la sesión
+que implementa: quien implementa no rebaja la severidad de un hallazgo de su revisor, solo la propone. Es la misma clase de fallo que el DD-01 de HU-05: un doc vivo que afirma el estado anterior, se
 arregla con una línea y no toca código ni contrato. TASK-03 corrigió la línea 24 del mismo fichero y no vio esta. Queda
 un medio para `/module-sync`: DD-02, los docs de `candidatos` que dicen que el recálculo al cerrar inscripciones es
 «latente». La integración final está en verde (§7) y la prueba de mutación muestra que los tests detectan las tres
@@ -75,7 +76,8 @@ Limitaciones que anota, previas a la HU: `busy_timeout` sin fijar (multiproceso)
 debían existir existen; no hay rutas absolutas en el alcance; los símbolos de los TD existen con el tamaño previsto
 (`createApplicationsRepository` 50 líneas, `composeServices` 48, `buildApp` 24); DEC-06 coincide palabra por palabra
 con el TD.
-- **DD-01 · crítico → medio** — `docs/ARCHITECTURE.md:57`, ver §2. **Curado** en `e10ebab`.
+- **DD-01 · crítico → medio (decisión del responsable técnico)** — `docs/ARCHITECTURE.md:57`, ver §2. **Curado** en
+  `e10ebab`.
 - **DD-02 · medio** — `docs/05_modules/candidatos/functional.md:77,94,111` y `technical.md:12,169`: dicen que el recálculo
   al cerrar inscripciones es latente (de HU-05). El código lo hace desde HU-05 y HU-06. Viene del sync de HU-05: **a
   `/module-sync`**.
@@ -188,7 +190,7 @@ Ninguna bloqueante. **Curado antes de cerrar:** `2bb43fe` (EC-09 y EC-25 en los 
 DD-09, DP-02 y EC-15 en el nombre del test de CA-04).
 
 **Observaciones aceptadas** (merge preaprobado con «Aprobado con observaciones»):
-1. DD-01 · crítico del auditor reclasificado como medio (§2) — curado.
+1. DD-01 · crítico del auditor, reclasificado como medio por decisión del responsable técnico (§2) — curado.
 2. DP-01 · bajo — `SELECT *` de `recalculateRetention`, ahora con dos lecturas por candidato en cada cierre (DT-02, a la
    feature A).
 3. DP-03 · bajo — 404 en vez de 500 si faltara la ficha al recalcular (inalcanzable; feature A).
