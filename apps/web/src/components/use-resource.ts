@@ -10,6 +10,8 @@ export type ResourceResult<T> =
 
 export type Resource<T> = ResourceResult<T> & {
   retry: () => void;
+  /** Requests again without going through `loading`: the data stays until the answer arrives (DD-04). */
+  reload: () => void;
   /** Puts the resource in `success` with this data, without a request (DD-05). */
   setData: (data: T) => void;
 };
@@ -54,9 +56,14 @@ export function useResource<T>(
     setAttempt((value) => value + 1);
   }
 
+  // Same effect as `retry`, so the abort of the previous load keeps an old answer from replacing the new one.
+  function reload(): void {
+    setAttempt((value) => value + 1);
+  }
+
   function setData(data: T): void {
     setResult({ state: 'success', data, error: undefined });
   }
 
-  return { ...result, retry, setData };
+  return { ...result, retry, reload, setData };
 }
