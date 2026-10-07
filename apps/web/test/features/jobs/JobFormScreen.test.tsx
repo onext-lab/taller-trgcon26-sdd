@@ -56,7 +56,7 @@ describe('JobFormScreen · alta', () => {
     const mock = mockFetch({ 'POST /api/jobs': { status: 201, json: createdJob(7, TITLE) } });
     render(<JobFormScreen mode="create" />);
     expect(screen.getByRole('heading', { name: 'Nueva oferta' })).toBeDefined();
-    expect(document.title).toBe('Nueva oferta · ATS');
+    await waitFor(() => expect(document.title).toBe('Nueva oferta · ATS'));
 
     type('Título (obligatorio)', TITLE);
     save();

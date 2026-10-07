@@ -56,15 +56,27 @@ describe('PipelineScreen: columnas y tarjetas', () => {
     );
   });
 
-  it('CA-12: la tarjeta es un nombre en texto sin link, con fecha; el motivo solo en Rechazado', async () => {
+  it('CA-12: la tarjeta es el nombre enlazado y la fecha; el motivo solo en Rechazado', async () => {
     await renderBoard();
 
     const [first] = cardsOf('Recibida');
-    expect(first?.textContent).toBe('Marina Ortega VidalÚltimo cambio: 06/10/2026');
-    expect(within(first as HTMLElement).queryByRole('link')).toBeNull();
+    const paragraphs = Array.from((first as HTMLElement).querySelectorAll('p'));
+    expect(paragraphs.map((p) => p.textContent)).toEqual([
+      'Marina Ortega Vidal',
+      'Último cambio: 06/10/2026',
+    ]);
+    expect(
+      within(first as HTMLElement)
+        .getByRole('link', { name: 'Marina Ortega Vidal' })
+        .getAttribute('href'),
+    ).toBe('/applications/31');
     expect(first?.querySelector('time')?.getAttribute('datetime')).toBe('2026-10-06T10:00:00.000Z');
-    expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual([
+    const links = screen.getAllByRole('link').map((link) => link.textContent);
+    expect(links).toHaveLength(11);
+    expect(links.slice(0, 3)).toEqual([
       'Volver a la oferta',
+      'Marina Ortega Vidal',
+      'Iván Soler Prats',
     ]);
     const reasons = cardsOf('Rechazado').map((card) => card.textContent?.split('Motivo: ')[1]);
     expect(reasons).toEqual([
@@ -144,7 +156,11 @@ describe('PipelineScreen: columnas y tarjetas', () => {
     await screen.findByRole('region', { name: 'Recibida' });
 
     const [card] = cardsOf('Recibida');
-    expect(card?.textContent).toBe('Marina Ortega VidalÚltimo cambio: 06/10/2026');
+    const paragraphs = Array.from((card as HTMLElement).querySelectorAll('p'));
+    expect(paragraphs.map((p) => p.textContent)).toEqual([
+      'Marina Ortega Vidal',
+      'Último cambio: 06/10/2026',
+    ]);
     for (const leak of ['marina.ortega@example.com', '+34 600 000 000', 'Nota interna inventada']) {
       expect(screen.queryByText(leak, { exact: false })).toBeNull();
     }

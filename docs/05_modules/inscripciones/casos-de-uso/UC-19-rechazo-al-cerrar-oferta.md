@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: aprobado
 feature: FEAT-03
-hus: [HU-05]
+hus: [HU-06]
 ---
 
 # UC-19 — Rechazar las inscripciones activas al cerrar una oferta
@@ -70,10 +70,10 @@ No escribe texto libre. Cierra procesos de candidatos, lo que recalcula su fecha
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-05 | | |
-| A1 | HU-05 | | |
-| A2 | HU-05 | | |
-| E1 | HU-05 | | |
-| E2 | HU-05 | | |
+| P | HU-06 | | |
+| A1 | HU-06 | | |
+| A2 | HU-06 | | |
+| E1 | HU-06 | | |
+| E2 | HU-06 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

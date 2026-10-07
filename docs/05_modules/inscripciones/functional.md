@@ -37,15 +37,16 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Rechazar una inscripción | UC-16 | ⬜ | HU-05 | La base ya exige motivo (y admite nota de hasta 500 caracteres) en todo rechazo; no hay ruta ni botón |
 | Ver el pipeline de una oferta | UC-17 | 🚧 | HU-04, HU-05 | Seis columnas con nombre, fecha del último cambio y motivo del rechazo, sin email, teléfono ni nota; vacío, error y «Página no encontrada»; una oferta cerrada o borrador por su URL; faltan A1 (acceso desde una oferta cerrada y el historial desde cada tarjeta, HU-05), las acciones «Avanzar» y «Rechazar» y A3 (feature A) |
 | Consultar el historial de una inscripción | UC-18 | ⬜ | HU-05 | El historial se escribe y es inmutable (salvo vaciar la nota), pero ninguna pantalla ni ruta lo lee; las tarjetas y el 409 por duplicado van sin enlace |
-| Rechazar las inscripciones activas al cerrar una oferta | UC-19 | ⬜ | HU-05 | Latente: el cierre de una oferta sigue con el stub `noJobApplications`, que no rechaza nada |
+| Rechazar las inscripciones activas al cerrar una oferta | UC-19 | ⬜ | HU-06 | Latente: el cierre de una oferta sigue con el stub `noJobApplications`, que no rechaza nada |
 
 ## Alcance no implementado
 
 - **HU-05:** avanzar y rechazar (UC-15 y UC-16, con la etapa esperada y la idempotencia), el detalle de la inscripción con
   su historial (UC-18; `GET /api/applications/:id`, la ruta `/applications/:id` y los dos enlaces que dejó HU-04), el
-  acceso al pipeline desde una oferta cerrada (UC-17 · A1) y el rechazo al cerrar una oferta (UC-19, que conecta
-  `JobApplicationsPort` y cierra la ventana de INV-05); al pasar una inscripción a una etapa final, `candidatos` recalcula
-  la retención.
+  acceso al pipeline desde una oferta cerrada (UC-17 · A1); al pasar una inscripción a una etapa final, `candidatos`
+  recalcula la retención.
+- **HU-06:** el rechazo al cerrar una oferta (UC-19 y UC-04 · A1, que conecta `JobApplicationsPort` y cierra la ventana
+  de INV-05). Salió de HU-05 por decisión del responsable del 2026-10-07.
 - **Feature A:** el estado «anonimizado», su marca en el pipeline (UC-17 · A3, «Candidato anonimizado») y el vaciado de
   la nota al anonimizar (la base ya lo permite).
 - **Fuera de FEAT-03:** exportación de la ficha, importación CSV, inscribir desde la ficha del candidato o a varios a la
@@ -77,6 +78,8 @@ Las de FEAT-03, con su estado real en `main`.
 - **RN-06** — el cambio de etapa envía la etapa esperada; si no coincide, 409.
 - **RN-07** — pedir la etapa actual da 200 sin crear `StageChange`; prevalece sobre RN-06.
 - **RN-08** — contratar no toca las demás inscripciones ni cierra la oferta; se admite más de un `hired`.
+
+**Pendientes (HU-06)**
 - **RN-09** — al cerrar una oferta, sus inscripciones no finales pasan a `rejected` con el motivo «oferta cerrada», en la
   misma transacción del cierre.
 
@@ -101,13 +104,13 @@ los puertos se implementan por tipado estructural y se conectan en `apps/api/src
     candidato u oferta con inscripciones no se puede borrar.
   - En la web, `jobs` enlaza al pipeline y `applications` reutiliza el cliente de búsqueda de `candidates`.
 - **Latente:** `JobApplicationsPort` (`ofertas` hacia `inscripciones`: contar y rechazar las inscripciones activas al
-  cerrar) sigue con el stub `noJobApplications` hasta HU-05.
+  cerrar) sigue con el stub `noJobApplications` hasta HU-06.
 
 ## Cuestiones abiertas
 
-- **Ventana de INV-05 hasta HU-05 (DT-10):** con el puerto en stub, cerrar una oferta deja abiertas sus inscripciones y la
+- **Ventana de INV-05 hasta HU-06 (DT-10; antes, hasta HU-05):** con el puerto en stub, cerrar una oferta deja abiertas sus inscripciones y la
   retención de sus candidatos en `null`; el diálogo de cierre dice 0 inscripciones activas. Aceptada: el seed la respeta y
-  ningún test cierra ofertas con inscripciones; tras el merge de HU-05, `npm run db:reset`.
+  ningún test cierra ofertas con inscripciones; tras el merge de HU-06, `npm run db:reset`.
 - **Sin decidir en `docs/RGPD.md`, para la feature A:** si un candidato con la retención vencida puede inscribirse o aparecer
   en el buscador (hoy sí, DT-06); la marca de anonimizado en los puertos `exists` y `findNames`; y si la anonimización
   vacía siempre la nota del rechazo (el trigger ya lo permite, RGPD §5).
@@ -123,8 +126,8 @@ los puertos se implementan por tipado estructural y se conectan en `apps/api/src
 
 - **% MVP:** ~25 % — `round((1 + 0,5 · 1) / 6 · 100)`.
 - **Conteo:** 1 ✅ / 1 🚧 / 4 ⬜ (6 capacidades).
-- **Backlog:** HU-05 (UC-15, UC-16, UC-18, UC-19 y UC-17 · A1; conectar `JobApplicationsPort`, recalcular al cerrar y cerrar
-  la ventana de INV-05).
+- **Backlog:** HU-05 (UC-15, UC-16, UC-18 y UC-17 · A1; recalcular al pasar a etapa final) y HU-06 (UC-19 y UC-04 · A1;
+  conectar `JobApplicationsPort` y cerrar la ventana de INV-05).
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|

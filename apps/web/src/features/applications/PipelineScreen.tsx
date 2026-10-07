@@ -10,10 +10,12 @@ import { DUPLICATE_MESSAGE, NOT_PUBLISHED_MESSAGE } from './enroll-errors.ts';
 import { EnrollPanel } from './EnrollPanel.tsx';
 import { PipelineBoard } from './PipelineBoard.tsx';
 import { parsePipelineJobId } from './paths.ts';
+import { StageDialogs } from './StageDialogs.tsx';
 import type { Pipeline } from './types.ts';
 import { useEnrollment, type EnrollCallbacks } from './use-enrollment.ts';
 import { useEnrollPanel, type EnrollPanelState } from './use-enroll-panel.ts';
 import { usePipelineFeedback, type PipelineFeedback } from './use-pipeline-feedback.ts';
+import { useStageActions, type StageActions } from './use-stage-actions.ts';
 
 const TITLE = 'Pipeline de la oferta';
 const DRAFT_TEXT = 'Esta oferta es un borrador: publícala para inscribir candidatos.';
@@ -55,9 +57,10 @@ type ContentProps = PanelProps & {
   pipeline: Pipeline;
   pendingId: number | null;
   onEnroll: (candidate: CandidateListItem) => void;
+  stageActions: StageActions;
 };
 
-function PipelineContent({ pipeline, pendingId, onEnroll, ...props }: ContentProps) {
+function PipelineContent({ pipeline, pendingId, onEnroll, stageActions, ...props }: ContentProps) {
   const { panel, triggerRef, inputRef, alertRef } = props;
   const { status } = pipeline.job;
   if (status === 'draft') return <p>{DRAFT_TEXT}</p>;
@@ -73,7 +76,15 @@ function PipelineContent({ pipeline, pendingId, onEnroll, ...props }: ContentPro
           onEnroll={onEnroll}
         />
       ) : null}
-      {pipeline.items.length === 0 ? <p>{EMPTY_TEXT}</p> : <PipelineBoard items={pipeline.items} />}
+      {pipeline.items.length === 0 ? (
+        <p>{EMPTY_TEXT}</p>
+      ) : (
+        <PipelineBoard
+          items={pipeline.items}
+          actions={status === 'published' ? stageActions : null}
+        />
+      )}
+      {status === 'published' ? <StageDialogs actions={stageActions} /> : null}
     </>
   );
 }
@@ -90,8 +101,8 @@ function enrollCallbacks(
       feedback.show('notice', ENROLLED_TEXT);
       reload();
     },
-    onDuplicate() {
-      panel.showAlert(DUPLICATE_MESSAGE);
+    onDuplicate(existingId) {
+      panel.showAlert(DUPLICATE_MESSAGE, existingId);
       reload();
     },
     onNotPublished() {
@@ -123,6 +134,7 @@ function PipelineLoader({ id, jobPath, notFound }: ScreenProps & { id: number })
   const published = pipeline.state === 'success' && pipeline.data.job.status === 'published';
   const feedback = usePipelineFeedback();
   const enrollment = useEnrollment(id);
+  const stageActions = useStageActions(feedback, pipeline.reload);
   const enrollPanel = useEnrollPanel(published, enrollment.pendingId !== null, feedback.clear);
   function enroll(candidate: CandidateListItem): void {
     enrollPanel.panel.showAlert(undefined);
@@ -148,6 +160,7 @@ function PipelineLoader({ id, jobPath, notFound }: ScreenProps & { id: number })
           pipeline={pipeline.data}
           pendingId={enrollment.pendingId}
           onEnroll={enroll}
+          stageActions={stageActions}
           {...enrollPanel}
         />
       ) : null}

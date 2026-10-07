@@ -1,4 +1,4 @@
-import { idParamsSchema } from '../../http/validation.ts';
+import { idParamsSchema, NO_CONTROL_CHARS_EXCEPT_WHITESPACE } from '../../http/validation.ts';
 import type { JobStatus } from './ports.ts';
 
 /** Etapas del proceso, en orden (RV-19). `hired` y `rejected` son finales. */
@@ -13,6 +13,8 @@ export const REJECTION_REASONS = [
   'job_closed',
 ] as const;
 export type RejectionReason = (typeof REJECTION_REASONS)[number];
+/** Motivos que puede elegir la persona al rechazar (S-15): nunca `job_closed`. */
+export type ManualRejectionReason = Exclude<RejectionReason, 'job_closed'>;
 
 /** ID entero positivo dentro del rango seguro de JavaScript (sin coerción: `"1"` no vale, DEC-11.1). */
 const ID = { type: 'integer', minimum: 1, maximum: 9007199254740991 } as const;
@@ -27,6 +29,42 @@ export const enrollBodySchema = {
   required: ['jobId', 'candidateId'],
   properties: { jobId: ID, candidateId: ID },
 } as const;
+
+const STAGE = { type: 'string', enum: STAGES } as const;
+
+/** Cuerpo de `POST /api/applications/:id/advance`; cualquier clave de más sale agrupada en `{ field: 'body' }` (DEC-11.4). */
+export const advanceBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['expectedStage', 'toStage'],
+  properties: { expectedStage: STAGE, toStage: STAGE },
+} as const;
+
+/** Entrada ya validada de `advance`. */
+export type AdvanceInput = { expectedStage: Stage; toStage: Stage };
+
+/** Motivos de rechazo manual (S-15): nunca `job_closed`, que solo escriben el seed y el cierre de la oferta. */
+export const MANUAL_REJECTION_REASONS = ['not_a_fit', 'candidate_withdrew', 'other'] as const;
+
+/** Cuerpo de `POST /api/applications/:id/reject`; `note` se valida ya recortada y con `""` → `null` (hook `trimNote`). */
+export const rejectBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['expectedStage', 'reason'],
+  properties: {
+    expectedStage: STAGE,
+    reason: { type: 'string', enum: MANUAL_REJECTION_REASONS },
+    // Ajv cuenta puntos de código, como length() de SQLite (DEC-11.3, DEC-11.8).
+    note: { type: ['string', 'null'], maxLength: 500, pattern: NO_CONTROL_CHARS_EXCEPT_WHITESPACE },
+  },
+} as const;
+
+/** Entrada ya validada de `reject`; `note` ausente equivale a `null`. */
+export type RejectInput = {
+  expectedStage: Stage;
+  reason: ManualRejectionReason;
+  note?: string | null;
+};
 
 /** Respuesta 201: exactamente los 6 campos de `Application`, sin datos del candidato (RNF-04). */
 export const applicationSchema = {
@@ -91,6 +129,51 @@ export const pipelineSchema = {
   },
 } as const;
 
+const JOB_STATUS = { type: 'string', enum: ['draft', 'published', 'closed'] } as const;
+
+/**
+ * Respuesta 200 de `GET /api/applications/:id` (DT-07): `candidate` solo con `id` y `fullName` (nunca email ni
+ * teléfono, DP-02) y `history` con la nota, único sitio donde sale (RNF-05). Todo `required` y sin claves de más.
+ */
+export const applicationDetailSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'stage', 'createdAt', 'lastChangeAt', 'candidate', 'job', 'history'],
+  properties: {
+    id: { type: 'integer' },
+    stage: STAGE,
+    createdAt: { type: 'string' },
+    lastChangeAt: { type: 'string' },
+    candidate: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'fullName'],
+      properties: { id: { type: 'integer' }, fullName: { type: 'string' } },
+    },
+    job: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'title', 'status'],
+      properties: { id: { type: 'integer' }, title: { type: 'string' }, status: JOB_STATUS },
+    },
+    history: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['fromStage', 'toStage', 'changedAt', 'reason', 'note'],
+        properties: {
+          fromStage: { type: ['string', 'null'], enum: [...STAGES, null] },
+          toStage: STAGE,
+          changedAt: { type: 'string' },
+          reason: { type: ['string', 'null'], enum: [...REJECTION_REASONS, null] },
+          note: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+} as const;
+
 /** Entrada ya validada de `enroll`. */
 export interface EnrollInput {
   jobId: number;
@@ -105,6 +188,29 @@ export interface Application {
   stage: Stage;
   createdAt: string;
   lastChangeAt: string;
+}
+
+/** Un paso del historial, del más antiguo al más reciente (orden de `stage_changes.id`). */
+export interface StageChangeEntry {
+  /** `null` solo en el cambio inicial (INV-04). */
+  fromStage: Stage | null;
+  toStage: Stage;
+  changedAt: string;
+  /** No nulo si y solo si `toStage === 'rejected'` (INV-07). */
+  reason: RejectionReason | null;
+  /** Solo en el cambio de rechazo; único sitio donde sale la nota (RNF-05). */
+  note: string | null;
+}
+
+/** Detalle de una inscripción con su historial (1 a 5 cambios, en orden de `id`); sin email ni teléfono (DP-02). */
+export interface ApplicationDetail {
+  id: number;
+  stage: Stage;
+  createdAt: string;
+  lastChangeAt: string;
+  candidate: { id: number; fullName: string };
+  job: { id: number; title: string; status: JobStatus };
+  history: StageChangeEntry[];
 }
 
 /** Una inscripción en el pipeline: solo el nombre del candidato, nunca email, teléfono ni nota (RNF-04). */

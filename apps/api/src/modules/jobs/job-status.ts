@@ -5,10 +5,15 @@ import type { JobStatus } from './schemas.ts';
  * Lector que implementa el `JobStatusPort` de `applications` sin importarlo (DD-01): `app.ts` comprueba la forma por
  * tipado estructural. `null` si la oferta no existe.
  */
-export function createJobStatusReader(repo: Pick<JobsRepository, 'findStatusById'>) {
+export function createJobStatusReader(
+  repo: Pick<JobsRepository, 'findStatusById' | 'findSummaryById'>,
+) {
   return {
     getJobStatus(jobId: number): JobStatus | null {
       return repo.findStatusById(jobId) ?? null;
+    },
+    getJobSummary(jobId: number): { status: JobStatus; title: string } | null {
+      return repo.findSummaryById(jobId) ?? null;
     },
   };
 }

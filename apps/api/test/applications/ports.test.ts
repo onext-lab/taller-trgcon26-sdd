@@ -202,6 +202,28 @@ describe('lectura del estado de la oferta', () => {
     expect(reader.getJobStatus(closed.id)).toBe('closed');
     expect(reader.getJobStatus(9999)).toBeNull();
   });
+
+  it('DT-07 lector real: getJobSummary → status y title; inexistente → null', async () => {
+    const reader = createJobStatusReader(createJobsRepository(db));
+    const draft = await createJob(app, { title: 'Borrador inventado' });
+    const published = await createPublishedJob(app, { title: 'Publicada inventada' });
+    const closed = await createPublishedJob(app, { title: 'Cerrada inventada' });
+    await closeJob(app, closed.id);
+
+    expect(reader.getJobSummary(draft.id)).toEqual({
+      status: 'draft',
+      title: 'Borrador inventado',
+    });
+    expect(reader.getJobSummary(published.id)).toEqual({
+      status: 'published',
+      title: 'Publicada inventada',
+    });
+    expect(reader.getJobSummary(closed.id)).toEqual({
+      status: 'closed',
+      title: 'Cerrada inventada',
+    });
+    expect(reader.getJobSummary(9999)).toBeNull();
+  });
 });
 
 describe('lecturas de candidates para applications', () => {

@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App.tsx';
 import { mockFetch } from './helpers/fetch.ts';
+import { expectFocusOn } from './helpers/focus.ts';
 
 const HEALTH_OK = { 'GET /api/health': { status: 200, json: { status: 'ok' } } };
 const EMPTY_PAGE = { items: [], total: 0, page: 1, pageSize: 20 };
@@ -110,7 +111,7 @@ describe('App', () => {
     expect(within(nav).getByRole('link', { name: 'Candidatos' }).getAttribute('aria-current')).toBe(
       'page',
     );
-    expect(document.title).toBe('Candidatos · ATS');
+    await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
   });
 
   it('RF-07/EC-39: «Ver pipeline» desde la ficha abre /jobs/7/pipeline con su título y el foco en <main>', async () => {
@@ -155,6 +156,65 @@ describe('App', () => {
     );
     await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
     expect(window.location.pathname).toBe('/jobs/abc/pipeline');
+    await within(screen.getByRole('contentinfo')).findByText('Estado de la API: ok');
+    expect(mock.calls.map((call) => call.url)).toEqual(['/api/health']);
+  });
+
+  it('RF-07: /applications/32 desde una tarjeta abre el detalle con título «Inscripción · ATS» y el foco en <main>', async () => {
+    startAt('/jobs/7/pipeline');
+    const item = {
+      id: 32,
+      candidateName: 'Oriol Mas Puig',
+      stage: 'received',
+      lastChangeAt: '2026-10-01T08:00:00.000Z',
+      rejectionReason: null,
+    };
+    const detail = {
+      id: 32,
+      stage: 'received',
+      createdAt: '2026-10-01T08:00:00.000Z',
+      lastChangeAt: '2026-10-01T08:00:00.000Z',
+      candidate: { id: 12, fullName: 'Oriol Mas Puig' },
+      job: { id: 7, title: 'Técnica/o de selección', status: 'published' },
+      history: [
+        {
+          fromStage: null,
+          toStage: 'received',
+          changedAt: '2026-10-01T08:00:00.000Z',
+          reason: null,
+          note: null,
+        },
+      ],
+    };
+    const mock = mockFetch({
+      ...HEALTH_OK,
+      'GET /api/jobs/7/applications': {
+        status: 200,
+        json: { job: { id: 7, status: 'published' }, items: [item] },
+      },
+      'GET /api/applications/32': { status: 200, json: detail },
+    });
+
+    render(<App />);
+    fireEvent.click(await screen.findByRole('link', { name: 'Oriol Mas Puig' }));
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Historial' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Inscripción' })).toBeDefined();
+    expect(window.location.pathname).toBe('/applications/32');
+    await waitFor(() => expect(document.title).toBe('Inscripción · ATS'));
+    await expectFocusOn(() => screen.getByRole('main'));
+    expect(mock.calls.filter((call) => call.url === '/api/applications/32')).toHaveLength(1);
+  });
+
+  it('EC-42: /applications/abc muestra «Página no encontrada» sin petición y con el título «Inscripción · ATS»', async () => {
+    startAt('/applications/abc');
+    const mock = mockFetch(HEALTH_OK);
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeDefined();
+    await waitFor(() => expect(document.title).toBe('Inscripción · ATS'));
+    expect(window.location.pathname).toBe('/applications/abc');
     await within(screen.getByRole('contentinfo')).findByText('Estado de la API: ok');
     expect(mock.calls.map((call) => call.url)).toEqual(['/api/health']);
   });

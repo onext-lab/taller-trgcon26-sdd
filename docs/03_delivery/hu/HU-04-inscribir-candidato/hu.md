@@ -24,7 +24,7 @@ en HU-03 y, al inscribir, invoca en la misma transacción el recálculo de la re
 candidato pasa a mostrar «Mientras dure el proceso» (UC-12 · A1). Es atómica porque se entrega sola sobre HU-02 y
 HU-03, vertical porque toca reglas, persistencia transaccional entre módulos, API y pantallas (pipeline, buscador de
 candidatos y ficha del candidato), y con valor porque une ofertas y candidatos por primera vez. El detalle de la
-inscripción con su historial, avanzar, rechazar y el cierre con inscripciones llegan en HU-05.
+inscripción con su historial, avanzar y rechazar llegan en HU-05, y el cierre con inscripciones, en HU-06.
 
 ## Casos de uso
 Qué casos de uso del catálogo del módulo cubre esta HU y qué flujos (P principal, A alternativos, E excepciones).

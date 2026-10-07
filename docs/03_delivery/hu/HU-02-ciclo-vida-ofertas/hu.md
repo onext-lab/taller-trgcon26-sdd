@@ -25,7 +25,8 @@ ofertas publicadas, que son las únicas que admiten inscripciones (RV-17).
 
 El rechazo de las inscripciones activas al cerrar (UC-04 · A1) no está en esta HU: aún no existe el módulo
 `inscripciones`. Aquí el cierre ya es una transacción única y el diálogo ya muestra el número de inscripciones
-activas, que hoy es siempre 0; HU-05 conecta la invocación de UC-19 dentro de esa transacción.
+activas, que hoy es siempre 0; HU-06 (antes HU-05; decisión del 2026-10-07) conecta la invocación de UC-19 dentro de
+esa transacción.
 
 ## Casos de uso
 Qué casos de uso del catálogo del módulo cubre esta HU y qué flujos (P principal, A alternativos, E excepciones).
@@ -43,8 +44,8 @@ Se citan por ID y ruta desde la raíz, sin enlace relativo (la HU se mueve a `co
 
 Flujos de esos UC que **no** cubre esta HU:
 - UC-02 · P, A1 y E2; UC-05 · P y E2; UC-07 · P, A2 y E4; UC-08 · P y E1: los cubre HU-01.
-- UC-04 · A1 (rechazo de las inscripciones activas al cerrar): lo cubre HU-05, que implementa UC-19 y conecta su
-  invocación desde el cierre; no se puede probar hasta que existan inscripciones.
+- UC-04 · A1 (rechazo de las inscripciones activas al cerrar): lo cubre HU-06 (antes HU-05; decisión del 2026-10-07),
+  que implementa UC-19 y conecta su invocación desde el cierre; no se puede probar hasta que existan inscripciones.
 
 ## Criterios de aceptación
 - [ ] Dado un borrador completo (híbrida, Valencia, 32 000-40 000 €/año), cuando pulso «Publicar», entonces pasa a
@@ -93,13 +94,14 @@ Flujos de esos UC que **no** cubre esta HU:
 
 ## Notas y dependencias
 - **Depende de:** HU-01.
-- **Bloquea:** HU-04 (inscribir exige ofertas `published`) y, por UC-04, HU-05.
-- **Mismo UC en dos HU:** UC-02, UC-05, UC-07 y UC-08 los comparte con HU-01, y UC-04 con HU-05. Van en secuencia: esta
-  HU empieza cuando HU-01 está en `main`, y HU-05 llega después (depende de HU-04, que depende de esta).
+- **Bloquea:** HU-04 (inscribir exige ofertas `published`) y, por UC-04, HU-06 (antes HU-05; decisión del 2026-10-07).
+- **Mismo UC en dos HU:** UC-02, UC-05, UC-07 y UC-08 los comparte con HU-01, y UC-04 con HU-06. Van en secuencia: esta
+  HU empieza cuando HU-01 está en `main`, y HU-06 llega después (depende de HU-05, que depende de HU-04, que depende de
+  esta).
 - **Riesgo heredado de FEAT-01:** INV-05 («ninguna oferta `closed` tiene inscripciones en etapa no final») solo se
-  puede probar cuando HU-05 conecte UC-19 en el cierre. **Ventana tolerada en `main`:** entre el merge de HU-04 y el de
-  HU-05, cerrar una oferta con inscripciones activas la cierra sin rechazarlas (INV-05 no se cumple todavía). Es una
-  limitación conocida y declarada, no un defecto de HU-02 ni de HU-04: la cierra HU-05 (UC-04 · A1).
+  puede probar cuando HU-06 conecte UC-19 en el cierre. **Ventana tolerada en `main`:** entre el merge de HU-04 y el de
+  HU-06, cerrar una oferta con inscripciones activas la cierra sin rechazarlas (INV-05 no se cumple todavía). Es una
+  limitación conocida y declarada, no un defecto de HU-02, HU-04 ni HU-05: la cierra HU-06 (UC-04 · A1).
 - Las fechas de publicación y de cierre las pone el sistema en UTC y no cambian al repetir la transición (INV-08).
 
 ## Progreso SDD

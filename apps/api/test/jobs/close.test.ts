@@ -197,7 +197,7 @@ describe('POST /api/jobs/:id/close — adversarial', () => {
 });
 
 describe('POST /api/jobs/:id/close — puerto por defecto (INV-05)', () => {
-  // EC-14: ventana de INV-05 mientras no existe `applications`. HU-05 sustituirá este test al conectar UC-19
+  // EC-14: ventana de INV-05 mientras no existe `applications`. HU-06 sustituirá este test al conectar UC-19
   // (cierre que rechaza las inscripciones activas) con el puerto real.
   it('EC-14 sin puerto de inscripciones: previa con 0 y cierre 200 sin nada que rechazar', async () => {
     await app.close();

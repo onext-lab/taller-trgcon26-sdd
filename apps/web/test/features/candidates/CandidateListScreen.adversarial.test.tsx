@@ -129,7 +129,7 @@ describe('CandidateListScreen · filtros hostiles y fallos', () => {
     expect(window.location.search).toBe('');
     expect(window.location.pathname).toBe('/candidates');
     expect(JSON.stringify(window.history.state ?? null)).not.toContain('OR');
-    expect(document.title).toBe('Candidatos · ATS');
+    await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
     expect(mock.unmatched).toEqual([]);
   });
 

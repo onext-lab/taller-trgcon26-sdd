@@ -29,7 +29,7 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Crear una oferta como borrador | UC-01 | ✅ | HU-01 | Alta con solo el título o completa; recorte y validación junto al campo |
 | Editar una oferta | UC-02 | ✅ | HU-01, HU-02 | Edición de borradores y publicadas con última escritura; una publicada mantiene los obligatorios; una cerrada da 409 |
 | Publicar una oferta | UC-03 | ✅ | HU-02 | Publica un borrador completo, o avisa de los campos pendientes; repetir da 200 sin cambios |
-| Cerrar una oferta | UC-04 | 🚧 | HU-02, HU-05 | Cierra con diálogo y en una transacción, con el puerto de inscripciones (stub); falta A1, el rechazo de inscripciones activas (HU-05) |
+| Cerrar una oferta | UC-04 | 🚧 | HU-02, HU-06 | Cierra con diálogo y en una transacción, con el puerto de inscripciones (stub); falta A1, el rechazo de inscripciones activas (HU-06) |
 | Borrar un borrador | UC-05 | ✅ | HU-01, HU-02 | Borrado físico con confirmación; una publicada o cerrada da 409 |
 | Duplicar una oferta como borrador | UC-06 | ✅ | HU-02 | Copia los campos editables de una oferta de cualquier estado como borrador nuevo |
 | Listar y buscar ofertas | UC-07 | ✅ | HU-01, HU-02 | Filtros por estado y título (sin tildes ni mayúsculas), paginación y tamaño 20, 50 o 100, con vacío y error |
@@ -37,7 +37,7 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 
 ## Alcance no implementado
 
-- **HU-05:** UC-04 · A1, el rechazo de las inscripciones activas al cerrar, cuando exista UC-19 (hoy el puerto
+- **HU-06:** UC-04 · A1, el rechazo de las inscripciones activas al cerrar, cuando exista UC-19 (hoy el puerto
   `JobApplicationsPort` es el stub `noJobApplications`).
 
 ## Reglas de negocio
@@ -63,7 +63,7 @@ Las de FEAT-01, con su estado real en `main`.
 
 **Parciales**
 - **RN-08** — el cierre es una transacción (estado, fecha y llamada al puerto), pero hoy el puerto no rechaza nada:
-  falta el rechazo de las inscripciones activas (UC-19, HU-05).
+  falta el rechazo de las inscripciones activas (UC-19, HU-06).
 
 INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001 (ver [technical.md](technical.md)).
 
@@ -75,24 +75,24 @@ INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001
   `ofertas → inscripciones → candidatos`.
 - **Latente:** hacia `inscripciones` sigue el puerto propio `JobApplicationsPort`
   (`apps/api/src/modules/jobs/applications-port.ts`), que `buildApp` inyecta con el stub `noJobApplications`
-  (`jobApplications?`): cuenta 0 y no rechaza nada. HU-05 aporta la implementación real (UC-19, dentro de la transacción
+  (`jobApplications?`): cuenta 0 y no rechaza nada. HU-06 aporta la implementación real (UC-19, dentro de la transacción
   del cierre).
 
 ## Cuestiones abiertas
 
-- **Ventana tolerada de INV-05 hasta HU-05:** mientras el puerto sea el stub, una oferta cerrada puede tener
+- **Ventana tolerada de INV-05 hasta HU-06:** mientras el puerto sea el stub, una oferta cerrada puede tener
   inscripciones en etapa no final. Desde HU-04 ya se pueden crear inscripciones (el seed respeta INV-05 y ningún test
-  cierra ofertas con inscripciones); el test de EC-14 (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-05 lo
+  cierra ofertas con inscripciones); el test de EC-14 (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-06 lo
   sustituye al conectar UC-19; tras su merge, `npm run db:reset`.
 - Avisos de la review de HU-02: HU-03 cerró el `details` sin tope (SEC-03) y reutilizó `NO_CONTROL_CHARS*` y
-  `foldSearchText`; queda HU-05, que conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores
+  `foldSearchText`; queda HU-06, que conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores
   no llevan datos del candidato al log.
 
 ## Estado vivo del MVP
 
 - **% MVP:** ~94 % — `round((7 + 0,5 · 1) / 8 · 100)`.
 - **Conteo:** 7 ✅ / 1 🚧 / 0 ⬜ (8 capacidades).
-- **Backlog:** HU-05 (UC-04 · A1, el rechazo de las inscripciones activas al cerrar).
+- **Backlog:** HU-06 (UC-04 · A1, el rechazo de las inscripciones activas al cerrar).
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|

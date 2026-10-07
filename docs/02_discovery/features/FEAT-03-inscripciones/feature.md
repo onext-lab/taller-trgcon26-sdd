@@ -191,7 +191,7 @@ UC-19 lo invoca UC-04 (cerrar oferta, módulo `ofertas`, FEAT-01) dentro de su t
 - **Riesgos:**
   - Si el recálculo de retención de FEAT-02 no está listo, HU-04 no puede cerrar RN-10. La HU de FEAT-02 que
     introduce la fórmula debe ir antes o en el mismo sprint.
-  - UC-04 · A1 se prueba en HU-05 y exige que FEAT-01 haya entregado el cierre.
+  - UC-04 · A1 se prueba en HU-06 (antes HU-05; decisión del 2026-10-07) y exige que FEAT-01 haya entregado el cierre.
 - **Supuestos confirmados:** todas las respuestas del shaping S-01..S-19 (2026-10-06), validadas por la persona «todo
   según recomendación».
 
@@ -235,18 +235,24 @@ de un candidato anonimizado queda aplazado de forma explícita a la feature A _(
        (FEAT-02 lo deja declarado para ella; S-06).
    - **Dependencias:** ofertas `published` (FEAT-01), candidatos y recálculo de retención (FEAT-02).
 2. **HU-05 — Pipeline con cambio de etapa e historial.**
-   - **Valor:** el reclutador mueve candidatos hasta contratarlos o rechazarlos, con rastro de cada decisión, y el
-     cierre de una oferta no deja procesos abiertos.
+   - **Valor:** el reclutador mueve candidatos hasta contratarlos o rechazarlos, con rastro de cada decisión.
    - **Flujos que cubre:**
      - UC-15: P, A1, A2, E1, E2, E3, E4, E5 y E6.
      - UC-16: P, A1, E1, E2, E3, E4, E5 y E6.
      - UC-17: P en las acciones «Avanzar» y «Rechazar» y el acceso al historial del paso 5, más A1.
      - UC-18: P, A1, A2, E1 y E2. P y A1 (la API del detalle de la inscripción y su pantalla) estaban en HU-04 y
        pasaron aquí por decisión del responsable del 2026-10-06, por el techo de 15 tareas de HU-04.
+   - **Dependencias:** HU-04.
+3. **HU-06 — Cerrar una oferta con inscripciones activas.**
+   - **Valor:** el cierre de una oferta no deja procesos abiertos: rechaza sus inscripciones activas con «oferta
+     cerrada» y recalcula la retención de los candidatos que se quedan sin procesos.
+   - **Flujos que cubre:**
      - UC-19: P, A1, A2, E1 y E2.
      - UC-04 · A1 (cerrar oferta con inscripciones activas, módulo `ofertas`), que se prueba aquí.
-   - **Dependencias:** HU-04 y el cierre de ofertas UC-04 (FEAT-01).
-3. **Fuera de estas HU:** UC-17 · A3 (etiqueta «Candidato anonimizado»). El estado «anonimizado» lo introduce la
+     - Ambos estaban en HU-05 y salieron por decisión del responsable del 2026-10-07 («Sí, sprint de 6 HU»), por el
+       techo de 15 tareas de HU-05. Conecta `JobApplicationsPort` y cierra la ventana de INV-05.
+   - **Dependencias:** HU-05 y el cierre de ofertas UC-04 (FEAT-01).
+4. **Fuera de estas HU:** UC-17 · A3 (etiqueta «Candidato anonimizado»). El estado «anonimizado» lo introduce la
    feature A, y su HU lo cubrirá y probará _(S-05)_.
 
-**HU creadas (2026-10-06):** HU-04 y HU-05.
+**HU creadas (2026-10-06):** HU-04 y HU-05. **2026-10-07:** HU-06, desgajada de HU-05.

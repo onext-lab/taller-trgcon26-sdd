@@ -5,6 +5,7 @@ import { ConfirmDialog } from '../../src/components/ConfirmDialog.tsx';
 import { installDialogPolyfill, simulateCancel } from '../helpers/dialog.ts';
 
 type HarnessProps = {
+  withoutDescription?: boolean;
   busy?: boolean;
   confirmDisabled?: boolean;
   error?: string;
@@ -13,6 +14,7 @@ type HarnessProps = {
 };
 
 function Harness({
+  withoutDescription = false,
   busy = false,
   confirmDisabled,
   error,
@@ -28,7 +30,11 @@ function Harness({
       <ConfirmDialog
         open={open}
         title="¿Borrar la oferta?"
-        description="Vas a borrar «Desarrollador backend». No se puede deshacer."
+        description={
+          withoutDescription
+            ? undefined
+            : 'Vas a borrar «Desarrollador backend». No se puede deshacer.'
+        }
         confirmLabel="Borrar oferta"
         busy={busy}
         confirmDisabled={confirmDisabled}
@@ -73,6 +79,19 @@ describe('ConfirmDialog', () => {
     expect(document.getElementById(descriptionId)?.textContent).toBe(
       'Vas a borrar «Desarrollador backend». No se puede deshacer.',
     );
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }));
+  });
+
+  it('sin description no pinta el párrafo ni aria-describedby', () => {
+    render(<Harness withoutDescription extra="Contenido del cuerpo" />);
+
+    openDialog();
+
+    const dialog = getDialog();
+    expect(dialog.hasAttribute('aria-describedby')).toBe(false);
+    expect(dialog.querySelector('p.long-text')).toBeNull();
+    expect(dialog.querySelectorAll('p')).toHaveLength(1);
+    expect(screen.getByRole('status').textContent).toBe('Contenido del cuerpo');
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }));
   });
 

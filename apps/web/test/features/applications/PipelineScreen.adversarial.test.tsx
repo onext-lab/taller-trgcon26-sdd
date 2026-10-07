@@ -204,12 +204,12 @@ describe('PipelineScreen: datos en el navegador (EC-39, EC-45, RNF-05)', () => {
     window.sessionStorage.clear();
   });
 
-  function expectNoTrace(): void {
+  async function expectNoTrace(): Promise<void> {
     expect(window.location.pathname).toBe('/jobs/7/pipeline');
     expect(window.location.search).toBe('');
     expect(window.location.hash).toBe('');
     expect(window.location.href).not.toMatch(/candidata|example|ana/i);
-    expect(document.title).toBe('Pipeline de la oferta · ATS');
+    await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
     expect(window.history.state).toBeNull();
     for (const store of [window.localStorage, window.sessionStorage]) {
       const dump = JSON.stringify(Object.entries(store));
@@ -224,7 +224,7 @@ describe('PipelineScreen: datos en el navegador (EC-39, EC-45, RNF-05)', () => {
     );
     await openAndSearch(CREATED_REPLY, [ok(PUBLISHED_PIPELINE)], PAGE, EMAIL);
 
-    expectNoTrace();
+    await expectNoTrace();
     expect((screen.getByLabelText(FIELD) as HTMLInputElement).autocomplete).toBe('off');
     expect(logs.every((log) => log.mock.calls.length === 0)).toBe(true);
   });
@@ -236,7 +236,7 @@ describe('PipelineScreen: datos en el navegador (EC-39, EC-45, RNF-05)', () => {
 
     await screen.findByText('Candidato inscrito.');
     await waitFor(() => expect(recibida()[0]).toBe('Candidata Inventada 12'));
-    expectNoTrace();
+    await expectNoTrace();
     expect(document.body.textContent).not.toContain(EMAIL);
   });
 });

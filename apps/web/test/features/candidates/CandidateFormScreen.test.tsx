@@ -56,12 +56,12 @@ describe('CandidateFormScreen · alta', () => {
     vi.unstubAllGlobals();
   });
 
-  it('muestra «Nuevo candidato» con sus cinco campos, «Guardar» y «Cancelar» al listado', () => {
+  it('muestra «Nuevo candidato» con sus cinco campos, «Guardar» y «Cancelar» al listado', async () => {
     mockFetch({});
     render(<CandidateFormScreen mode="create" />);
 
     expect(screen.getByRole('heading', { name: 'Nuevo candidato' })).toBeDefined();
-    expect(document.title).toBe('Nuevo candidato · ATS');
+    await waitFor(() => expect(document.title).toBe('Nuevo candidato · ATS'));
     for (const label of [
       'Nombre y apellidos (obligatorio)',
       'Email (obligatorio)',

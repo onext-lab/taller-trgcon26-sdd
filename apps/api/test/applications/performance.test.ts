@@ -5,13 +5,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { insertApplicationWithHistory } from '../../src/db/seed-applications.ts';
 import { withTransaction } from '../../src/db/transaction.ts';
 import { createApplicationsRepository } from '../../src/modules/applications/repository.ts';
-import type { Pipeline, Stage } from '../../src/modules/applications/schemas.ts';
+import type { ApplicationDetail, Pipeline, Stage } from '../../src/modules/applications/schemas.ts';
 import { createCandidatesRepository } from '../../src/modules/candidates/repository.ts';
 import { createJobsRepository } from '../../src/modules/jobs/repository.ts';
 import { createTestApp, createTestClock } from '../helpers/test-app.ts';
-import { enroll } from '../helpers/applications.ts';
+import { advance, enroll, getApplication, reject } from '../helpers/applications.ts';
 
-// Datos inventados. RNF-01 (lectura del pipeline) y RNF-02 (inscribir) con 1 000 candidatos y 2 000 inscripciones.
+// Datos inventados. Lectura del pipeline, inscribir, avanzar, rechazar y detalle con 1 000 candidatos y 2 000 inscripciones.
 const NOW = '2026-10-06T22:30:00.000Z';
 const CANDIDATES_IN_DB = 1000;
 const JOBS_IN_DB = 10;
@@ -28,6 +28,7 @@ const PATHS: readonly (readonly Stage[])[] = [
 ];
 
 let app: FastifyInstance;
+let db: DatabaseSync;
 let jobIds: number[];
 let candidateIds: number[];
 
@@ -90,6 +91,7 @@ function insertApplications(db: DatabaseSync): void {
 beforeEach(() => {
   const created = createTestApp({ now: createTestClock(NOW).now });
   app = created.app;
+  db = created.db;
   jobIds = [];
   candidateIds = [];
   withTransaction(created.db, () => {
@@ -110,6 +112,14 @@ async function timed(
   const start = performance.now();
   const response = await app.inject(options);
   return { response, elapsedMs: performance.now() - start };
+}
+
+/** IDs de las primeras inscripciones que están en `stage` (la semilla reparte las 5 trayectorias por igual). */
+function applicationIdsAt(stage: Stage, count: number): number[] {
+  const rows = db
+    .prepare('SELECT id FROM applications WHERE stage = ? ORDER BY id LIMIT ?')
+    .all(stage, count) as { id: number }[];
+  return rows.map((row) => row.id);
 }
 
 describe('rendimiento de inscripciones con 1 000 candidatos y 2 000 inscripciones', () => {
@@ -138,5 +148,39 @@ describe('rendimiento de inscripciones con 1 000 candidatos y 2 000 inscripcione
     }
 
     expect(Math.max(...times)).toBeLessThan(WRITE_BUDGET_MS);
+  });
+
+  it('RNF-01 advance y reject < 500 ms con 1 000 candidatos y 2 000 inscripciones', async () => {
+    const times: number[] = [];
+    for (const id of applicationIdsAt('received', REPETITIONS)) {
+      const start = performance.now();
+      const response = await advance(app, id, { expectedStage: 'received', toStage: 'screening' });
+      times.push(performance.now() - start);
+      expect(response.statusCode).toBe(200);
+    }
+    for (const id of applicationIdsAt('screening', REPETITIONS)) {
+      const start = performance.now();
+      const response = await reject(app, id, { expectedStage: 'screening', reason: 'other' });
+      times.push(performance.now() - start);
+      expect(response.statusCode).toBe(200);
+    }
+
+    expect(times).toHaveLength(2 * REPETITIONS);
+    expect(Math.max(...times)).toBeLessThan(WRITE_BUDGET_MS);
+  });
+
+  it('RNF-02 detalle con 5 cambios < 200 ms', async () => {
+    const [id] = applicationIdsAt('hired', 1);
+    await getApplication(app, id!);
+    let worst = 0;
+    for (let n = 0; n < REPETITIONS; n += 1) {
+      const start = performance.now();
+      const response = await getApplication(app, id!);
+      worst = Math.max(worst, performance.now() - start);
+      expect(response.statusCode).toBe(200);
+      expect(response.json<ApplicationDetail>().history).toHaveLength(5);
+    }
+
+    expect(worst).toBeLessThan(READ_BUDGET_MS);
   });
 });

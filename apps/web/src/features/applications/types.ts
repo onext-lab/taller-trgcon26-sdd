@@ -17,6 +17,11 @@ export const REJECTION_REASONS = [
 
 export type RejectionReason = (typeof REJECTION_REASONS)[number];
 
+/** Reasons a person can pick: `job_closed` is set only by the API when a job is closed (never sent). */
+export const MANUAL_REJECTION_REASONS = ['not_a_fit', 'candidate_withdrew', 'other'] as const;
+
+export type ManualRejectionReason = (typeof MANUAL_REJECTION_REASONS)[number];
+
 export type PipelineJobStatus = 'draft' | 'published' | 'closed';
 
 /** Card of the pipeline: exactly these five fields (RNF-04); `rejectionReason` is not null only in `rejected`. */
@@ -51,4 +56,40 @@ export interface Application {
   createdAt: string;
   /** ISO 8601 UTC. */
   lastChangeAt: string;
+}
+
+/** Body of `POST /api/applications/:id/advance`: exactly these two fields (S1). */
+export interface AdvanceInput {
+  expectedStage: Stage;
+  toStage: Stage;
+}
+
+/** Body of `POST /api/applications/:id/reject`: `note` is omitted when empty after trimming (S2). */
+export interface RejectInput {
+  expectedStage: Stage;
+  reason: ManualRejectionReason;
+  note?: string;
+}
+
+/** One change of stage of the history (S4); `reason` and `note` only in the one that rejects. */
+export interface HistoryEntry {
+  fromStage: Stage | null;
+  toStage: Stage;
+  /** ISO 8601 UTC. */
+  changedAt: string;
+  reason: RejectionReason | null;
+  note: string | null;
+}
+
+/** `GET /api/applications/:id` (S4): the history goes from the oldest to the most recent change. */
+export interface ApplicationDetail {
+  id: number;
+  stage: Stage;
+  /** ISO 8601 UTC. */
+  createdAt: string;
+  /** ISO 8601 UTC. */
+  lastChangeAt: string;
+  candidate: { id: number; fullName: string };
+  job: { id: number; title: string; status: PipelineJobStatus };
+  history: HistoryEntry[];
 }

@@ -1,62 +1,17 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  createCandidateByApi,
+  createJobByApi,
+  enrollByApi,
+  pipelinePath,
+  stageRegion,
+  type ApiJob,
+} from './support/applications.ts';
 
 // Enrollment of a candidate from the job pipeline (HU-04, RF-07, RF-08 and RF-10) against the real API and web, on
 // a database regenerated at start (playwright.config.ts). Each test prepares its own published job and candidate
 // through the API with a unique token and an `@example.com` email: no ID of the seed is relied on. No test closes a
 // job that has applications (DT-10).
-
-type JobStatus = 'draft' | 'published';
-type ApiJob = { id: number; title: string };
-type ApiCandidate = { id: number; fullName: string; email: string };
-
-let counter = 0;
-
-/** A lowercase letters-and-digits token that does not repeat between tests, runs or specs of the same database. */
-function uniqueToken(): string {
-  counter += 1;
-  return `${Date.now().toString(36)}${counter}`;
-}
-
-/** Creates a job through the API and takes it to the status (the actions are sent without a body). */
-async function createJobByApi(page: Page, status: JobStatus): Promise<ApiJob> {
-  const title = `Oferta inscripcion ${uniqueToken()}`;
-  const created = await page.request.post('/api/jobs', {
-    data: {
-      title,
-      description: 'Oferta preparada para comprobar el pipeline.',
-      location: 'Madrid',
-      workMode: 'presencial',
-    },
-  });
-  expect(created.status()).toBe(201);
-  const { id } = (await created.json()) as { id: number };
-  if (status === 'published') {
-    expect((await page.request.post(`/api/jobs/${id}/publish`)).ok()).toBe(true);
-  }
-  return { id, title };
-}
-
-/** Creates a candidate without phone; the surname is a single word that no other name or email contains. */
-async function createCandidateByApi(page: Page): Promise<ApiCandidate> {
-  const token = uniqueToken();
-  const response = await page.request.post('/api/candidates', {
-    data: {
-      fullName: `Inscribe Apellido${token}`,
-      email: `inscribe.${token}@example.com`,
-      consent: false,
-    },
-  });
-  expect(response.status()).toBe(201);
-  return (await response.json()) as ApiCandidate;
-}
-
-function pipelinePath(job: ApiJob): string {
-  return `/jobs/${job.id}/pipeline`;
-}
-
-function stageRegion(page: Page, stage: string) {
-  return page.getByRole('region', { name: stage, exact: true });
-}
 
 function enrollPanel(page: Page) {
   return page.getByRole('region', { name: 'Inscribir candidato', exact: true });
@@ -123,15 +78,12 @@ test('CA-02 buscar por parte del email e inscribir: la tarjeta aparece en «Reci
   );
 });
 
-test('CA-08 inscribir a uno ya inscrito: el aviso fijo sin enlace y ninguna tarjeta nueva', async ({
+test('CA-36 inscribir a uno ya inscrito: el aviso fijo, «Ver la inscripción» al detalle existente y ninguna tarjeta nueva', async ({
   page,
 }) => {
   const job = await createJobByApi(page, 'published');
   const candidate = await createCandidateByApi(page);
-  const enrolled = await page.request.post('/api/applications', {
-    data: { jobId: job.id, candidateId: candidate.id },
-  });
-  expect(enrolled.status()).toBe(201);
+  const application = await enrollByApi(page, job.id, candidate.id);
 
   await page.goto(pipelinePath(job));
   const received = stageRegion(page, 'Recibida');
@@ -141,9 +93,14 @@ test('CA-08 inscribir a uno ya inscrito: el aviso fijo sin enlace y ninguna tarj
 
   const alert = enrollPanel(page).getByRole('alert');
   await expect(alert).toHaveText('Este candidato ya está inscrito en la oferta.');
-  await expect(alert.getByRole('link')).toHaveCount(0);
   await expect(received.getByRole('listitem')).toHaveCount(1);
   await expect(page.getByRole('status').filter({ hasText: 'Candidato inscrito.' })).toHaveCount(0);
+
+  const detailLink = enrollPanel(page).getByRole('link', { name: 'Ver la inscripción' });
+  await expect(detailLink).toBeVisible();
+  await detailLink.click();
+  await expect(page).toHaveURL(`/applications/${application.id}`);
+  await expect(page).toHaveTitle('Inscripción · ATS');
 });
 
 test('CA-26 y EC-28 borrador por URL y oferta cerrada del seed: el borrador no tiene columnas ni botón; la cerrada, columnas sin botón', async ({

@@ -8,7 +8,7 @@ condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (DEC-11.4 enmendado en HU-03).
 
 **El ciclo de vida completo (`draft → published → closed`) está implementado.** Lo único **latente** es el puerto
-hacia `inscripciones`: `noJobApplications` (cuenta 0 y no rechaza nada) hasta que HU-05 lo sustituya en `app.ts`; hasta
+hacia `inscripciones`: `noJobApplications` (cuenta 0 y no rechaza nada) hasta que HU-06 lo sustituya en `app.ts`; hasta
 entonces, cerrar una oferta deja abiertas sus inscripciones (ventana de INV-05, ver
 [inscripciones](../inscripciones/technical.md)). En sentido contrario, desde HU-04 `jobs` **ya implementa** el puerto
 «estado de la oferta» que define `inscripciones` (`job-status.ts`).
@@ -20,7 +20,7 @@ entonces, cerrar una oferta deja abiertas sus inscripciones (ventana de INV-05, 
 | Rutas | `apps/api/src/modules/jobs/routes.ts` | Plugin `jobsRoutes` (prefijo `/api/jobs`), JSON Schema por ruta, `preValidation` con `trimTextFields` (cuerpo y `q`) y `rejectBody` en las acciones, sin `try/catch` |
 | Servicio | `apps/api/src/modules/jobs/service.ts` | `createJobsService({ repository, now, transaction, applications })`: `create`, `get`, `update`, `remove`, `publish`, `close`, `closePreview`, `duplicate` y `list(query)` |
 | Reglas | `apps/api/src/modules/jobs/rules.ts` | Sin HTTP ni SQL: tabla acción × estado (`checkAction`: `apply`, `noop` o 409), obligatorios (`missingRequiredDetails`) y banda (`salaryRangeDetails`) |
-| Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) y el stub `noJobApplications`; HU-05 lo conectará en `app.ts` |
+| Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) y el stub `noJobApplications`; HU-06 lo conectará en `app.ts` |
 | Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado (`update`, `deleteById`, `markPublished` y `markClosed`, **los cuatro con guarda de estado en el `WHERE`**, `findStatusById`, `listPage`, `count`), `toJob(row)` (`snake_case` → `camelCase`) |
 | Lector de estado | `apps/api/src/modules/jobs/job-status.ts` | `createJobStatusReader(repo)`: implementa el `JobStatusPort` de `applications` sin importarlo (`getJobStatus(id)` → `draft`, `published`, `closed` o `null`), sobre `findStatusById` (`SELECT status`); `app.ts` comprueba la forma por tipado estructural |
 | Esquemas | `apps/api/src/modules/jobs/schemas.ts` | Tipos (`Job`, `JobInput`, `JobPatch`, `JobListItem`, `JobPage`, `JobListQuery`, `ClosePreview`) y JSON Schema (`jobFieldsSchema`, `listQuerySchema`…); el alta y la edición declaran `id`, `status`, `createdAt`, `publishedAt` y `closedAt` con `forbiddenFields` (`apps/api/src/http/validation.ts`) para que sigan nombrados (DEC-11.4) |
@@ -201,7 +201,7 @@ Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta bo
 | Tras un error de publicar o duplicar, el foco vuelve al botón con `document.activeElement` (`apps/web/src/features/jobs/use-job-actions.ts:63-64`); en Safari los botones no reciben foco al clic. `candidatos` ya lo evita con `ref` (`use-consent-focus.ts`) | Abierta | HU-02 §9.3 |
 | Comentario obsoleto de `listQuerySchema` en `apps/api/src/modules/jobs/schemas.ts:167`: dice que un parámetro desconocido da «Campo no permitido.» y desde HU-03 da «Hay campos no permitidos.» | Abierta (trivial, solo el comentario) | Observada en HU-03 |
 | `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` en 300 líneas | Abierta: el siguiente test va en un fichero hermano | HU-02 §9.4 |
-| El puerto de inscripciones solo expone un recuento; HU-05 necesita un test de que sus errores no llevan datos del candidato al log, y no copiar `SELECT *` de `findById` en candidatos | Aviso para HU-05 | HU-02 §9.5 (DP-01/DP-02) |
+| El puerto de inscripciones solo expone un recuento; HU-06 necesita un test de que sus errores no llevan datos del candidato al log, y no copiar `SELECT *` de `findById` en candidatos | Aviso para HU-06 | HU-02 §9.5 (DP-01/DP-02) |
 
 ## Requisitos no funcionales
 

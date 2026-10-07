@@ -2,7 +2,9 @@ import type { FormEvent, RefObject } from 'react';
 import { FormField } from '../../components/FormField.tsx';
 import { ErrorMessage, LoadingMessage, Notice } from '../../components/StatusMessages.tsx';
 import type { CandidateListItem } from '../candidates/types.ts';
+import { Link } from '../../components/router.tsx';
 import { SEARCH_LIMIT } from './api.ts';
+import { applicationPath } from './paths.ts';
 import type { SearchState } from './use-candidate-search.ts';
 import type { EnrollPanelState } from './use-enroll-panel.ts';
 
@@ -91,6 +93,23 @@ function EnrollResults({
   );
 }
 
+// The «Ver la inscripción» link goes in its own `<p>` after the alert, so the alert text stays exact (DD-10).
+function EnrollAlert({ panel, alertRef }: Pick<EnrollPanelProps, 'panel' | 'alertRef'>) {
+  if (panel.alert === undefined) return null;
+  return (
+    <>
+      <p role="alert" className="error-text" ref={alertRef} tabIndex={-1}>
+        {panel.alert}
+      </p>
+      {panel.alertLinkId !== undefined ? (
+        <p>
+          <Link to={applicationPath(panel.alertLinkId)}>Ver la inscripción</Link>
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 /** Inline panel (not a dialog, DD-02): search form, messages and results table (RF-08). */
 export function EnrollPanel({ panel, inputRef, alertRef, pendingId, onEnroll }: EnrollPanelProps) {
   const { search } = panel;
@@ -134,11 +153,7 @@ export function EnrollPanel({ panel, inputRef, alertRef, pendingId, onEnroll }: 
           </button>
         </div>
       </form>
-      {panel.alert !== undefined ? (
-        <p role="alert" className="error-text" ref={alertRef} tabIndex={-1}>
-          {panel.alert}
-        </p>
-      ) : null}
+      <EnrollAlert panel={panel} alertRef={alertRef} />
       <EnrollResults state={search.state} pendingId={pendingId} onEnroll={onEnroll} />
     </section>
   );
