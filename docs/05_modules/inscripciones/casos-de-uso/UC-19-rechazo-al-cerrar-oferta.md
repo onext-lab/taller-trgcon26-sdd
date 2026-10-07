@@ -3,7 +3,7 @@ id: UC-19
 titulo: "Rechazar las inscripciones activas al cerrar una oferta"
 modulo: inscripciones
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-03
 hus: [HU-06]
 ---
@@ -70,7 +70,7 @@ No escribe texto libre. Cierra procesos de candidatos, lo que recalcula su fecha
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-06 | CA-01, CA-02, CA-12, CA-16 | `apps/api/test/applications/close-reject.test.ts:105`, `apps/api/test/applications/close-reject.test.ts:129`, `e2e/jobs-close-applications.spec.ts:43`, `apps/api/test/applications/close-invariants.test.ts:62` |
+| P | HU-06 | CA-01, CA-02, CA-12, CA-16 | `apps/api/test/applications/close-reject.test.ts:105`, `apps/api/test/applications/close-reject.test.ts:129`, `e2e/jobs-close-applications.spec.ts:43`, `apps/api/test/applications/close-invariants.test.ts:74` |
 | A1 | HU-06 | CA-04 | `apps/api/test/applications/close-reject.test.ts:162` |
 | A2 | HU-06 | CA-05 | `apps/api/test/applications/close-reject.test.ts:187` |
 | E1 | HU-06 | CA-06, CA-11 | `apps/api/test/applications/close-reject-adversarial.test.ts:144`, `apps/api/test/applications/close-reject-privacy.test.ts:92` |

@@ -1,6 +1,6 @@
 # Módulo `candidatos` (código `candidates`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-04** (2026-10-07, review «Aprobado con observaciones», ronda 1). Lo mantiene
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07; de HU-05 y HU-06, solo quién llama al recálculo). Lo mantiene
 `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo condicionan:
 DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (con el punto 4 de DEC-11 enmendado en HU-03) y
@@ -8,10 +8,10 @@ DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a DEC-12 de
 
 **El módulo está completo.** Desde HU-04 el puerto `CandidateProcessesPort` tiene su implementación real, la de
 `inscripciones` (`apps/api/src/modules/applications/candidate-processes.ts`), conectada por defecto en `app.ts`, y
-`recalculateRetention` la llama también `inscripciones` al inscribir: `retentionEndsAt` es `null` mientras el candidato
-tenga una inscripción abierta («Mientras dure el proceso»). Lo **latente**: HU-05 la llamará también al pasar una
-inscripción a una etapa final; hasta entonces ninguna ruta cierra inscripciones y solo el seed tiene candidatos con todas
-las suyas finales.
+`recalculateRetention` la llama también `inscripciones`: al inscribir (HU-04), al avanzar o rechazar a una etapa final
+(HU-05) y al rechazar las activas cuando se cierra una oferta (HU-06). `retentionEndsAt` es `null` mientras el
+candidato tenga una inscripción abierta («Mientras dure el proceso») y, al cerrarse la última, «cierre + 6 meses» (o la
+fecha más tardía de la fórmula). No queda nada latente.
 
 ## Estructura de código
 
@@ -156,8 +156,10 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
   `computeRetentionEndsAt` lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:69-77`); con
   otro plazo vigente, un puerto incoherente no se detecta.
 - **`recalculateRetention(id)`** (en el servicio, se une a la transacción en curso) es el único escritor de
-  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent` y,
-  desde HU-04, `applications` al inscribir (por una función que le pasa `app.ts`, no por un `import`). El alta inserta con
+  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent` y
+  `applications` (por una función que le pasa `app.ts`, no por un `import`): al inscribir (HU-04), en `applyStageChange`
+  al pasar a `hired` o `rejected` (HU-05) y en `rejectActiveApplications` al cerrar una oferta, una vez por inscripción
+  rechazada (HU-06, `apps/api/src/modules/applications/job-closing.ts`). El alta inserta con
   retención `NULL` y recalcula en la misma transacción, así que un fallo del puerto deshace también el alta. Editar
   nunca la recalcula (RN-10). El seed de candidatos calcula con la misma función y escribe con `setRetention` sin pasar
   por el servicio; `seedApplications` sí llama a `recalculateRetention` del servicio con el puerto real.
@@ -166,8 +168,7 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
   `applications`); `buildApp` lo recibe como `candidateProcesses?` y, si falta, usa ese lector real. El stub
   `noCandidateProcesses` (`{ false, false, null }`) **solo queda para tests y para `seed-candidates.ts`**, que corre
   antes de que existan inscripciones. Con una inscripción abierta, la fórmula da `null` aunque el consentimiento
-  esté vigente o retirado y aunque la fecha anterior ya hubiera vencido. **Latente:** HU-05 llamará al recálculo al
-  cerrar. Dobles de test: `createProcessesStub({ processes, fail })` en `apps/api/test/helpers/candidates.ts`.
+  esté vigente o retirado y aunque la fecha anterior ya hubiera vencido. Dobles de test: `createProcessesStub({ processes, fail })` en `apps/api/test/helpers/candidates.ts`.
 - **Lecturas para `inscripciones`** (puerto `CandidateLookupPort`, que define `applications`): `exists(id)` y
   `findNames(ids)` en `CandidatesService`, sobre `existsById` y `findNamesByIds` (columnas explícitas; `findNames([])`
   devuelve un `Map` vacío sin consultar; los IDs inexistentes no salen). No abren transacción.
@@ -237,7 +238,7 @@ Observaciones aceptadas de las reviews de HU-03 (§9) y HU-04 (§9). Las filas c
 | `apps/web/src/features/candidates/CandidateFormScreen.tsx` tiene una copia local de `CandidateNotFound` además de la de `CandidateDetailScreen.tsx` | Abierta (trivial): HU-04 no tocó esa pantalla; se quita cuando se toque | `/module-sync` de HU-03 |
 | `CONSENT_VERSION` (web) y `CONSENT_TEXT_VERSION` (API) eran dos constantes sin test que las ate | **Cerrada** (tarea T-04; `apps/api/test/candidates/consent-version.test.ts`) | Review HU-03 §9, avisos |
 | `CandidateProcessesPort` sin implementación real | **Cerrada** en HU-04 (lector de `applications` por defecto en `buildApp`; recálculo al inscribir) | Review HU-03 §9, avisos |
-| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 |
+| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga). Desde HU-06, dos lecturas por candidato en cada cierre de oferta (400 con 200 activas; el cierre tarda 12-24 ms) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 · DP-01 de HU-05 y HU-06 |
 | Sin decidir en `docs/RGPD.md`, para la feature A: si un candidato con la retención vencida puede inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames` | Abierta | HU-04 §9.7 |
 
 ## Requisitos no funcionales

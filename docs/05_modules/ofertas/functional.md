@@ -1,6 +1,6 @@
 # Módulo `ofertas` (código `jobs`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-02** (2026-10-06). Lo mantiene `/module-sync`; la foto técnica está en
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07). Lo mantiene `/module-sync`; la foto técnica está en
 [technical.md](technical.md).
 
 ## Propósito
@@ -29,7 +29,7 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Crear una oferta como borrador | UC-01 | ✅ | HU-01 | Alta con solo el título o completa; recorte y validación junto al campo |
 | Editar una oferta | UC-02 | ✅ | HU-01, HU-02 | Edición de borradores y publicadas con última escritura; una publicada mantiene los obligatorios; una cerrada da 409 |
 | Publicar una oferta | UC-03 | ✅ | HU-02 | Publica un borrador completo, o avisa de los campos pendientes; repetir da 200 sin cambios |
-| Cerrar una oferta | UC-04 | 🚧 | HU-02, HU-06 | Cierra con diálogo y en una transacción, con el puerto de inscripciones (stub); falta A1, el rechazo de inscripciones activas (HU-06) |
+| Cerrar una oferta | UC-04 | ✅ | HU-02, HU-06 | Cierra con un diálogo que anuncia el número real de inscripciones activas; en una transacción pasa la oferta a `closed` y, desde HU-06 (A1), rechaza esas inscripciones con «oferta cerrada» por el puerto real de `inscripciones` (UC-19); un fallo deshace todo; repetir da 200 sin cambios; un borrador da 409 |
 | Borrar un borrador | UC-05 | ✅ | HU-01, HU-02 | Borrado físico con confirmación; una publicada o cerrada da 409 |
 | Duplicar una oferta como borrador | UC-06 | ✅ | HU-02 | Copia los campos editables de una oferta de cualquier estado como borrador nuevo |
 | Listar y buscar ofertas | UC-07 | ✅ | HU-01, HU-02 | Filtros por estado y título (sin tildes ni mayúsculas), paginación y tamaño 20, 50 o 100, con vacío y error |
@@ -37,8 +37,8 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 
 ## Alcance no implementado
 
-- **HU-06:** UC-04 · A1, el rechazo de las inscripciones activas al cerrar, cuando exista UC-19 (hoy el puerto
-  `JobApplicationsPort` es el stub `noJobApplications`).
+- Nada de FEAT-01. Fuera de su alcance: número de vacantes, reabrir una oferta cerrada (se duplica), portales externos,
+  login y enlace entre una duplicada y su original.
 
 ## Reglas de negocio
 
@@ -60,10 +60,8 @@ Las de FEAT-01, con su estado real en `main`.
 - **RN-11** — orden por fecha de referencia descendente con desempate por ID, filtros en Y por estado y título, página
   de 20 por defecto y tope de 100.
 - **RN-13** — la oferta no tiene vacantes: solo la cierra el reclutador.
-
-**Parciales**
-- **RN-08** — el cierre es una transacción (estado, fecha y llamada al puerto), pero hoy el puerto no rechaza nada:
-  falta el rechazo de las inscripciones activas (UC-19, HU-06).
+- **RN-08** — el cierre es una sola transacción: estado `closed`, fecha de cierre y rechazo de las inscripciones activas
+  por `inscripciones` (UC-19, desde HU-06), con la misma fecha; si algo falla, no cambia nada.
 
 INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001 (ver [technical.md](technical.md)).
 
@@ -73,28 +71,30 @@ INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001
   «estado de la oferta» y `jobs` lo implementa (`apps/api/src/modules/jobs/job-status.ts`), conectado en
   `apps/api/src/app.ts`; la web de `jobs` enlaza a la ruta del pipeline («Ver pipeline»). Dirección:
   `ofertas → inscripciones → candidatos`.
-- **Latente:** hacia `inscripciones` sigue el puerto propio `JobApplicationsPort`
-  (`apps/api/src/modules/jobs/applications-port.ts`), que `buildApp` inyecta con el stub `noJobApplications`
-  (`jobApplications?`): cuenta 0 y no rechaza nada. HU-06 aporta la implementación real (UC-19, dentro de la transacción
-  del cierre).
+- **Real desde HU-06:** hacia `inscripciones`, el puerto propio `JobApplicationsPort`
+  (`apps/api/src/modules/jobs/applications-port.ts`) lo implementa `inscripciones`
+  (`apps/api/src/modules/applications/job-closing.ts`) y lo conecta `composeServices` en `apps/api/src/app.ts`: cuenta
+  las inscripciones activas para el diálogo y las rechaza dentro de la transacción del cierre. El stub
+  `noJobApplications` solo queda como doble para tests.
 
 ## Cuestiones abiertas
 
-- **Ventana tolerada de INV-05 hasta HU-06:** mientras el puerto sea el stub, una oferta cerrada puede tener
-  inscripciones en etapa no final. Desde HU-04 ya se pueden crear inscripciones (el seed respeta INV-05 y ningún test
-  cierra ofertas con inscripciones); el test de EC-14 (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-06 lo
-  sustituye al conectar UC-19; tras su merge, `npm run db:reset`.
-- Avisos de la review de HU-02: HU-03 cerró el `details` sin tope (SEC-03) y reutilizó `NO_CONTROL_CHARS*` y
-  `foldSearchText`; queda HU-06, que conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores
-  no llevan datos del candidato al log.
+- **INV-05 se cumple por construcción desde HU-06:** el test de EC-14 de HU-02, que fijaba la ventana, se retiró y lo
+  sustituyen los tests del cierre real (`apps/api/test/applications/close-reject.test.ts`,
+  `apps/api/test/applications/close-reject-adversarial.test.ts` y `apps/api/test/applications/close-invariants.test.ts`).
+  Tras el merge de HU-06, `npm run db:reset` en cada base creada durante la ventana.
+- Avisos de la review de HU-02, cumplidos: HU-03 cerró el `details` sin tope (SEC-03) y reutilizó `NO_CONTROL_CHARS*` y
+  `foldSearchText`; HU-06 conectó el puerto (con retención y `StageChange`) y probó que sus errores no llevan datos del
+  candidato al log (`apps/api/test/applications/close-reject-privacy.test.ts`).
 
 ## Estado vivo del MVP
 
-- **% MVP:** ~94 % — `round((7 + 0,5 · 1) / 8 · 100)`.
-- **Conteo:** 7 ✅ / 1 🚧 / 0 ⬜ (8 capacidades).
-- **Backlog:** HU-06 (UC-04 · A1, el rechazo de las inscripciones activas al cerrar).
+- **% MVP:** 100 % — `round((8 + 0,5 · 0) / 8 · 100)`.
+- **Conteo:** 8 ✅ / 0 🚧 / 0 ⬜ (8 capacidades).
+- **Backlog:** ninguno de FEAT-01.
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|
 | 2026-10-06 | HU-01 | Crear, editar, borrar, listar y consultar borradores (API, web, migración 001 y seed de 4) | ~38 % |
 | 2026-10-06 | HU-02 | Publicar, cerrar, duplicar, editar y borrar según el estado, listado con filtros y paginación, guarda DEC-12 y seed de 10 | ~94 % |
+| 2026-10-07 | HU-06 | UC-04 · A1: el cierre rechaza las inscripciones activas en su transacción por el puerto real de `inscripciones`, y el diálogo anuncia el número real | 100 % |

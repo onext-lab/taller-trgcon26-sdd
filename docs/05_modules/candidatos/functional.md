@@ -1,7 +1,7 @@
 # Módulo `candidatos` (código `candidates`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-04** (2026-10-07). Lo mantiene `/module-sync`; la foto técnica está en
-[technical.md](technical.md).
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07; HU-05 y HU-06 solo tocan quién llama al recálculo de la
+retención). Lo mantiene `/module-sync`; la foto técnica está en [technical.md](technical.md).
 
 ## Propósito
 
@@ -39,8 +39,6 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 
 ## Alcance no implementado
 
-- **HU-05 (en `inscripciones`):** recalcular la retención al pasar una inscripción a una etapa final; hasta entonces ninguna
-  ruta cierra inscripciones, y solo el seed tiene candidatos con todas las suyas finales.
 - **Feature A:** anonimización (a petición o al vencer la retención), estado «anonimizado» y su exclusión de las
   búsquedas; mientras tanto, los candidatos con la retención vencida siguen en el listado sin marca.
 - **Fuera de FEAT-02:** exportación de la ficha (RGPD §4), importación CSV y borrado físico.
@@ -61,21 +59,19 @@ Las de FEAT-02, con su estado real en `main`.
   `v1`; al retirarlo se conservan otorgamiento y versión; marcarlo con uno vigente lo renueva; retirar sin uno vigente es
   200 sin cambios. Un único estado por candidato, sin historial.
 - **RN-06** — la retención la calcula siempre el sistema: ni la API ni la web la editan.
+- **RN-07** — la fórmula está completa y probada con todas las filas de RGPD §3, y se recalcula al dar de alta, al cambiar
+  el consentimiento, al inscribir (con una inscripción abierta, `null` aunque el consentimiento esté vigente o retirado y
+  aunque la fecha anterior ya hubiera vencido) y al cerrar inscripciones: al avanzar o rechazar a una etapa final (HU-05)
+  y al cerrar una oferta (HU-06), con «cierre + 6 meses» si no le queda otro proceso abierto.
 - **RN-08** — búsqueda parcial y literal en nombre o email más una skill exacta, en Y; orden por alta descendente con
   desempate por ID; 20 por página, máximo 100; el listado solo lleva nombre, email y skills.
 - **RN-09** — fechas en UTC y mostradas en Europe/Madrid como `dd/mm/aaaa`; plazos de retención por día natural de Madrid.
 - **RN-10** — editar no recalcula la retención.
 - **RN-11** — en la edición gana la última escritura.
-- **RN-13** — no existe el borrado: `DELETE /api/candidates/:id` da 404.
-
 - **RN-12** — `candidatos` define el puerto de procesos y exporta el recálculo; `inscripciones` implementa el puerto (por
-  defecto en `buildApp`) y llama al recálculo al inscribir. El stub `noCandidateProcesses` solo queda para tests y el seed.
-
-**Parciales**
-- **RN-07** — la fórmula está completa y probada con todas las filas de RGPD §3, y se recalcula al dar de alta, al cambiar
-  el consentimiento y al inscribir (con una inscripción abierta, `null` aunque el consentimiento esté vigente o retirado y
-  aunque la fecha anterior ya hubiera vencido); falta recalcular al cerrar inscripciones (HU-05, que lo dispara desde
-  `inscripciones`).
+  defecto en `buildApp`) y llama al recálculo al inscribir, al pasar una inscripción a una etapa final y al rechazarla
+  por el cierre de su oferta. El stub `noCandidateProcesses` solo queda para tests y el seed.
+- **RN-13** — no existe el borrado: `DELETE /api/candidates/:id` da 404.
 
 INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en la base desde la migración 002 (ver
 [technical.md](technical.md)); INV-07 se cumple con una sola transacción para candidato, consentimiento y retención.
@@ -88,10 +84,11 @@ INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en
     `inscripciones` (`apps/api/src/modules/applications/candidate-processes.ts`).
   - `inscripciones` define `CandidateLookupPort` (¿existe? y nombres de candidatos) y lo implementa `candidatos` con
     `exists` y `findNames`, solo con `id` y `full_name`.
-  - `inscripciones` llama a la operación interna `recalculateRetention` al inscribir, dentro de su transacción.
+  - `inscripciones` llama a la operación interna `recalculateRetention` dentro de su transacción: al inscribir (HU-04),
+    al avanzar o rechazar a una etapa final (HU-05) y al rechazar las activas cuando se cierra una oferta (HU-06,
+    `apps/api/src/modules/applications/job-closing.ts`).
   - Las claves foráneas de `applications` a `candidates` impiden borrar un candidato con inscripciones (integridad de la
     base, no acoplamiento de código).
-- **Latente:** HU-05 llamará al recálculo también al cerrar inscripciones.
 
 ## Cuestiones abiertas
 
@@ -99,8 +96,8 @@ INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en
   review de HU-03).
 - Sin decidir en `docs/RGPD.md`, para la feature A (review de HU-04, §9.7): si un candidato con la retención vencida puede
   inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames`.
-- Deuda DP-02 de HU-04 para la feature A: `recalculateRetention` lee la ficha con `SELECT *` (sin fuga; ver
-  [technical.md](technical.md)).
+- Deuda DP-02 de HU-04 para la feature A: `recalculateRetention` lee la ficha con `SELECT *` (sin fuga; desde HU-06,
+  dos lecturas por candidato en cada cierre de oferta; ver [technical.md](technical.md)).
 - El texto de cada versión del consentimiento se conserva en el repositorio (`apps/web/src/features/candidates/consent.ts` y
   su historial de git); cambiar el texto obliga a subir la versión (RGPD §2).
 
@@ -108,7 +105,7 @@ INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en
 
 - **% MVP:** 100 % — `round(5 / 5 · 100)`.
 - **Conteo:** 5 ✅ / 0 🚧 / 0 ⬜ (5 capacidades).
-- **Backlog:** ninguno propio del módulo; el recálculo al cerrar inscripciones lo dispara HU-05 desde `inscripciones`.
+- **Backlog:** ninguno propio del módulo; la anonimización y la marca de vencidos son de la feature A.
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|

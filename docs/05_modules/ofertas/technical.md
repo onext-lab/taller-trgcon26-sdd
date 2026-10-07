@@ -3,15 +3,17 @@
 Estado de `main` sincronizado hasta **HU-02** (2026-10-06, review «Aprobado con observaciones», ronda 2), con los cambios
 transversales de **HU-03** que tocan a ofertas (`details` acotado, piezas web compartidas, tabla `ROUTES`) y los de
 **HU-04** (2026-10-07: guardas de estado en el SQL, lector del puerto «estado de la oferta» y «Ver pipeline») y
-**HU-05** (2026-10-07: `getJobSummary` en el lector y «Ver pipeline» en una cerrada). Lo
+**HU-05** (2026-10-07: `getJobSummary` en el lector y «Ver pipeline» en una cerrada) y **HU-06** (2026-10-07: el
+puerto hacia `inscripciones` pasa a ser real). Lo
 mantiene `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo
-condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04) a DEC-12 de
+condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04 y HU-06) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (DEC-11.4 enmendado en HU-03).
 
-**El ciclo de vida completo (`draft → published → closed`) está implementado.** Lo único **latente** es el puerto
-hacia `inscripciones`: `noJobApplications` (cuenta 0 y no rechaza nada) hasta que HU-06 lo sustituya en `app.ts`; hasta
-entonces, cerrar una oferta deja abiertas sus inscripciones (ventana de INV-05, ver
-[inscripciones](../inscripciones/technical.md)). En sentido contrario, desde HU-04 `jobs` **ya implementa** el puerto
+**El ciclo de vida completo (`draft → published → closed`) está implementado, sin nada latente.** Desde HU-06, el
+puerto hacia `inscripciones` (`JobApplicationsPort`) lo implementa `inscripciones`
+(`apps/api/src/modules/applications/job-closing.ts`) y lo conecta `composeServices` en `app.ts`: cerrar una oferta
+rechaza sus inscripciones activas en la misma transacción e INV-05 se cumple por construcción (ver
+[inscripciones](../inscripciones/technical.md)). En sentido contrario, desde HU-04 `jobs` implementa el puerto
 «estado de la oferta» que define `inscripciones` (`job-status.ts`).
 
 ## Estructura de código
@@ -21,17 +23,17 @@ entonces, cerrar una oferta deja abiertas sus inscripciones (ventana de INV-05, 
 | Rutas | `apps/api/src/modules/jobs/routes.ts` | Plugin `jobsRoutes` (prefijo `/api/jobs`), JSON Schema por ruta, `preValidation` con `trimTextFields` (cuerpo y `q`) y `rejectBody` en las acciones, sin `try/catch` |
 | Servicio | `apps/api/src/modules/jobs/service.ts` | `createJobsService({ repository, now, transaction, applications })`: `create`, `get`, `update`, `remove`, `publish`, `close`, `closePreview`, `duplicate` y `list(query)` |
 | Reglas | `apps/api/src/modules/jobs/rules.ts` | Sin HTTP ni SQL: tabla acción × estado (`checkAction`: `apply`, `noop` o 409), obligatorios (`missingRequiredDetails`) y banda (`salaryRangeDetails`) |
-| Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) y el stub `noJobApplications`; HU-06 lo conectará en `app.ts` |
+| Puerto | `apps/api/src/modules/jobs/applications-port.ts` | `JobApplicationsPort` (`countActiveApplications(jobId)`, `rejectActiveApplications({ jobId, closedAt })`), que implementa `applications` (`job-closing.ts`) y conecta `composeServices` desde HU-06; `noJobApplications` queda como doble neutro para los tests de `jobs` (DD-07 de HU-06) |
 | Repositorio | `apps/api/src/modules/jobs/repository.ts` | `createJobsRepository(db)`: SQL preparado (`update`, `deleteById`, `markPublished` y `markClosed`, **los cuatro con guarda de estado en el `WHERE`**, `findStatusById`, `listPage`, `count`), `toJob(row)` (`snake_case` → `camelCase`) |
 | Lector de estado | `apps/api/src/modules/jobs/job-status.ts` | `createJobStatusReader(repo)`: implementa el `JobStatusPort` de `applications` sin importarlo (`getJobStatus(id)` → `draft`, `published`, `closed` o `null`), sobre `findStatusById` (`SELECT status`); `app.ts` comprueba la forma por tipado estructural |
 | Esquemas | `apps/api/src/modules/jobs/schemas.ts` | Tipos (`Job`, `JobInput`, `JobPatch`, `JobListItem`, `JobPage`, `JobListQuery`, `ClosePreview`) y JSON Schema (`jobFieldsSchema`, `listQuerySchema`…); el alta y la edición declaran `id`, `status`, `createdAt`, `publishedAt` y `closedAt` con `forbiddenFields` (`apps/api/src/http/validation.ts`) para que sigan nombrados (DEC-11.4) |
 | Búsqueda | `apps/api/src/db/text-search.ts` | `foldSearchText` y `fold_search(texto)`, función SQL que el repositorio registra en su conexión |
 | Guarda entre sitios | `apps/api/src/http/cross-site.ts` | Hook `onRequest` global (DEC-12): 403 `CROSS_SITE_REQUEST` a las escrituras desde otro sitio |
-| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` crea el servicio y registra el plugin (DD-09), y pasa `createJobStatusReader(jobsRepository)` a `applications` (`jobStatus?` solo para tests); ningún otro módulo importa `jobs` |
+| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` registra el plugin (DD-09); `composeServices` crea el servicio de `jobs` con el `JobApplicationsPort` real (dos lambdas sobre el servicio de `applications`) y pasa `createJobStatusReader(jobsRepository)` a `applications` (`jobApplications?` y `jobStatus?` solo para tests); ningún otro módulo importa `jobs` |
 | Migración · seed | `apps/api/src/db/migrations/001-create-job-openings.sql` · `apps/api/src/db/seed.ts` | Tabla `job_openings` (sin migración nueva en HU-02); 10 ofertas inventadas: 4 `draft`, 4 `published` y 2 `closed` (`seed` carga además los 30 candidatos de `seed-candidates.ts` y, con HU-04, las 40 inscripciones de `seed-applications.ts`: de las 4 publicadas, 3 tienen 10 cada una y 1 queda vacía; las 2 cerradas, 5 cada una; los borradores, ninguna) |
 | Web | `apps/web/src/features/jobs/` | `api.ts`, `types.ts`, `paths.ts`, `labels.ts`, `job-form-model.ts`, `list-query.ts` (URL del listado; re-exporta las reglas de `components/list-controls.ts`), `job-form-errors.ts` (delega en `components/form-errors.ts`), `use-job-actions.ts` y las pantallas y componentes; `JobPagination.tsx` envuelve `components/Pagination.tsx`; `JobActions.tsx` importa `pipelinePath` de `apps/web/src/features/applications/paths.ts` (dirección `jobs → applications`, DEC-06 por analogía) |
-| Tests API | `apps/api/test/jobs/` · `apps/api/test/http/cross-site.test.ts` · `apps/api/test/http/error-details.test.ts` | `create`, `create-adversarial`, `control-chars`, `update`, `delete`, `get`, `list`, `list-filters`, `list-filters-adversarial`, `publish`, `close`, `duplicate`, `status-rules`, `status-rules-adversarial`, `state-guards` (SEC-02: regresión de respuestas, 0 filas en el repositorio y 409 en el servicio), `enumeration`, `migration`, `seed`, `performance`, `error-details-regression` · guarda DEC-12 · `details` acotado (DEC-11.4) |
-| Tests web · e2e | `apps/web/test/features/jobs/` · `e2e/jobs.spec.ts`, `e2e/jobs-lifecycle.spec.ts`, `e2e/jobs-list.spec.ts` | Testing Library con `fetch` simulado · Playwright sobre `data/e2e.db` (ciclo de vida y listado filtrado) |
+| Tests API | `apps/api/test/jobs/` · `apps/api/test/http/cross-site.test.ts` · `apps/api/test/http/error-details.test.ts` | `create`, `create-adversarial`, `control-chars`, `update`, `delete`, `get`, `list`, `list-filters`, `list-filters-adversarial`, `publish`, `close`, `duplicate`, `status-rules`, `status-rules-adversarial`, `state-guards` (SEC-02: regresión de respuestas, 0 filas en el repositorio y 409 en el servicio), `enumeration`, `migration`, `seed`, `performance`, `error-details-regression` · guarda DEC-12 · `details` acotado (DEC-11.4). El cierre con el puerto real (rechazo, previa, fallos, privacidad, rendimiento e INV-05) se prueba en `apps/api/test/applications/close-*.test.ts` (HU-06); `close.test.ts` sigue con el puerto doble y ya no tiene el test de EC-14 de HU-02 |
+| Tests web · e2e | `apps/web/test/features/jobs/` · `e2e/jobs.spec.ts`, `e2e/jobs-lifecycle.spec.ts`, `e2e/jobs-list.spec.ts`, `e2e/jobs-close-applications.spec.ts` | Testing Library con `fetch` simulado · Playwright sobre `data/e2e.db` (ciclo de vida, listado filtrado y, desde HU-06, cierre de una oferta con inscripciones) |
 
 Piezas transversales que usa (de HU-01, DEC-11): `apps/api/src/http/`, `apps/api/src/errors.ts`,
 `apps/api/src/clock.ts`, `apps/api/src/db/transaction.ts`, `apps/api/test/helpers/test-app.ts` y, en la web,
@@ -80,8 +82,8 @@ también las piezas que se movieron allí desde esta feature y que `jobs` sigue 
 | `PATCH /api/jobs/:id` | Al menos un campo; ausente = sin cambios; `null` = sin valor | 200 `Job` fusionado | 400 · 403 · 404 · 409 (cerrada) · 413 · 415 · 500 |
 | `DELETE /api/jobs/:id` | Sin cuerpo ni `Content-Type` | 204 | 400 · 403 · 404 · 409 (publicada o cerrada) · 500 |
 | `POST /api/jobs/:id/publish` | Sin cuerpo | 200 `Job` publicado; ya publicada: 200 igual, misma fecha | 400 (cuerpo, o `details` con los obligatorios que faltan) · 403 · 404 · 409 (cerrada) · 500 |
-| `POST /api/jobs/:id/close` | Sin cuerpo | 200 `Job` cerrado, en una transacción con el puerto; ya cerrada: 200 igual | 400 · 403 · 404 · 409 (borrador) · 500 |
-| `GET /api/jobs/:id/close-preview` | — | 200 `{ activeApplications }`, en cualquier estado | 400 · 404 · 500 |
+| `POST /api/jobs/:id/close` | Sin cuerpo | 200 `Job` cerrado (sin campos nuevos), en una transacción que rechaza las inscripciones activas por el puerto con el mismo `closedAt`; ya cerrada: 200 igual, sin llamar al puerto | 400 · 403 · 404 · 409 (borrador) · 500 (y `ROLLBACK` de todo) |
+| `GET /api/jobs/:id/close-preview` | — | 200 `{ activeApplications }` (recuento real de inscripciones no finales desde HU-06), en cualquier estado | 400 · 404 · 500 |
 | `POST /api/jobs/:id/duplicate` | Sin cuerpo | 201 `Job` nuevo en `draft` con los 6 campos editables; no es idempotente | 400 · 403 · 404 · 500 |
 
 - `Job` lleva siempre los 11 campos; los opcionales sin valor salen `null`, nunca ausentes.
@@ -202,7 +204,7 @@ Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta bo
 | Tras un error de publicar o duplicar, el foco vuelve al botón con `document.activeElement` (`apps/web/src/features/jobs/use-job-actions.ts:63-64`); en Safari los botones no reciben foco al clic. `candidatos` ya lo evita con `ref` (`use-consent-focus.ts`) | Abierta | HU-02 §9.3 |
 | Comentario obsoleto de `listQuerySchema` en `apps/api/src/modules/jobs/schemas.ts:167`: dice que un parámetro desconocido da «Campo no permitido.» y desde HU-03 da «Hay campos no permitidos.» | Abierta (trivial, solo el comentario) | Observada en HU-03 |
 | `apps/web/test/features/jobs/JobDetailScreen.actions.test.tsx` en 300 líneas | Abierta: el siguiente test va en un fichero hermano | HU-02 §9.4 |
-| El puerto de inscripciones solo expone un recuento; HU-06 necesita un test de que sus errores no llevan datos del candidato al log, y no copiar `SELECT *` de `findById` en candidatos | Aviso para HU-06 | HU-02 §9.5 (DP-01/DP-02) |
+| El puerto de inscripciones solo exponía un recuento; HU-06 necesitaba un test de que sus errores no llevan datos del candidato al log, y no copiar `SELECT *` de `findById` en candidatos | **Cumplido en HU-06** (`apps/api/test/applications/close-reject-privacy.test.ts`; 0 `SELECT *` nuevos) | HU-02 §9.5 (DP-01/DP-02) |
 
 ## Requisitos no funcionales
 

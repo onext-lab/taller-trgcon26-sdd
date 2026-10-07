@@ -17,8 +17,9 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 5 / total 6 · en curso 0 · bloqueadas 0
-- Última actualización: 2026-10-07 (HU-05 hecha: review «Aprobado con observaciones», merge y module-sync; sigue HU-06)
+- HU: hechas 6 / total 6 · en curso 0 · bloqueadas 0
+- Última actualización: 2026-10-07 (HU-06 hecha: review «Aprobado con observaciones», merge y module-sync; tras el
+  merge, `npm run db:reset`; siguen `/audit-sprint` y `/cerrar-sprint`)
 
 ## Historias de usuario
 
@@ -72,16 +73,17 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-06 · Cerrar una oferta con inscripciones activas · estado: pendiente
+### HU-06 · Cerrar una oferta con inscripciones activas · estado: hecha
 - **Origen:** FEAT-03 · **Depende de:** HU-05 · **Rama:** `hu/HU-06-cerrar-oferta-inscripciones-activas`
-- [ ] prd-writer
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
-- [ ] `npm run db:reset` tras el merge (cierra la ventana de INV-05)
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
+- [ ] `npm run db:reset` tras el merge, en cada portátil o base creada durante la ventana de INV-05 (lo hace cada
+  persona; no lo marca `/module-sync`)
 
 ## Tareas sin HU
 
@@ -135,9 +137,10 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - Ningún sprint se cierra sin `/audit-sprint` aprobado.
 
 ## Notas
-- Ventana tolerada en `main` (HU-02): entre el merge de HU-04 y el de HU-06, cerrar una oferta con inscripciones
-  activas la cierra sin rechazarlas; INV-05 se cumple al entrar HU-06 (antes, HU-05), y tras su merge,
-  `npm run db:reset`.
+- Ventana tolerada en `main` (HU-02), **cerrada con HU-06**: entre el merge de HU-04 y el de HU-06, cerrar una oferta
+  con inscripciones activas la cerraba sin rechazarlas. Desde HU-06, INV-05 se cumple por construcción (CA-15, CA-16).
+  Tras el merge de HU-06 hay que hacer `npm run db:reset`: una base creada durante la ventana puede tener ofertas
+  cerradas con inscripciones abiertas.
 - Para HU-04 (review de HU-03): un test que ate `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API, y
   unificar los teléfonos del seed y de los tests en la serie `+34 600 000 0xx` (`docs/RGPD.md` §6).
 - Los candidatos con la retención vencida siguen en el listado sin marca hasta la feature A (supresión y retención).

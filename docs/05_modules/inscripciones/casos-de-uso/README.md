@@ -11,4 +11,4 @@ citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso.
 | [UC-16](UC-16-rechazar-inscripcion.md) | Rechazar una inscripción | reclutador | implementado | FEAT-03 | HU-05 |
 | [UC-17](UC-17-ver-pipeline.md) | Ver el pipeline de una oferta | reclutador | aprobado | FEAT-03 | HU-04, HU-05 |
 | [UC-18](UC-18-consultar-historial.md) | Consultar el historial de una inscripción | reclutador | implementado | FEAT-03 | HU-05 |
-| [UC-19](UC-19-rechazo-al-cerrar-oferta.md) | Rechazar las inscripciones activas al cerrar una oferta | reclutador (indirecto) | aprobado | FEAT-03 | HU-06 |
+| [UC-19](UC-19-rechazo-al-cerrar-oferta.md) | Rechazar las inscripciones activas al cerrar una oferta | reclutador (indirecto) | implementado | FEAT-03 | HU-06 |

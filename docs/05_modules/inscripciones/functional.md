@@ -1,6 +1,6 @@
 # Módulo `inscripciones` (código `applications`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-05** (2026-10-07). Lo mantiene `/module-sync`; la foto técnica está en
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07). Lo mantiene `/module-sync`; la foto técnica está en
 [technical.md](technical.md).
 
 ## Propósito
@@ -37,14 +37,12 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Rechazar una inscripción | UC-16 | ✅ | HU-05 | «Rechazar» abre un formulario con motivo de la lista y nota opcional (≤ 500 caracteres, con aviso de no escribir datos sensibles); recalcula la retención; el reintento conserva el motivo y la nota originales; la nota nunca sale en logs, errores ni pipeline |
 | Ver el pipeline de una oferta | UC-17 | ✅ | HU-04, HU-05 | Seis columnas con nombre (enlazado al detalle), fecha del último cambio y motivo del rechazo, sin email, teléfono ni nota; «Avanzar» y «Rechazar» en las tarjetas no finales de una oferta publicada; una cerrada, desde su ficha y en solo lectura; vacío, error y «Página no encontrada». A3 («Candidato anonimizado») es de la feature A |
 | Consultar el historial de una inscripción | UC-18 | ✅ | HU-05 | `/applications/:id` muestra candidato, oferta, etapa actual e historial del más antiguo al más reciente (fecha, origen, destino, motivo y nota); se llega desde cada tarjeta y desde el 409 por duplicado («Ver la inscripción»); inexistente → «Página no encontrada» |
-| Rechazar las inscripciones activas al cerrar una oferta | UC-19 | ⬜ | HU-06 | Latente: el cierre de una oferta sigue con el stub `noJobApplications`, que no rechaza nada |
+| Rechazar las inscripciones activas al cerrar una oferta | UC-19 | ✅ | HU-06 | Al cerrar una oferta, sus inscripciones no finales pasan a «Rechazado» con el motivo «oferta cerrada», sin nota y con la fecha del cierre, en la misma transacción; las `hired` y `rejected` no cambian; la retención de cada candidato afectado se recalcula («cierre + 6 meses» si no le queda otro proceso abierto). El diálogo de cierre anuncia el número real. Sin activas, no escribe nada; un fallo deshace el cierre entero; tras el cierre, avanzar da «ha cambiado de etapa» y rechazar, 200 sin cambios |
 
 ## Alcance no implementado
 
-- **HU-06:** el rechazo al cerrar una oferta (UC-19 y UC-04 · A1, que conecta `JobApplicationsPort` y cierra la ventana
-  de INV-05). Salió de HU-05 por decisión del responsable del 2026-10-07.
 - **Feature A:** el estado «anonimizado», su marca en el pipeline (UC-17 · A3, «Candidato anonimizado») y en avanzar,
-  rechazar y el detalle, y el vaciado de la nota al anonimizar (la base ya lo permite; ver `docs/RGPD.md` §7).
+  rechazar, el cierre de una oferta y el detalle, y el vaciado de la nota al anonimizar (la base ya lo permite; ver `docs/RGPD.md` §7).
 - **Fuera de FEAT-03:** exportación de la ficha, importación CSV, inscribir desde la ficha del candidato o a varios a la
   vez, y paginar el pipeline.
 
@@ -65,21 +63,23 @@ Las de FEAT-03, con su estado real en `main`.
 - **RN-07** — pedir la etapa actual (o rechazar una ya rechazada) da 200 sin `StageChange`; prevalece sobre RN-06
   (RV-23).
 - **RN-08** — contratar no toca las demás inscripciones ni cierra la oferta; se admite más de un `hired`.
-- **RN-10** — al crear una inscripción y al pasarla a una etapa final, `candidatos` recalcula la retención en la misma
-  transacción.
+- **RN-09** — al cerrar una oferta, sus inscripciones no finales pasan a `rejected` con el motivo «oferta cerrada»
+  (`job_closed`), sin nota y con la fecha del cierre, en la misma transacción del cierre. Es el único escritor de
+  `job_closed`.
+- **RN-10** — al crear una inscripción, al pasarla a una etapa final y al rechazarla por el cierre de su oferta,
+  `candidatos` recalcula la retención en la misma transacción.
 - **RN-11** — solo los rechazos llevan nota (INV-10); solo la escribe el rechazo manual y solo la lee el detalle.
 - **RN-12** — el pipeline se ve también en ofertas cerradas, en solo lectura, con una columna por etapa ordenada por el último
   cambio (desempate por ID descendente), sin paginar, y solo con el nombre del candidato.
 - **RN-13** — fechas en UTC y mostradas en Europe/Madrid como `dd/mm/aaaa`.
 
-**Pendientes (HU-06)**
-- **RN-09** — al cerrar una oferta, sus inscripciones no finales pasan a `rejected` con el motivo «oferta cerrada», en la
-  misma transacción del cierre.
-
 **Invariantes.** INV-01, INV-03, INV-04, INV-07, INV-08 e INV-10 los defiende la base (índice único, triggers, `CHECK` y
 FK `RESTRICT`); INV-02, INV-06 e INV-09 los garantizan las transacciones de inscribir y de cambiar de etapa y los comprueba el seed (ver
-[technical.md](technical.md)). **INV-05** (ninguna oferta cerrada con inscripciones no finales) **no se cumple todavía por
-construcción**: ver «Cuestiones abiertas».
+[technical.md](technical.md)). **INV-05** (ninguna oferta cerrada con inscripciones no finales) se cumple **por
+construcción** desde HU-06: el cierre rechaza las activas en su transacción y una oferta cerrada no admite inscripciones.
+Lo fijan dos tests de invariante, sobre la base regenerada (CA-15) y tras cerrar por la API (CA-16). Avanzar y rechazar
+siguen sin mirar el estado de la oferta (DT-09 de HU-05, mantenida por DT-01 de HU-06) como defensa en profundidad:
+ese estado ya no se alcanza desde la API.
 
 ## Dependencias entre módulos
 
@@ -98,18 +98,19 @@ los puertos se implementan por tipado estructural y se conectan en `apps/api/src
     candidato u oferta con inscripciones no se puede borrar.
   - En la web, `jobs` enlaza al pipeline (también de una oferta cerrada) y `applications` reutiliza el cliente de
     búsqueda de `candidates` y enlaza la oferta y el candidato desde el detalle.
-- **Latente:** `JobApplicationsPort` (`ofertas` hacia `inscripciones`: contar y rechazar las inscripciones activas al
-  cerrar) sigue con el stub `noJobApplications` hasta HU-06.
+- **Real desde HU-06:** `ofertas` cuenta y rechaza las inscripciones activas al cerrar por `JobApplicationsPort`, que
+  define `ofertas` (`apps/api/src/modules/jobs/applications-port.ts`) e implementa `inscripciones`
+  (`apps/api/src/modules/applications/job-closing.ts`), conectado en `composeServices` de `apps/api/src/app.ts`; el
+  rechazo se une a la transacción del cierre y llama al recálculo de la retención de `candidatos`.
 
 ## Cuestiones abiertas
 
-- **Ventana de INV-05 hasta HU-06 (DT-10 de HU-04):** con el puerto en stub, cerrar una oferta deja abiertas sus
-  inscripciones y la retención de sus candidatos en `null`; el diálogo de cierre dice 0 inscripciones activas. Y la API
-  avanza o rechaza esas inscripciones (DT-09 de HU-05; la web no ofrece la acción). Aceptada: el seed la respeta y
-  ningún test cierra ofertas con inscripciones. **HU-06 revisa DT-09 a propósito**; tras su merge, `npm run db:reset`.
-- **Sin decidir en `docs/RGPD.md` §7, para la feature A** (seis cuestiones, de las reviews de HU-04 y HU-05): retención
-  vencida al inscribir, contratar o rechazar; la marca de anonimizado en los puertos, en avanzar y rechazar y en el
-  detalle; y el vaciado de la nota del rechazo.
+- **Tras el merge de HU-06, `npm run db:reset`** en cada portátil o base creada antes: una base de la ventana de INV-05
+  (entre HU-04 y HU-06) puede tener ofertas cerradas con inscripciones abiertas.
+- **Sin decidir en `docs/RGPD.md` §7, para la feature A** (seis cuestiones, de las reviews de HU-04, HU-05 y HU-06):
+  retención vencida al inscribir, contratar, rechazar o cerrar la oferta; la marca de anonimizado en los puertos, en
+  avanzar y rechazar, en el cierre y en el detalle; y el vaciado de la nota del rechazo. Desde HU-06, el cierre es un
+  tercer camino, masivo, que agrava las cuestiones 2, 4 y 5.
 - UC-17 · E1 y UC-18 · E1 dicen «estado de error» y la web muestra «Página no encontrada» (decisión del responsable
   técnico de no tocar los UC; reviews de HU-04, DD-02, y de HU-05, DD-06; DT-08 del PRD de HU-05).
 - El pipeline no pagina (S-18, aceptado): RNF-01 se midió con 200 inscripciones en una oferta.
@@ -118,11 +119,12 @@ los puertos se implementan por tipado estructural y se conectan en `apps/api/src
 
 ## Estado vivo del MVP
 
-- **% MVP:** ~83 % — `round((5 + 0,5 · 0) / 6 · 100)`.
-- **Conteo:** 5 ✅ / 0 🚧 / 1 ⬜ (6 capacidades).
-- **Backlog:** HU-06 (UC-19 y UC-04 · A1; conectar `JobApplicationsPort`, cerrar la ventana de INV-05 y revisar DT-09).
+- **% MVP:** 100 % — `round((6 + 0,5 · 0) / 6 · 100)`.
+- **Conteo:** 6 ✅ / 0 🚧 / 0 ⬜ (6 capacidades).
+- **Backlog:** ninguno de FEAT-03; quedan la feature A (anonimizado y RGPD §7) y lo que está fuera de FEAT-03.
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|
 | 2026-10-07 | HU-04 | Nace el módulo: inscribir desde el pipeline (API y web), pipeline de una oferta con seis columnas, migración 003 con historial inmutable (salvo vaciar la nota), puerto de procesos real, seed de 40 inscripciones, y SEC-02 y «Ver pipeline» en `ofertas` | ~25 % |
 | 2026-10-07 | HU-05 | Avanzar, contratar y rechazar (API y web) con etapa esperada y reintento, detalle de la inscripción con su historial, enlaces desde el pipeline y el 409 por duplicado, y pipeline de una oferta cerrada desde su ficha | ~83 % |
+| 2026-10-07 | HU-06 | Rechazo de las inscripciones activas al cerrar una oferta (UC-19) en la transacción del cierre, con su recálculo de retención; `JobApplicationsPort` real, recuento real en el diálogo e INV-05 por construcción (CA-15, CA-16) | 100 % |

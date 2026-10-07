@@ -89,9 +89,10 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
 
 ## 7. Cuestiones abiertas para la feature A (supresión y retención)
 
-Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9) y de HU-05
-(`docs/03_delivery/hu/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9). Se dejan abiertas a propósito para el
-*shaping* de la feature A.
+Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9), de HU-05
+(`docs/03_delivery/hu/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9) y de HU-06
+(`docs/03_delivery/hu/HU-06-cerrar-oferta-inscripciones-activas/review/REVIEW.md` §4 y §9, que no añade cuestiones
+nuevas pero agrava la 2, la 4 y la 5). Se dejan abiertas a propósito para el *shaping* de la feature A.
 
 1. **¿Se puede inscribir, o encontrar en el buscador, a un candidato con la retención vencida que aún no se ha
    anonimizado?** Hoy sí: al inscribirlo su retención pasa a «mientras dure el proceso» (DT-06 del PRD de HU-04; lo fija
@@ -99,16 +100,24 @@ Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/re
    jurídica nueva, y si listados y búsquedas deben ocultar a los vencidos (§5 solo excluye a los anonimizados).
 2. **Marca de anonimizado en los puertos.** Aún no existe ninguna columna ni estado de anonimizado. Cuando exista, los
    puertos que `inscripciones` usa para leer candidatos (`exists` y `findNames`) tendrán que rechazar o rotular a los
-   anonimizados, y el pipeline mostrará «Candidato anonimizado».
+   anonimizados, y el pipeline mostrará «Candidato anonimizado». Desde HU-06, cerrar una oferta es un tercer camino,
+   masivo, que tampoco consulta ninguna marca: rechaza todas las inscripciones activas de la oferta y recalcula la
+   retención de sus candidatos (`apps/api/src/modules/applications/job-closing.ts`).
 3. **¿La anonimización vacía siempre la nota libre del rechazo?** El historial es inmutable salvo `SET note = NULL`
    (DT-12 del PRD de HU-04, `apps/api/src/db/migrations/003-create-applications.sql`), pensado para esto. Falta decidir
    si se vacía en toda anonimización (por petición y por vencimiento).
 4. **¿Contratar o rechazar a un candidato con la retención vencida prolonga la conservación?** Al pasar su última
    inscripción abierta a `hired` o `rejected`, la retención se recalcula a «cierre + 6 meses»
    (`apps/api/src/modules/applications/service.ts`, `applyStageChange`), aunque ya hubiera vencido. Es la misma duda
-   que la 1, en la salida del proceso en vez de en la entrada.
-5. **Anonimizado en avanzar, rechazar y el detalle.** Avanzar y rechazar no consultan ninguna marca de anonimizado, y el
-   recálculo reescribiría la retención de un anonimizado, en contra de «irreversible e idempotente» (§5). El detalle
+   que la 1, en la salida del proceso en vez de en la entrada. Desde HU-06, cerrar una oferta es un tercer camino,
+   masivo, que la amplifica en volumen: un solo «Cerrar oferta» lleva a «cierre + 6 meses» a todos los candidatos de la
+   oferta que se quedan sin procesos abiertos, también a los que tenían la retención vencida
+   (`apps/api/src/modules/applications/job-closing.ts`; lo fija el test «EC-05 retención vencida simulada por SQL…» de
+   `apps/api/test/applications/close-reject.test.ts`).
+5. **Anonimizado en avanzar, rechazar, el cierre y el detalle.** Avanzar y rechazar no consultan ninguna marca de
+   anonimizado, y el recálculo reescribiría la retención de un anonimizado, en contra de «irreversible e idempotente»
+   (§5). Desde HU-06, cerrar una oferta es un tercer camino, masivo, con el mismo efecto sobre cada candidato de la
+   oferta (`apps/api/src/modules/applications/job-closing.ts`). El detalle
    (`GET /api/applications/:id`) da **500** si `findNames` no devuelve el nombre del candidato. Hoy ese 500 es
    **inalcanzable**, porque la anonimización no existe y la clave foránea impide borrar al candidato. La feature A
    tiene que convertirlo en una respuesta decidida (por ejemplo, 404 o 410, o el detalle con «Candidato

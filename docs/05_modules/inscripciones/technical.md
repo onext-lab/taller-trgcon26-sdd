@@ -1,30 +1,32 @@
 # Módulo `inscripciones` (código `applications`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-05** (2026-10-07, review «Aprobado con observaciones», ronda 1). Lo mantiene
+Estado de `main` sincronizado hasta **HU-06** (2026-10-07, review «Aprobado con observaciones», ronda 1). Lo mantiene
 `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo condicionan:
 DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) y [RGPD.md](../../RGPD.md) §1, §3, §5 y §6.
 
-**Está hecho inscribir, avanzar, contratar y rechazar, el pipeline y el detalle con su historial** (HU-04 y HU-05). Lo
-**latente**: `JobApplicationsPort` de `jobs` sigue con el stub `noJobApplications` hasta HU-06, así que cerrar una
-oferta no rechaza sus inscripciones y la API todavía las mueve (DT-09; ver «Puertos»).
+**Está hecho inscribir, avanzar, contratar y rechazar, el pipeline, el detalle con su historial** (HU-04 y HU-05) **y el
+rechazo de las inscripciones activas al cerrar una oferta** (HU-06). No queda nada latente: los cuatro puertos tienen
+su implementación real conectada en `composeServices` (`apps/api/src/app.ts`), e INV-05 se cumple por construcción
+(ver «Puertos»).
 
 ## Estructura de código
 
 | Capa | Ruta | Contenido |
 |---|---|---|
 | Rutas | `apps/api/src/modules/applications/routes.ts` | Plugin `applicationsRoutes` con prefijo `/api` (registra `POST /applications`, `POST /applications/:id/advance`, `POST /applications/:id/reject`, `GET /applications/:id` y `GET /jobs/:jobId/applications`), sin `try/catch`; `trimNote` recorta la nota antes de validar |
-| Servicio | `apps/api/src/modules/applications/service.ts` | `createApplicationsService(deps)` (6 líneas) reúne casos de uso que son funciones del módulo: `enroll`, `getPipeline`, `advance`, `reject` y `getDetail`; `applyStageChange` escribe la guarda, el `StageChange` y el recálculo en la transacción |
-| Repositorio | `apps/api/src/modules/applications/repository.ts` | `createApplicationsRepository(db)`: SQL preparado (`insert`, `insertStageChange`, `findIdByPair`, `isDuplicatePairError`, `listByJob`, `getProcessFacts`, `findById`, `updateStage` con la guarda `WHERE id = ? AND stage = ?` y `RETURNING`, `listHistory`); sin `SELECT *` |
+| Servicio | `apps/api/src/modules/applications/service.ts` | `createApplicationsService(deps)` reúne casos de uso que son funciones del módulo: `enroll`, `getPipeline`, `advance`, `reject` y `getDetail`; `applyStageChange` escribe la guarda, el `StageChange` y el recálculo en la transacción. Desde HU-06 expone también `countActiveApplications` (sin transacción) y `rejectActiveApplications` (envuelto en `deps.transaction`, que se une a la del cierre; DD-04) |
+| Cierre de oferta | `apps/api/src/modules/applications/job-closing.ts` | HU-06 (DD-01): `countActiveApplications(deps, jobId)` (un agregado) y `rejectActiveApplications(deps, { jobId, closedAt })`, que rechaza fila a fila en orden de `id` y devuelve cuántas rechazó; `JobClosingDeps` solo pide `countActiveByJob`, `listActiveByJob`, `updateStage`, `insertStageChange` y `recalculateRetention` |
+| Repositorio | `apps/api/src/modules/applications/repository.ts` | `createApplicationsRepository(db)`: SQL preparado (`insert`, `insertStageChange`, `findIdByPair`, `isDuplicatePairError`, `listByJob`, `getProcessFacts`, `findById`, `updateStage` con la guarda `WHERE id = ? AND stage = ?` y `RETURNING`, `listHistory`) y, desde HU-06, `createActiveByJobQueries(db)`: `countActiveByJob` (`COUNT(*)` de las no finales) y `listActiveByJob` (`id`, `candidate_id`, `stage` de las no finales, `ORDER BY id`); sin `SELECT *` |
 | Esquemas | `apps/api/src/modules/applications/schemas.ts` | `STAGES`, `REJECTION_REASONS`, tipos (`Application`, `PipelineItem`, `Pipeline`, `EnrollInput`) y JSON Schema (`enrollBodySchema`, `applicationSchema`, `pipelineParamsSchema`, `pipelineQuerySchema`, `pipelineSchema`); desde HU-05, `MANUAL_REJECTION_REASONS`, `advanceBodySchema`, `rejectBodySchema`, `applicationDetailSchema` y los tipos `StageChangeEntry` y `ApplicationDetail` |
 | Transiciones | `apps/api/src/modules/applications/transitions.ts` | Funciones puras: `NEXT_STAGE`, `isFinal`, `decideAdvance` y `decideReject` (`noop` para el reintento, o lanzan `STAGE_MISMATCH` o `INVALID_TRANSITION` en ese orden) |
 | Puertos | `apps/api/src/modules/applications/ports.ts` | `JobStatus`, `JobSummary`, `JobStatusPort` (`getJobStatus` y, desde HU-05, `getJobSummary`) y `CandidateLookupPort`: los **define** `applications` |
 | Lector de procesos | `apps/api/src/modules/applications/candidate-processes.ts` | `createCandidateProcessesReader(repo)`: implementa el `CandidateProcessesPort` de `candidates` sin importarlo |
-| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` crea el repositorio y el servicio, conecta los tres puertos y registra el plugin |
+| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` registra los plugins; `composeServices` (DD-06 de HU-06) crea repositorios y servicios y conecta los cuatro puertos |
 | Migración · seed | `apps/api/src/db/migrations/003-create-applications.sql` · `apps/api/src/db/seed-applications.ts` | Tablas `applications` y `stage_changes` · 40 inscripciones con historial (`insertApplicationWithHistory` y `seedApplications`) que `seed(db, now)` carga en la misma transacción que ofertas y candidatos |
 | Web | `apps/web/src/features/applications/` | `api.ts`, `types.ts`, `paths.ts`, `labels.ts`, `enroll-errors.ts`, `PipelineScreen.tsx`, `PipelineBoard.tsx`, `EnrollPanel.tsx`, `use-pipeline-feedback.ts`, `use-enroll-panel.ts`, `use-candidate-search.ts`, `use-enrollment.ts`; desde HU-05, `stage-errors.ts`, `reject-form.ts`, `use-stage-change.ts`, `use-stage-actions.ts`, `use-reject-form.ts`, `StageDialogs.tsx`, `ApplicationDetailScreen.tsx` y `ApplicationDetails.tsx` |
-| Tests API | `apps/api/test/applications/` · `apps/api/test/helpers/applications.ts` · `apps/api/test/module-boundaries.test.ts` | `enroll`, `enroll-adversarial`, `enroll-failures-adversarial`, `enroll-retention`, `pipeline`, `pipeline-adversarial`, `ports`, `migration`, `migration-triggers`, `integrity-adversarial`, `seed`, `seed-invariants`, `privacy-logs`, `performance`; desde HU-05, `transitions`, `stage-repository`, `advance`, `advance-hire`, `reject`, `reject-note`, `detail`, `detail-adversarial`, `stage-change-adversarial`, `stage-change-failures-adversarial`, `stage-change-privacy` y `migration-triggers-replace` · `createJobStatusStub`, `createJobStatusSpy`, `enroll`, `advance`, `reject`, `getApplication` e `insertApplicationAt` · ningún `import` entre módulos |
-| Tests web · e2e | `apps/web/test/features/applications/` · `e2e/applications.spec.ts` | Testing Library con `fetch` simulado (`api`, `api.stage`, `labels`, `reject-form`, `PipelineScreen`, `.states`, `.search`, `.enroll`, `.adversarial`, `.advance`, `.hire`, `.reject`, `.reject-form`, `.links`, `.stage-adversarial`, `ApplicationDetailScreen` y `.adversarial`; `fixtures.ts`, `enroll-fixtures.ts`, `stage-fixtures.ts` y `reject-fixtures.ts`) · Playwright sobre `data/e2e.db`: `e2e/applications.spec.ts`, `e2e/pipeline-stages.spec.ts` y `e2e/pipeline-closed.spec.ts`, con `e2e/support/applications.ts` |
+| Tests API | `apps/api/test/applications/` · `apps/api/test/helpers/applications.ts` · `apps/api/test/module-boundaries.test.ts` | `enroll`, `enroll-adversarial`, `enroll-failures-adversarial`, `enroll-retention`, `pipeline`, `pipeline-adversarial`, `ports`, `migration`, `migration-triggers`, `integrity-adversarial`, `seed`, `seed-invariants`, `privacy-logs`, `performance`; desde HU-05, `transitions`, `stage-repository`, `advance`, `advance-hire`, `reject`, `reject-note`, `detail`, `detail-adversarial`, `stage-change-adversarial`, `stage-change-failures-adversarial`, `stage-change-privacy` y `migration-triggers-replace`; desde HU-06, `close-operation`, `close-reject`, `close-preview-count`, `close-invariants`, `stage-change-after-close`, `close-reject-adversarial`, `close-reject-privacy` y `close-performance` · `createJobStatusStub`, `createJobStatusSpy`, `enroll`, `advance`, `reject`, `getApplication` e `insertApplicationAt`; `failWrites` acepta `whenNew` desde HU-06 (`apps/api/test/helpers/test-app.ts`, abajo) · ningún `import` entre módulos |
+| Tests web · e2e | `apps/web/test/features/applications/` · `e2e/applications.spec.ts` | Testing Library con `fetch` simulado (`api`, `api.stage`, `labels`, `reject-form`, `PipelineScreen`, `.states`, `.search`, `.enroll`, `.adversarial`, `.advance`, `.hire`, `.reject`, `.reject-form`, `.links`, `.stage-adversarial`, `ApplicationDetailScreen` y `.adversarial`; `fixtures.ts`, `enroll-fixtures.ts`, `stage-fixtures.ts` y `reject-fixtures.ts`) · Playwright sobre `data/e2e.db`: `e2e/applications.spec.ts`, `e2e/pipeline-stages.spec.ts`, `e2e/pipeline-closed.spec.ts` y, desde HU-06, `e2e/jobs-close-applications.spec.ts` (cerrar una oferta con 2 activas y 1 contratada, y una inscripción creada con el diálogo abierto), con `e2e/support/applications.ts` (`advanceByApi` desde HU-06) |
 
 Piezas transversales que usa: `apps/api/src/http/` (`error-handler.ts`, `validation.ts`, `cross-site.ts`),
 `apps/api/src/errors.ts` (`notFound`, `invalidTransition`, `duplicate`, `stageMismatch`), `apps/api/src/clock.ts`,
@@ -80,9 +82,11 @@ ISO 8601 UTC con milisegundos (`GLOB`). `PRAGMA foreign_keys = ON` en `apps/api/
 - **Integridad entre módulos:** las FK a `candidates` y `job_openings` son **integridad de la base, no acoplamiento de
   código** (DEC-06 aclarada). Impiden borrar un candidato o una oferta con inscripciones; un borrador nunca las tiene
   (INV-02), así que `DELETE /api/jobs/:id` no cambia.
-- **No están en la base** (los garantiza la transacción de `enroll` y los comprueba el seed): INV-02 (solo se inscribe
-  en `published`), INV-05 (una oferta cerrada no tiene inscripciones no finales), INV-06 (`stage` = destino del
-  último cambio, `last_change_at` = su fecha, `created_at` = la del inicial).
+- **No están en la base** (los garantizan las transacciones del servicio y los comprueba el seed): INV-02 (solo se
+  inscribe en `published`, `enroll`), INV-05 (una oferta cerrada no tiene inscripciones no finales: desde HU-06, el
+  rechazo dentro de la transacción del cierre más INV-02; lo fijan `apps/api/test/applications/close-invariants.test.ts`,
+  CA-15 y CA-16), INV-06 (`stage` = destino del último cambio, `last_change_at` = su fecha, `created_at` = la del
+  inicial).
 
 **Seed** (`apps/api/src/db/seed-applications.ts`): exactamente **40** inscripciones, cada una con su historial paso a
 paso (`insertApplicationWithHistory` escribe la inscripción con su etapa final y un `StageChange` por paso).
@@ -144,7 +148,8 @@ paso (`insertApplicationWithHistory` escribe la inscripción con su etapa final 
   ha cambiado de etapa: recarga e inténtalo de nuevo.») → transición no permitida (409 `INVALID_TRANSITION`: salto,
   retroceso, `received` o `rejected` por avance, etapa final o rechazar una `hired`) → `updateStage` con la guarda en el
   `WHERE` (0 filas → `STAGE_MISMATCH`) → `StageChange` → recálculo de la retención si el destino es final. Un solo `now()`.
-  No comprueban el estado de la oferta (DT-09, hasta HU-06).
+  No comprueban el estado de la oferta (DT-09 de HU-05, mantenida por DT-01 de HU-06): tras el cierre, la etapa ya es
+  `rejected`, así que avanzar da 409 `STAGE_MISMATCH` y rechazar, 200 sin cambios.
 - `ApplicationDetail` = `{ id, stage, createdAt, lastChangeAt, candidate: { id, fullName }, job: { id, title, status },
   history: [{ fromStage, toStage, changedAt, reason, note }] }`, historial del más antiguo al más reciente, con
   `additionalProperties: false`. Es la **única** respuesta que lleva la nota. Sin transacción (lecturas síncronas); si
@@ -165,7 +170,7 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
 | `JobStatusPort` (`getJobStatus(jobId)` → `draft`, `published`, `closed` o `null`; `getJobSummary(jobId)` → `{ status, title }` o `null`) | `applications` (`ports.ts`) | `jobs`: `createJobStatusReader(repo)` en `apps/api/src/modules/jobs/job-status.ts`, sobre `findStatusById` y `findSummaryById` | `const jobStatusPort: JobStatusPort = jobStatus ?? createJobStatusReader(jobsRepository)` |
 | `CandidateLookupPort` (`exists(id)`, `findNames(ids)` → `id` → `full_name`) | `applications` (`ports.ts`) | `candidates`: `exists` y `findNames` en `CandidatesService` (`existsById` y `findNamesByIds`, columnas explícitas) | Un objeto con dos funciones que delegan en `candidatesService` |
 | `CandidateProcessesPort` (`getProcesses(candidateId)`) | `candidates` (`processes-port.ts`) | `applications`: `createCandidateProcessesReader(repo)` (`candidate-processes.ts`) | `processesPort: CandidateProcessesPort = candidateProcesses ?? createCandidateProcessesReader(applicationsRepository)`; sustituye al stub como valor por defecto |
-| `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) | `jobs` (`applications-port.ts`) | **Nadie aún**: HU-06 | `jobApplications = noJobApplications` por defecto |
+| `JobApplicationsPort` (`countActiveApplications(jobId)`, `rejectActiveApplications({ jobId, closedAt })`) | `jobs` (`applications-port.ts`) | `applications` (`job-closing.ts`, expuesto por su servicio), conectado en `composeServices` | `jobApplicationsPort: JobApplicationsPort = jobApplications ?? { … }`: dos lambdas que delegan en el servicio de `applications`, no el servicio entero (DD-06 de HU-06). `noJobApplications` queda como doble neutro para tests de `jobs` |
 
 - **Dirección de las llamadas:** `ofertas → inscripciones → candidatos` (la compone `app.ts`, sin ciclos). `buildApp` acepta
   `jobApplications?`, `candidateProcesses?` y `jobStatus?` para inyectar dobles; `jobStatus?` existe solo para provocar
@@ -187,12 +192,17 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
   escritor de `retention_ends_at`), que se une a la transacción en curso. Con una inscripción abierta, la retención pasa
   a `NULL` («mientras dure el proceso»), también si ya había vencido (DT-06) o si el consentimiento está vigente o
   retirado. Desde HU-05, `applyStageChange` también lo llama al pasar a `hired` o `rejected` (destino final), dentro de
-  la misma transacción; el reintento no recalcula. Rechazar al **cerrar** una oferta es de HU-06.
-- **Ventana de INV-05 (DT-10), hasta HU-06:** con `noJobApplications`, `GET /api/jobs/:id/close-preview` dice 0 y
-  `POST /api/jobs/:id/close` deja abiertas las inscripciones de la oferta (INV-05 roto en datos creados a mano, con la
-  retención del candidato en `null`), y avanzar y rechazar mueven esas inscripciones (DT-09: no leen el estado de la
-  oferta; lo fijan tres tests con «HU-06 lo revisa» en el nombre). El seed lo respeta, ningún test de la web cierra
-  ofertas con inscripciones, y tras el merge de HU-06 hay que hacer `npm run db:reset`.
+  la misma transacción; el reintento no recalcula. Desde HU-06, también el rechazo por cierre, una vez por inscripción
+  rechazada (DD-03).
+- **Cierre de una oferta (HU-06, UC-19):** `jobs.close` hace `markClosed` y, en la misma transacción `BEGIN IMMEDIATE`
+  y con el mismo `closedAt` del reloj inyectado, llama a `rejectActiveApplications`. Este lee las activas con
+  `listActiveByJob` y, fila a fila en orden de `id` (DD-02), hace `updateStage` con la guarda de la etapa leída en el
+  `WHERE`, inserta su `StageChange` (`job_closed`, nota `null`, `changed_at = closedAt`) y recalcula la retención del
+  candidato. Sin activas, devuelve 0 sin escribir. Una guarda sin fila es una incoherencia: `Error` genérico, 500 y
+  `ROLLBACK` de todo el cierre, sin datos personales (DD-05). Un cierre repetido (`noop`) no llama al puerto. Es el
+  único escritor de `job_closed`: `POST /api/applications/:id/reject` lo rechaza con 400.
+  `GET /api/jobs/:id/close-preview` cuenta con `countActiveByJob`, sin transacción. Tras el merge de HU-06,
+  `npm run db:reset` en cada base creada durante la ventana de INV-05.
 
 ## Pantallas y componentes
 
@@ -302,7 +312,12 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
 - **`failWrites` se crea después de dar de alta candidato y oferta:** el alta del candidato ya escribe `retention_ends_at`, así
   que un trigger `failWrites(db, 'UPDATE', { table: 'candidates', column: 'retention_ends_at' })` previo rompería el alta
   (`apps/api/test/applications/enroll-failures-adversarial.test.ts`, `privacy-logs.test.ts`). Los triggers `fail_*` son
-  fixtures de test sobre bases `:memory:`, no parte del esquema.
+  fixtures de test sobre bases `:memory:`, no parte del esquema. Desde HU-06 (DD-09), la opción `whenNew`
+  (`{ column: 'id' | 'application_id', equals }`) hace fallar solo la fila con ese `NEW.<column>`: así se provoca el
+  fallo en la 2.ª de 3 inscripciones del cierre (`apps/api/test/applications/close-reject-adversarial.test.ts`).
+- **Las mutaciones de prueba van en serie, nunca con builders en marcha en paralelo** (regla del responsable técnico
+  durante HU-06, tras la ola 1). La prueba de mutación de la review de HU-06 se hizo así: cada mutación sola, revertida
+  con `git checkout --` y sin commit (review §5).
 - **La carga de CPU alarga los tests y agota sus *timeouts*:** con la suite web y los e2e a la vez, 16 tests web
   superaron su tiempo de 5 s (tardaban 6-21 s) y 3 e2e fallaron aislados en 1 de 4 pasadas con la máquina saturada; en serie
   y sin carga, todo en verde (review §7). Se acepta como deuda de demo (ver «Deuda técnica»); no se arregla subiendo
@@ -310,29 +325,33 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
 - **`CHECK` con `IS`, no `=`**, para la pareja `(from_stage, to_stage)`: con `=`, un origen `NULL` evalúa a `NULL` y el `CHECK`
   lo acepta (comprobado en SQLite; `migration.test.ts`, EC-13).
 - **Las fechas de las ofertas del seed son fijas y las de los candidatos, relativas:** los e2e crean su propia oferta y su
-  candidato con *token* único, solo usan del seed las ofertas `closed` (buscadas con `GET /api/jobs?status=closed`, sin IDs
-  fijos) y **no cierran ofertas con inscripciones** (DT-10).
+  candidato con *token* único y solo leen del seed las ofertas `closed` (buscadas con `GET /api/jobs?status=closed`, sin
+  IDs fijos). Desde HU-06, `e2e/jobs-close-applications.spec.ts` cierra ofertas propias con inscripciones (nunca una del
+  seed), así que la `closed` que encuentra `e2e/pipeline-closed.spec.ts` puede ser del seed o una de ese spec: sus
+  aserciones valen para las dos.
 - **Los TD de HU-04 citan ficheros de test previos al reparto en hermanos** (≤ 300 líneas tras Prettier): la fuente es el
   `ROADMAP.md` de la HU, no el TD.
 
 ## Deuda técnica
 
-Observaciones aceptadas de las reviews de HU-04 y HU-05 (§9) y avisos para HU-06.
+Observaciones aceptadas de las reviews de HU-04, HU-05 y HU-06 (§9).
 
 | Deuda | Estado | Origen |
 |---|---|---|
 | El pipeline no tiene `LIMIT` en `apps/api/src/modules/applications/repository.ts` (`LIST_BY_JOB_SQL`) | Aceptada (S-18); RNF-01 con 200 inscripciones | SEC-08 · §9.1 |
 | `recursive_triggers` apagado: un `INSERT OR REPLACE` directo esquivaría el trigger de `DELETE` | **Resuelta** en T-05 (encendido y con test) | SEC-09 de HU-04 |
-| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`); sin fuga, el retorno se descarta. HU-05 añade dos llamadas (contratar y rechazar) | Abierta: leer solo las columnas necesarias cuando la feature A lo toque | DP-02 de HU-04 · DP-01 de HU-05 |
+| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`); sin fuga, el retorno se descarta. HU-05 añade dos llamadas (contratar y rechazar) y HU-06, dos lecturas `SELECT *` por candidato en cada cierre (400 con 200 activas; RNF-01 se cumple igual) | Abierta: leer solo las columnas necesarias cuando la feature A lo toque (DT-02 de HU-06) | DP-02 de HU-04 · DP-01 de HU-05 · DP-01 de HU-06 |
 | El buscador trae `skills` (no se pintan) y la búsqueda viaja como `?q=`; el logger quita la query (`apps/api/src/logger.ts`) | Aceptada (PRD, RF-08) | DP-03, DP-04 · §9.4 |
 | UC-17 · E1 y UC-18 · E1 dicen «estado de error»; los PRD (CA-15 de HU-04; DT-08 y CA-27 de HU-05) y el código muestran «Página no encontrada» | Aceptada: decisión del responsable técnico de no tocar los UC | DD-02 de HU-04 · DD-06 de HU-05 |
 | Los TD de HU-04 citan ficheros de test previos al reparto y la redacción de DEC-06 anterior a la aclaración; los de HU-05 citan el PRD v1.1 (es v1.2) | Aceptada (nota en cada `ROADMAP.md`) | DD-04, DD-08 de HU-04 · DD-08 de HU-05 |
-| Sin decidir en `docs/RGPD.md` §7 (feature A): seis cuestiones sobre retención vencida, marca de anonimizado (puertos, avanzar y rechazar, detalle) y vaciado de la nota | Abierta: para el *shaping* de la feature A | §9 de HU-04 y HU-05 |
+| Sin decidir en `docs/RGPD.md` §7 (feature A): seis cuestiones sobre retención vencida, marca de anonimizado (puertos, avanzar y rechazar, cierre, detalle) y vaciado de la nota; el cierre, tercer camino masivo, agrava las 2, 4 y 5 | Abierta: para el *shaping* de la feature A | §9 de HU-04, HU-05 y HU-06 |
+| Si `recalculateRetention` no encontrara la ficha durante el cierre, daría 404 en vez de 500 (inalcanzable por la FK) | Aceptada: para la feature A | DP-03 de HU-06 |
 | Deuda de demo: (a) integración con unitarios y e2e en serie, y e2e con *workers* acotados; (b) *timeout* por test de la web fijado y justificado; (c) medir la pasada completa en una máquina modesta | Abierta: va al `/audit-sprint` (decisión del responsable técnico) | §9.8 |
 | `createApplicationsService` medía 54 líneas | **Resuelta** en HU-05 (TASK-01): 6 líneas, casos de uso como funciones del módulo | Review de HU-04 §6 |
-| `JobApplicationsPort` sin implementación real; la ventana de INV-05 sigue abierta y avanzar y rechazar no miran el estado de la oferta | Aviso para HU-06: conectarlo (con retención y `StageChange` de `job_closed`), recalcular al cerrar y **revisar DT-09** a propósito | DT-10 de HU-04 · DT-09 y SEC-01 de HU-05 |
+| `JobApplicationsPort` sin implementación real y ventana de INV-05 abierta | **Resuelta** en HU-06: puerto real (`job-closing.ts`) conectado en `composeServices`, INV-05 por construcción (CA-15, CA-16). DT-09 se revisó y se mantiene (DT-01 de HU-06): avanzar y rechazar no miran el estado de la oferta, como defensa en profundidad | DT-10 de HU-04 · DT-09 y SEC-01 de HU-05 |
 | Las tarjetas y el 409 `DUPLICATE` iban sin enlace | **Resuelta** en HU-05 | DT-01, DT-02, DT-11 de HU-04 |
-| `apps/api/test/applications/advance.test.ts` y `reject.test.ts` están en 300 líneas | Aviso para HU-06: los tests nuevos van a ficheros hermanos | Review de HU-05 §9 |
+| `apps/api/test/applications/advance.test.ts`, `reject.test.ts` y `close-reject.test.ts` están en 300, 300 y 299 líneas | Abierta: los tests nuevos van a ficheros hermanos (HU-06 lo cumplió) | Review de HU-05 §9 · review de HU-06 §6 |
+| `busy_timeout` sin fijar: con dos procesos sobre la misma base, un `BEGIN IMMEDIATE` daría 500 | Aceptada: fuera del uso previsto (un proceso) | Review de HU-06 §4 y §8 |
 | Nombre accesible «Rechazar : Nombre» con un espacio antes de los dos puntos en Chromium; el `fieldset` de motivos no se deshabilita en vuelo; ~30 aserciones síncronas de `activeElement` tras efectos | Abierta: va al `/audit-sprint` | Review de HU-05 §8 y §9.8 |
 
 ## Requisitos no funcionales
@@ -343,7 +362,9 @@ Observaciones aceptadas de las reviews de HU-04 y HU-05 (§9) y avisos para HU-0
 | Inscribir | `POST /api/applications` < 500 ms con 1 000 candidatos y 2 000 inscripciones | `apps/api/test/applications/performance.test.ts` |
 | Avanzar y rechazar | Cada `POST` < 500 ms con 1 000 candidatos y 2 000 inscripciones | `apps/api/test/applications/performance.test.ts` |
 | Detalle | `GET /api/applications/:id` < 200 ms con 5 cambios | `apps/api/test/applications/performance.test.ts` |
-| Logs y errores | 0 apariciones de nombre, email, teléfono o nota, también en los 500 del puerto de estado, el de procesos y el recálculo, y en avanzar, rechazar y el detalle | `apps/api/test/applications/privacy-logs.test.ts` · `stage-change-privacy.test.ts` |
+| Cierre con inscripciones | `POST /api/jobs/:id/close` < 500 ms con 200 activas en la oferta, 1 000 candidatos y 2 000 inscripciones (medido: 12-24 ms en 3 tandas) | `apps/api/test/applications/close-performance.test.ts` |
+| Previa del cierre | `GET /api/jobs/:id/close-preview` < 200 ms con 200 activas y los mismos volúmenes (medido: 0,2-0,3 ms) | `apps/api/test/applications/close-performance.test.ts` |
+| Logs y errores | 0 apariciones de nombre, email, teléfono o nota, también en los 500 del puerto de estado, el de procesos y el recálculo, en avanzar, rechazar y el detalle y, desde HU-06, en los 500 del cierre (`UPDATE` de `applications`, `INSERT` de `stage_changes` y recálculo) | `apps/api/test/applications/privacy-logs.test.ts` · `stage-change-privacy.test.ts` · `close-reject-privacy.test.ts` |
 | Minimización | Cada elemento del pipeline con exactamente 5 campos y 0 claves `email`, `phone` o `note` | `apps/api/test/applications/pipeline.test.ts` · `pipeline-adversarial.test.ts` |
 | Navegador | Sin nombre, email, nota ni texto de búsqueda en `document.title`, URL, `history.state` ni almacenamiento | `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx` · `PipelineScreen.stage-adversarial.test.tsx` · `e2e/applications.spec.ts` · `e2e/pipeline-stages.spec.ts` |
 | HTML | Nombre del candidato y nota siempre como texto; 0 `dangerouslySetInnerHTML` en `apps/web/src/features/applications/` | `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx` · `ApplicationDetailScreen.adversarial.test.tsx` |

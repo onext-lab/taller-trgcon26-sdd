@@ -3,7 +3,7 @@ id: UC-04
 titulo: "Cerrar una oferta"
 modulo: ofertas
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-01
 hus: [HU-02, HU-06]
 ---
@@ -72,7 +72,7 @@ retención de los candidatos afectados (`docs/RGPD.md` §3, S-06).
 |---|---|---|---|
 | P | HU-02 | CA-05 | `apps/api/test/jobs/close.test.ts:51` |
 | A1 | HU-06 | CA-01, CA-03, CA-12 | `apps/api/test/applications/close-reject.test.ts:105`, `apps/api/test/applications/close-reject.test.ts:143`, `e2e/jobs-close-applications.spec.ts:43` |
-| A2 | HU-02 | CA-06 | `apps/web/test/features/jobs/CloseJobAction.test.tsx:121` |
+| A2 | HU-02 | CA-06 | `apps/web/test/features/jobs/CloseJobAction.test.tsx:122` |
 | A3 | HU-02 | CA-07 | `apps/api/test/jobs/close.test.ts:80` |
 | E1 | HU-02 | CA-08 | `apps/api/test/jobs/close.test.ts:143` |
 | E2 | HU-02 | CA-09 | `apps/api/test/jobs/close.test.ts:161` |
