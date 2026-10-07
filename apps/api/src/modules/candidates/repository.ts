@@ -94,6 +94,8 @@ const LIST_PAGE_SQL = `SELECT id, full_name, email, skills
 
 const COUNT_SQL = `SELECT COUNT(*) AS total FROM candidates ${FILTER_SQL}`;
 
+const FIND_NAMES_SQL = `SELECT id, full_name FROM candidates WHERE id IN (SELECT value FROM json_each(?))`;
+
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
 
 /** Acceso a `candidates` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
@@ -104,6 +106,15 @@ export function createCandidatesRepository(db: DatabaseSync) {
     findById(id: number): Candidate | undefined {
       const row = db.prepare('SELECT * FROM candidates WHERE id = ?').get(id);
       return row ? toCandidate(row as unknown as CandidateRow) : undefined;
+    },
+    /** ¿Existe la ficha? Sin leer ninguna columna (lo usa el puerto de `applications`). */
+    existsById(id: number): boolean {
+      return db.prepare('SELECT 1 FROM candidates WHERE id = ?').get(id) !== undefined;
+    },
+    /** Solo `id` y `full_name` (DP-02) de los IDs que existen; un solo parámetro JSON, sin SQL concatenado. */
+    findNamesByIds(ids: readonly number[]): Map<number, string> {
+      const rows = db.prepare(FIND_NAMES_SQL).all(JSON.stringify(ids));
+      return new Map(rows.map((row) => [Number(row.id), String(row.full_name)]));
     },
     findIdByEmail(email: string): number | undefined {
       const row = db.prepare('SELECT id FROM candidates WHERE email = ?').get(email);

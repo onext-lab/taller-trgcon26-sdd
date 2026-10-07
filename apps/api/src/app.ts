@@ -5,10 +5,9 @@ import { withTransaction } from './db/transaction.ts';
 import { registerCrossSiteGuard } from './http/cross-site.ts';
 import { registerErrorHandling } from './http/error-handler.ts';
 import { ajvOptions } from './http/validation.ts';
-import {
-  noCandidateProcesses,
-  type CandidateProcessesPort,
-} from './modules/candidates/processes-port.ts';
+import { createCandidateProcessesReader } from './modules/applications/candidate-processes.ts';
+import { createApplicationsRepository } from './modules/applications/repository.ts';
+import type { CandidateProcessesPort } from './modules/candidates/processes-port.ts';
 import { createCandidatesRepository } from './modules/candidates/repository.ts';
 import { candidatesRoutes } from './modules/candidates/routes.ts';
 import { createCandidatesService } from './modules/candidates/service.ts';
@@ -24,7 +23,7 @@ export interface AppOptions {
   now?: Clock;
   /** Puerto de `jobs` hacia `inscripciones` (DD-03); `noJobApplications` hasta que HU-05 aporte el real. */
   jobApplications?: JobApplicationsPort;
-  /** Puerto de `candidates` hacia `inscripciones` (DD-06); `noCandidateProcesses` hasta que HU-04 aporte el real. */
+  /** Puerto de `candidates` hacia `inscripciones` (DD-06); por defecto, el lector real de `applications`. */
   candidateProcesses?: CandidateProcessesPort;
 }
 
@@ -33,7 +32,7 @@ export function buildApp({
   logger = false,
   now = systemClock,
   jobApplications = noJobApplications,
-  candidateProcesses = noCandidateProcesses,
+  candidateProcesses,
 }: AppOptions): FastifyInstance {
   const app = Fastify({ logger, ajv: ajvOptions });
   // Antes de cualquier ruta o módulo, para que todos hereden el envelope de error y la guarda entre sitios (DEC-12).
@@ -72,11 +71,16 @@ export function buildApp({
   });
   app.register(jobsRoutes, { prefix: '/api/jobs', service: jobsService });
 
+  // DD-01: ningún módulo importa a otro; el lector de `applications` cumple `CandidateProcessesPort` por tipado
+  // estructural y esta asignación lo comprueba al compilar.
+  const applicationsRepository = createApplicationsRepository(db);
+  const processesPort: CandidateProcessesPort =
+    candidateProcesses ?? createCandidateProcessesReader(applicationsRepository);
   const candidatesService = createCandidatesService({
     repository: createCandidatesRepository(db),
     now,
     transaction: (fn) => withTransaction(db, fn),
-    processes: candidateProcesses,
+    processes: processesPort,
   });
   app.register(candidatesRoutes, { prefix: '/api/candidates', service: candidatesService });
 

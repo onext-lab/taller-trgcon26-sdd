@@ -102,6 +102,11 @@ export function createJobsRepository(db: DatabaseSync) {
       const row = db.prepare('SELECT * FROM job_openings WHERE id = ?').get(id);
       return row ? toJob(row as unknown as JobRow) : undefined;
     },
+    /** Solo el estado (lo lee el puerto de `applications`); `undefined` si la oferta no existe. */
+    findStatusById(id: number): JobStatus | undefined {
+      const row = db.prepare('SELECT status FROM job_openings WHERE id = ?').get(id);
+      return row ? (row.status as JobStatus) : undefined;
+    },
     listPage(filter: JobListFilter, limit: number, offset: number): JobListItem[] {
       const rows = db
         .prepare(LIST_PAGE_SQL)

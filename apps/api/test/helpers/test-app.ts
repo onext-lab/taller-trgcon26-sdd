@@ -10,8 +10,8 @@ import type { Job } from '../../src/modules/jobs/schemas.ts';
 
 /**
  * App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. `now`,
- * `jobApplications` y `candidateProcesses` son opcionales: sin ellos, reloj del sistema, `noJobApplications` y
- * `noCandidateProcesses`.
+ * `jobApplications` y `candidateProcesses` son opcionales: sin ellos, reloj del sistema, `noJobApplications` y el
+ * lector real de procesos de `applications` (sin inscripciones responde lo mismo que `noCandidateProcesses`).
  */
 export function createTestApp({
   now,
