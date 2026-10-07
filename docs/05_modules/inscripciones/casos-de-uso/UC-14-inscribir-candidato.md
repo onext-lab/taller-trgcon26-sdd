@@ -74,11 +74,11 @@ más datos de los necesarios (RGPD §6).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-04 | | |
-| E1 | HU-04 | | |
-| E2 | HU-04 | | |
-| E3 | HU-04 | | |
-| E4 | HU-04 | | |
-| E5 | HU-04 | | |
+| P | HU-04 | CA-01, CA-02, CA-03 | |
+| E1 | HU-04 | CA-04, CA-05 | |
+| E2 | HU-04 | CA-06, CA-07, CA-08 | |
+| E3 | HU-04 | CA-09 | |
+| E4 | HU-04 | CA-10 | |
+| E5 | HU-04 | CA-11 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

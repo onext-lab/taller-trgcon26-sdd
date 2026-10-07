@@ -128,6 +128,7 @@ Flujos de esos UC que **no** cubre esta HU:
       _(UC-19 · E2)_.
 
 ## Notas y dependencias
+- **Enlaces que llegan con el detalle (decisión del responsable, 2026-10-06, por el corte de UC-18):** HU-05 añade (1) el enlace del nombre de cada tarjeta del pipeline a `/applications/:id` y (2) el enlace «Ver la inscripción» en el aviso del 409 de inscripción duplicada («Este candidato ya está inscrito en la oferta.»). En HU-04 ambos van sin enlace (DT-01, DT-02 y DT-04 del PRD de HU-04).
 - **Depende de:** HU-04 (y, a través de ella, HU-02, que entrega el cierre de ofertas de UC-04).
 - **Bloquea:** nada.
 - **Mismo UC en dos HU:** UC-17 lo comparte con HU-04, y UC-04 con HU-02; UC-18 es entero de esta HU. Van en

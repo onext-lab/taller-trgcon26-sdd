@@ -59,7 +59,7 @@ Lee todos los datos del candidato (RGPD §1). La ficha completa solo se muestra 
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
 | P | HU-03 | CA-22 | `apps/api/test/candidates/get.test.ts:41`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:101`, `e2e/candidates.spec.ts:213` |
-| A1 | HU-04 | | |
+| A1 | HU-04 | CA-19, CA-20 | |
 | E1 | HU-03 | CA-23 | `apps/api/test/candidates/get.test.ts:140`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:195` |
 | E2 | HU-03 | CA-24 | `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:232` |
 

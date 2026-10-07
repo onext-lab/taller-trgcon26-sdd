@@ -102,7 +102,7 @@ Flujos de esos UC que **no** cubre esta HU:
   da la fórmula de `candidatos`.
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
 - [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
 - [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [ ] Implementación + integración — `/implementar-hu`
