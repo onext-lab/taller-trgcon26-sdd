@@ -67,3 +67,23 @@ export function pipelinePath(job: ApiJob): string {
 export function stageRegion(page: Page, stage: string) {
   return page.getByRole('region', { name: stage, exact: true });
 }
+
+const ADVANCE_PATH = ['received', 'screening', 'interview', 'offer', 'hired'] as const;
+
+/**
+ * Takes an application that is in `received` to the target stage through the API, one stage at a time (the API
+ * only moves to the next stage) and expecting a 200 in each step.
+ */
+export async function advanceByApi(
+  page: Page,
+  applicationId: number,
+  target: 'screening' | 'interview' | 'offer' | 'hired',
+): Promise<void> {
+  const last = ADVANCE_PATH.indexOf(target);
+  for (let index = 0; index < last; index += 1) {
+    const response = await page.request.post(`/api/applications/${applicationId}/advance`, {
+      data: { expectedStage: ADVANCE_PATH[index], toStage: ADVANCE_PATH[index + 1] },
+    });
+    expect(response.status()).toBe(200);
+  }
+}

@@ -21,7 +21,7 @@ e2e/ (Playwright, Chromium) ── levanta api :3101 + web :5174 ─────
 | Pieza | Ruta | Responsabilidad |
 |---|---|---|
 | API | `apps/api/src/` | Rutas REST bajo `/api`, validación con JSON Schema, reglas de negocio y acceso a datos |
-| Arranque de la API | `apps/api/src/app.ts`, `apps/api/src/server.ts`, `apps/api/src/listen-options.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` para tests (`fastify.inject`) y **único punto de composición**: crea cada repositorio y servicio, conecta los puertos entre módulos y registra los plugins. Los tres últimos son los puertos: `jobApplications` (de `jobs` hacia `inscripciones`) sigue con su stub hasta HU-06; `candidateProcesses` y `jobStatus` usan por defecto los lectores reales y solo se inyectan en tests; `server.ts` escucha donde dice `listen-options.ts` (`127.0.0.1:3001` salvo `API_HOST`/`API_PORT`) |
+| Arranque de la API | `apps/api/src/app.ts`, `apps/api/src/server.ts`, `apps/api/src/listen-options.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` para tests (`fastify.inject`) y **único punto de composición**: crea cada repositorio y servicio, conecta los puertos entre módulos y registra los plugins. Los tres últimos son los puertos: los tres usan por defecto las implementaciones reales (`jobApplications`, de `jobs` hacia `inscripciones`, desde HU-06) y solo se inyectan en tests; `server.ts` escucha donde dice `listen-options.ts` (`127.0.0.1:3001` salvo `API_HOST`/`API_PORT`) |
 | Errores y validación | `apps/api/src/http/`, `apps/api/src/errors.ts` | Manejador único del envelope, opciones de Ajv, recorte previo, `rejectBody` para las acciones sin cuerpo y `forbiddenFields` para nombrar los campos de solo lectura (DEC-11); `AppError` de los servicios |
 | Guarda entre sitios | `apps/api/src/http/cross-site.ts` | Hook `onRequest` global: 403 `CROSS_SITE_REQUEST` a toda petición que no sea `GET`, `HEAD` ni `OPTIONS` si `Sec-Fetch-Site` no es `same-origin` ni `none` (DEC-12) |
 | Búsqueda de texto | `apps/api/src/db/text-search.ts` | `foldSearchText` y la función SQL `fold_search`, que cada repositorio registra en su conexión: búsqueda sin mayúsculas ni tildes (DEC-10) |
@@ -43,7 +43,7 @@ Las carpetas de módulo se crean con la primera HU que las necesite; hoy existen
 (`docs/05_modules/ofertas/`, `docs/05_modules/candidatos/` y `docs/05_modules/inscripciones/` tienen su `functional.md` y
 su `technical.md`). El mapa vivo está en [_modules.md](_modules.md).
 
-**Módulos y puertos (DEC-06, aclarada en HU-04):** ningún módulo importa a otro, **ni siquiera sus tipos**. La dirección
+**Módulos y puertos (DEC-06, aclarada en HU-04 y HU-06):** ningún módulo importa a otro, **ni siquiera sus tipos**. La dirección
 de las llamadas es `ofertas → inscripciones → candidatos` y la compone `apps/api/src/app.ts`. Lo que un módulo necesita de
 otro lo define él como un puerto y lo implementa el módulo que tiene los datos, que cumple la forma del puerto por tipado
 estructural; `buildApp` lo conecta y la propia asignación lo comprueba al compilar (una forma desfasada no compila).
@@ -54,7 +54,7 @@ estructural; `buildApp` lo conecta y la propia asignación lo comprueba al compi
 | `JobStatusPort` (estado de una oferta) | `applications` | `jobs` (`job-status.ts`) | Real (HU-04) |
 | `CandidateLookupPort` (¿existe? y nombres) | `applications` | `candidates` (`exists`, `findNames`) | Real (HU-04) |
 | `CandidateProcessesPort` (procesos del candidato) | `candidates` | `applications` (`candidate-processes.ts`) | Real (HU-04); el stub `noCandidateProcesses` solo para tests y el seed de candidatos |
-| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` | Stub `noJobApplications` hasta HU-06 |
+| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` (`job-closing.ts`) | Real (HU-06); el stub `noJobApplications` solo para tests |
 
 **Integridad de la base entre módulos:** las claves foráneas entre tablas de módulos distintos (`applications.candidate_id →
 candidates.id` y `applications.job_id → job_openings.id`, ambas `ON DELETE RESTRICT`) son integridad referencial de la
