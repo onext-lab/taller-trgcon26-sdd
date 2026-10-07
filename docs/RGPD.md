@@ -86,3 +86,19 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
    `example.org`; teléfonos de ficción de la serie `+34 600 000 0xx`.
 4. **Toda feature que toque datos de candidatos** declara en su PRD qué datos, para qué y cuánto tiempo.
 5. **Exportaciones e importaciones** (CSV) validan y no dejan copias temporales con datos personales.
+
+## 7. Cuestiones abiertas para la feature A (supresión y retención)
+
+Salen de la review de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9). Se dejan
+abiertas a propósito para el *shaping* de la feature A.
+
+1. **¿Se puede inscribir, o encontrar en el buscador, a un candidato con la retención vencida que aún no se ha
+   anonimizado?** Hoy sí: al inscribirlo su retención pasa a «mientras dure el proceso» (DT-06 del PRD de HU-04; lo fija
+   `apps/api/test/applications/enroll-retention.test.ts`). La duda es si eso prolonga la conservación sin una base
+   jurídica nueva, y si listados y búsquedas deben ocultar a los vencidos (§5 solo excluye a los anonimizados).
+2. **Marca de anonimizado en los puertos.** Aún no existe ninguna columna ni estado de anonimizado. Cuando exista, los
+   puertos que `inscripciones` usa para leer candidatos (`exists` y `findNames`) tendrán que rechazar o rotular a los
+   anonimizados, y el pipeline mostrará «Candidato anonimizado».
+3. **¿La anonimización vacía siempre la nota libre del rechazo?** El historial es inmutable salvo `SET note = NULL`
+   (DT-12 del PRD de HU-04, `apps/api/src/db/migrations/003-create-applications.sql`), pensado para esto. Falta decidir
+   si se vacía en toda anonimización (por petición y por vencimiento).

@@ -6,7 +6,7 @@ citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso.
 
 | UC | Título | Actor | Estado | Feature | HU |
 |---|---|---|---|---|---|
-| [UC-14](UC-14-inscribir-candidato.md) | Inscribir un candidato en una oferta | reclutador | aprobado | FEAT-03 | HU-04 |
+| [UC-14](UC-14-inscribir-candidato.md) | Inscribir un candidato en una oferta | reclutador | implementado | FEAT-03 | HU-04 |
 | [UC-15](UC-15-avanzar-etapa.md) | Avanzar una inscripción a la etapa siguiente | reclutador | aprobado | FEAT-03 | HU-05 |
 | [UC-16](UC-16-rechazar-inscripcion.md) | Rechazar una inscripción | reclutador | aprobado | FEAT-03 | HU-05 |
 | [UC-17](UC-17-ver-pipeline.md) | Ver el pipeline de una oferta | reclutador | aprobado | FEAT-03 | HU-04, HU-05 |

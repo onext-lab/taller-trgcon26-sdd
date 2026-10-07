@@ -4,7 +4,8 @@
 `modulos_afectados` contra esta tabla), `/feature-shaping`, `/prd-writer` (qué código leer), `/tech-design`,
 `/task-planner`, `/reviewer`, `/module-sync` y los agentes `product-owner`, `feature-analyst` y los architects.
 
-Las carpetas de código de cada módulo se crean con su primera HU; hasta entonces, solo existe la de documentación.
+Las carpetas de código de cada módulo se crean con su primera HU; hasta entonces, solo existe la de documentación. Los
+tres módulos tienen ya su código desde HU-04.
 
 | Módulo (docs) | Módulo (código) | API | Web | Documentación | Entidades |
 |---|---|---|---|---|---|

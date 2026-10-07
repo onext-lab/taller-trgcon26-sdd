@@ -1,6 +1,6 @@
 # Módulo `candidatos` (código `candidates`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-03** (2026-10-06). Lo mantiene `/module-sync`; la foto técnica está en
+Estado de `main` sincronizado hasta **HU-04** (2026-10-07). Lo mantiene `/module-sync`; la foto técnica está en
 [technical.md](technical.md).
 
 ## Propósito
@@ -34,14 +34,13 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Dar de alta un candidato | UC-09 | ✅ | HU-03 | Alta con email y skills normalizados, con o sin consentimiento; retención calculada; email repetido avisa sin mostrar datos del otro candidato |
 | Editar la ficha de un candidato | UC-10 | ✅ | HU-03 | Edición de nombre, email, teléfono, resumen y skills con última escritura; no toca la retención ni el consentimiento; sin cambios, no hay petición |
 | Buscar candidatos | UC-11 | ✅ | HU-03 | Texto sin tildes ni mayúsculas en nombre o email y una skill exacta, en Y; solo nombre, email y skills; página de 20, 50 o 100; la búsqueda no va en la URL |
-| Ver la ficha de un candidato | UC-12 | 🚧 | HU-03, HU-04 | Ficha con datos, consentimiento (vigente, retirado o nunca dado) y fin de retención en solo lectura; falta A1, «Mientras dure el proceso» con una inscripción abierta (HU-04) |
+| Ver la ficha de un candidato | UC-12 | ✅ | HU-03, HU-04 | Ficha con datos, consentimiento (vigente, retirado o nunca dado) y fin de retención en solo lectura; con una inscripción abierta muestra «Mientras dure el proceso», también si la fecha anterior ya había vencido |
 | Registrar, retirar o renovar el consentimiento | UC-13 | ✅ | HU-03 | Casilla que registra, «Renovar consentimiento» y retirada con confirmación; la retención se recalcula en la misma transacción, aunque el resultado ya esté vencido |
 
 ## Alcance no implementado
 
-- **HU-04:** UC-12 · A1, el texto «Mientras dure el proceso» cuando el candidato tiene una inscripción no final. La ficha ya
-  lo pinta con `retentionEndsAt: null`, pero hoy el puerto `CandidateProcessesPort` es el stub `noCandidateProcesses`,
-  así que nunca llega a darse. HU-04 aporta la implementación real y el recálculo al inscribir; HU-05 lo llama al cerrar.
+- **HU-05 (en `inscripciones`):** recalcular la retención al pasar una inscripción a una etapa final; hasta entonces ninguna
+  ruta cierra inscripciones, y solo el seed tiene candidatos con todas las suyas finales.
 - **Feature A:** anonimización (a petición o al vencer la retención), estado «anonimizado» y su exclusión de las
   búsquedas; mientras tanto, los candidatos con la retención vencida siguen en el listado sin marca.
 - **Fuera de FEAT-02:** exportación de la ficha (RGPD §4), importación CSV y borrado físico.
@@ -69,39 +68,49 @@ Las de FEAT-02, con su estado real en `main`.
 - **RN-11** — en la edición gana la última escritura.
 - **RN-13** — no existe el borrado: `DELETE /api/candidates/:id` da 404.
 
+- **RN-12** — `candidatos` define el puerto de procesos y exporta el recálculo; `inscripciones` implementa el puerto (por
+  defecto en `buildApp`) y llama al recálculo al inscribir. El stub `noCandidateProcesses` solo queda para tests y el seed.
+
 **Parciales**
-- **RN-07** — la fórmula está completa y probada con todas las filas de RGPD §3, y se recalcula al dar de alta y al cambiar
-  el consentimiento; falta recalcular al crear o cerrar inscripciones (HU-04, HU-05), porque hoy no hay inscripciones.
-- **RN-12** — `candidatos` define el puerto de procesos y exporta el recálculo, pero el puerto responde «sin
-  inscripciones» (`noCandidateProcesses`) hasta que `inscripciones` lo implemente.
+- **RN-07** — la fórmula está completa y probada con todas las filas de RGPD §3, y se recalcula al dar de alta, al cambiar
+  el consentimiento y al inscribir (con una inscripción abierta, `null` aunque el consentimiento esté vigente o retirado y
+  aunque la fecha anterior ya hubiera vencido); falta recalcular al cerrar inscripciones (HU-05, que lo dispara desde
+  `inscripciones`).
 
 INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en la base desde la migración 002 (ver
 [technical.md](technical.md)); INV-07 se cumple con una sola transacción para candidato, consentimiento y retención.
 
 ## Dependencias entre módulos
 
-- **Hoy, ninguna real:** `candidates` no importa otros módulos ni lo importa nadie. Hacia `inscripciones` solo hay un
-  puerto propio, `CandidateProcessesPort` (`apps/api/src/modules/candidates/processes-port.ts`), que `buildApp` inyecta con
-  el stub `noCandidateProcesses` (`candidateProcesses?`): ningún candidato tiene ni tuvo inscripciones.
-- **Latentes (DEC-06):** HU-04 aporta la implementación real del puerto desde `inscripciones` y llama a la operación interna
-  `recalculateRetention` al inscribir; HU-05, al cerrar. Dirección: `ofertas → inscripciones → candidatos`.
+- **Reales desde HU-04 (DEC-06):** `candidates` no importa otros módulos ni lo importa nadie; se relaciona con
+  `inscripciones` por puertos que `apps/api/src/app.ts` conecta. Dirección: `ofertas → inscripciones → candidatos`.
+  - `candidatos` define `CandidateProcessesPort` (`apps/api/src/modules/candidates/processes-port.ts`) y lo implementa
+    `inscripciones` (`apps/api/src/modules/applications/candidate-processes.ts`).
+  - `inscripciones` define `CandidateLookupPort` (¿existe? y nombres de candidatos) y lo implementa `candidatos` con
+    `exists` y `findNames`, solo con `id` y `full_name`.
+  - `inscripciones` llama a la operación interna `recalculateRetention` al inscribir, dentro de su transacción.
+  - Las claves foráneas de `applications` a `candidates` impiden borrar un candidato con inscripciones (integridad de la
+    base, no acoplamiento de código).
+- **Latente:** HU-05 llamará al recálculo también al cerrar inscripciones.
 
 ## Cuestiones abiertas
 
 - Candidatos con la retención vencida siguen en el listado sin marca, hasta la feature A (decisión del responsable en la
   review de HU-03).
-- Avisos de la review de HU-03 para HU-04: conectar el puerto y recalcular la retención al inscribir; añadir el test que ata
-  `CONSENT_VERSION` (web) con `CONSENT_TEXT_VERSION` (API); unificar los teléfonos de ficción del seed y de los tests en la
-  serie `+34 600 000 0xx` de RGPD §6.
+- Sin decidir en `docs/RGPD.md`, para la feature A (review de HU-04, §9.7): si un candidato con la retención vencida puede
+  inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames`.
+- Deuda DP-02 de HU-04 para la feature A: `recalculateRetention` lee la ficha con `SELECT *` (sin fuga; ver
+  [technical.md](technical.md)).
 - El texto de cada versión del consentimiento se conserva en el repositorio (`apps/web/src/features/candidates/consent.ts` y
   su historial de git); cambiar el texto obliga a subir la versión (RGPD §2).
 
 ## Estado vivo del MVP
 
-- **% MVP:** ~90 % — `round((4 + 0,5 · 1) / 5 · 100)`.
-- **Conteo:** 4 ✅ / 1 🚧 / 0 ⬜ (5 capacidades).
-- **Backlog:** HU-04 (UC-12 · A1, «Mientras dure el proceso», y la conexión del puerto de procesos).
+- **% MVP:** 100 % — `round(5 / 5 · 100)`.
+- **Conteo:** 5 ✅ / 0 🚧 / 0 ⬜ (5 capacidades).
+- **Backlog:** ninguno propio del módulo; el recálculo al cerrar inscripciones lo dispara HU-05 desde `inscripciones`.
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|
 | 2026-10-06 | HU-03 | Alta, edición, búsqueda, ficha y consentimiento (API, web, migración 002 y seed de 30), fórmula de retención y puerto de procesos con stub, y `details` acotado (DEC-11.4) | ~90 % |
+| 2026-10-07 | HU-04 | UC-12 · A1 «Mientras dure el proceso» de punta a punta: puerto de procesos real, recálculo al inscribir, lecturas `exists` y `findNames` para `inscripciones`, y seed con la retención recalculada | 100 % |

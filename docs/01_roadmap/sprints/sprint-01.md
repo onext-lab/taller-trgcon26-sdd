@@ -17,8 +17,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 3 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-06 21:20 (UC-18 · P y A1 pasan de HU-04 a HU-05 por tamaño; ver Notas)
+- HU: hechas 4 / total 5 · bloqueadas 0
+- Última actualización: 2026-10-07 12:50 (HU-04 aprobada con observaciones en la ronda 1, mergeada y sincronizada; T-04 hecha; T-05 pendiente)
 
 ## Historias de usuario
 
@@ -52,15 +52,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-04 · Inscribir en una oferta publicada, sin duplicados · estado: pendiente
+### HU-04 · Inscribir en una oferta publicada, sin duplicados · estado: hecha
 - **Origen:** FEAT-03 · **Depende de:** HU-02 y HU-03 · **Rama:** `hu/HU-04-inscribir-candidato`
-- [ ] prd-writer
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
 
 ### HU-05 · Pipeline con cambio de etapa e historial · estado: pendiente
 - **Origen:** FEAT-03 · **Depende de:** HU-04 · **Rama:** `hu/HU-05-pipeline-etapas`
@@ -101,6 +101,14 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   (`apps/api/src/modules/candidates/schemas.ts`) dejan de coincidir; y los teléfonos del seed y de los tests en la
   serie de ficción `+34 600 000 0xx` (`docs/RGPD.md` §6). Sale del PRD de HU-04 (era su RF-13) para adelgazarla;
   la copia local de `CandidateNotFound` sigue como deuda en `docs/05_modules/candidatos/technical.md`.
+
+### T-05 · Historial inmutable también frente a `INSERT OR REPLACE` · estado: pendiente (bloquea la etiqueta)
+- **Tipo:** seguridad de datos (review de HU-04, SEC-09)
+- Sin `recursive_triggers`, un `INSERT OR REPLACE` sobre un `StageChange` existente lo borra sin disparar
+  `stage_changes_no_delete`. Activar `PRAGMA recursive_triggers = ON` al abrir la conexión
+  (`apps/api/src/db/connection.ts`), o la alternativa que se justifique, con un test que demuestre que el `REPLACE`
+  aborta. Tarea S obligatoria en `/audit-sprint`, antes de la etiqueta. Decisión del responsable técnico: el historial
+  inmutable es lo que la feature A enseña en directo.
 
 ## Orden de ejecución
 1. HU-01 (sin dependencias)

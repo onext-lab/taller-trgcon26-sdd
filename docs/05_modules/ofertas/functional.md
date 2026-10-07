@@ -69,18 +69,21 @@ INV-01, INV-04 e INV-05 se defienden también en la base desde la migración 001
 
 ## Dependencias entre módulos
 
-- **Hoy, ninguna real:** `jobs` no importa otros módulos ni lo importa nadie. Hacia `inscripciones` solo hay un puerto
-  propio, `JobApplicationsPort` (`apps/api/src/modules/jobs/applications-port.ts`), que `buildApp` inyecta con el stub
-  `noJobApplications` (`jobApplications?`): cuenta 0 y no rechaza nada.
-- **Latentes (DEC-06):** HU-05 aporta la implementación real del puerto (UC-19, dentro de la transacción del cierre);
-  `ofertas` implementará además el puerto «estado de la oferta» que define `inscripciones` (HU-04). Dirección:
+- **Real desde HU-04 (DEC-06):** `jobs` no importa otros módulos ni lo importa nadie. `inscripciones` define el puerto
+  «estado de la oferta» y `jobs` lo implementa (`apps/api/src/modules/jobs/job-status.ts`), conectado en
+  `apps/api/src/app.ts`; la web de `jobs` enlaza a la ruta del pipeline («Ver pipeline»). Dirección:
   `ofertas → inscripciones → candidatos`.
+- **Latente:** hacia `inscripciones` sigue el puerto propio `JobApplicationsPort`
+  (`apps/api/src/modules/jobs/applications-port.ts`), que `buildApp` inyecta con el stub `noJobApplications`
+  (`jobApplications?`): cuenta 0 y no rechaza nada. HU-05 aporta la implementación real (UC-19, dentro de la transacción
+  del cierre).
 
 ## Cuestiones abiertas
 
 - **Ventana tolerada de INV-05 hasta HU-05:** mientras el puerto sea el stub, una oferta cerrada puede tener
-  inscripciones en etapa no final. Hoy no existen inscripciones; el test de EC-14
-  (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-05 lo sustituye al conectar UC-19.
+  inscripciones en etapa no final. Desde HU-04 ya se pueden crear inscripciones (el seed respeta INV-05 y ningún test
+  cierra ofertas con inscripciones); el test de EC-14 (`apps/api/test/jobs/close.test.ts:202`) lo fija y HU-05 lo
+  sustituye al conectar UC-19; tras su merge, `npm run db:reset`.
 - Avisos de la review de HU-02: HU-03 cerró el `details` sin tope (SEC-03) y reutilizó `NO_CONTROL_CHARS*` y
   `foldSearchText`; queda HU-05, que conecta el puerto (con retención y `StageChange`) y añade el test de que sus errores
   no llevan datos del candidato al log.

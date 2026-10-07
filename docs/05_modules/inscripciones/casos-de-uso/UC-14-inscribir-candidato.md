@@ -3,7 +3,7 @@ id: UC-14
 titulo: "Inscribir un candidato en una oferta"
 modulo: inscripciones
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-03
 hus: [HU-04]
 ---

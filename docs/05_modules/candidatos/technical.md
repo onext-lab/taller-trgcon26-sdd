@@ -1,30 +1,33 @@
 # Módulo `candidatos` (código `candidates`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-03** (2026-10-06, review «Aprobado con observaciones», ronda 1). Lo mantiene
+Estado de `main` sincronizado hasta **HU-04** (2026-10-07, review «Aprobado con observaciones», ronda 1). Lo mantiene
 `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo condicionan:
-DEC-01, DEC-03, DEC-04, DEC-06 a DEC-12 de [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (con el
-punto 4 de DEC-11 enmendado en esta HU) y [RGPD.md](../../RGPD.md) §1 a §3 y §6.
+DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a DEC-12 de
+[DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (con el punto 4 de DEC-11 enmendado en HU-03) y
+[RGPD.md](../../RGPD.md) §1 a §3 y §6.
 
-**El módulo está completo salvo lo que depende de `inscripciones`.** Lo **latente**: el puerto `CandidateProcessesPort`
-responde con el stub `noCandidateProcesses` («sin inscripciones») hasta que HU-04 lo sustituya en `app.ts`, y
-`recalculateRetention` solo la llaman el propio servicio (alta y consentimiento); HU-04 y HU-05 la llamarán al crear y
-cerrar inscripciones. Por eso `retentionEndsAt` nunca es `null` hoy.
+**El módulo está completo.** Desde HU-04 el puerto `CandidateProcessesPort` tiene su implementación real, la de
+`inscripciones` (`apps/api/src/modules/applications/candidate-processes.ts`), conectada por defecto en `app.ts`, y
+`recalculateRetention` la llama también `inscripciones` al inscribir: `retentionEndsAt` es `null` mientras el candidato
+tenga una inscripción abierta («Mientras dure el proceso»). Lo **latente**: HU-05 la llamará también al pasar una
+inscripción a una etapa final; hasta entonces ninguna ruta cierra inscripciones y solo el seed tiene candidatos con todas
+las suyas finales.
 
 ## Estructura de código
 
 | Capa | Ruta | Contenido |
 |---|---|---|
 | Rutas | `apps/api/src/modules/candidates/routes.ts` | Plugin `candidatesRoutes` (prefijo `/api/candidates`), JSON Schema por ruta, `preValidation` con `normalizeBody` (alta y edición), `trimSearchText` (`q` y `skill`) y `rejectBody` en las dos acciones de consentimiento, sin `try/catch` |
-| Servicio | `apps/api/src/modules/candidates/service.ts` | `createCandidatesService({ repository, now, transaction, processes })`: `list`, `create`, `get`, `update`, `giveConsent`, `withdrawConsent` y `recalculateRetention` |
+| Servicio | `apps/api/src/modules/candidates/service.ts` | `createCandidatesService({ repository, now, transaction, processes })`: `list`, `create`, `get`, `update`, `giveConsent`, `withdrawConsent`, `recalculateRetention` y, para el puerto `CandidateLookupPort` de `applications`, `exists` y `findNames` |
 | Retención | `apps/api/src/modules/candidates/retention.ts` | Fórmula pura, sin reloj ni SQL: `computeRetentionEndsAt`, `madridCalendarDate`, `addMonthsClamped` |
-| Puerto | `apps/api/src/modules/candidates/processes-port.ts` | `CandidateProcessesPort` (`getProcesses`), `CandidateProcesses` y el stub `noCandidateProcesses`; HU-04 lo conectará en `app.ts` |
+| Puerto | `apps/api/src/modules/candidates/processes-port.ts` | `CandidateProcessesPort` (`getProcesses`), `CandidateProcesses` y el stub `noCandidateProcesses`, **solo para tests y para el seed de candidatos**; la implementación real es de `inscripciones` y se conecta en `app.ts` |
 | Normalización | `apps/api/src/modules/candidates/normalize.ts` | `normalizeCandidateBody(body)`: pura e idempotente; recorta, email en minúsculas, skills recortadas, en minúsculas, sin vacías y deduplicadas (antes de que el esquema cuente `maxItems`) |
-| Repositorio | `apps/api/src/modules/candidates/repository.ts` | `createCandidatesRepository(db)`: SQL preparado (`findById`, `findIdByEmail`, `insert`, `updateFields`, `setConsent`, `setRetention`, `listPage`, `count`, `isDuplicateEmailError`), `toCandidate(row)`; registra `fold_search` en su conexión |
+| Repositorio | `apps/api/src/modules/candidates/repository.ts` | `createCandidatesRepository(db)`: SQL preparado (`findById`, `existsById`, `findNamesByIds`, `findIdByEmail`, `insert`, `updateFields`, `setConsent`, `setRetention`, `listPage`, `count`, `isDuplicateEmailError`), `toCandidate(row)`; registra `fold_search` en su conexión. `existsById` (`SELECT 1`) y `findNamesByIds` (solo `id` y `full_name`, con `json_each(?)`) son las lecturas que `applications` usa por puerto |
 | Esquemas | `apps/api/src/modules/candidates/schemas.ts` | Tipos (`Candidate`, `CandidateListItem`, `CandidatePage`, `CandidateInput`, `CandidatePatch`, `CandidateListQuery`), `CONSENT_TEXT_VERSION = 'v1'`, `READ_ONLY` y JSON Schema (`candidateFieldsSchema`, `createCandidateBodySchema`, `updateCandidateBodySchema`, `listQuerySchema`, respuestas) |
-| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses? })` crea el servicio con `candidateProcesses = noCandidateProcesses` y registra el plugin; `candidates` no importa `jobs` ni `applications` (DEC-06) |
-| Migración · seed | `apps/api/src/db/migrations/002-create-candidates.sql` · `apps/api/src/db/seed-candidates.ts` | Tabla `candidates` · 30 candidatos inventados, que `seed(db, now = new Date())` carga en la misma transacción que las ofertas |
+| Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` crea el servicio con `processes = candidateProcesses ?? createCandidateProcessesReader(applicationsRepository)` (tipado como `CandidateProcessesPort`, que es lo que comprueba la asignación) y registra el plugin; `candidates` no importa `jobs` ni `applications` (DEC-06). Su servicio también alimenta el `CandidateLookupPort` y el `recalculateRetention` que usa `applications` |
+| Migración · seed | `apps/api/src/db/migrations/002-create-candidates.sql` · `apps/api/src/db/seed-candidates.ts` | Tabla `candidates` · 30 candidatos inventados; `seedCandidates(db, now)` devuelve sus IDs y `seed` los carga en la misma transacción que las ofertas, antes de `seedApplications` |
 | Web | `apps/web/src/features/candidates/` | `api.ts`, `types.ts`, `paths.ts`, `consent.ts`, `list-state.ts`, `candidate-form-model.ts`, `candidate-form-errors.ts`, `use-consent-actions.ts`, `use-consent-focus.ts` y las pantallas y componentes |
-| Tests API | `apps/api/test/candidates/` · `apps/api/test/helpers/candidates.ts` | `create`, `create-adversarial`, `get`, `update`, `update-adversarial`, `list`, `list-adversarial`, `consent`, `consent-adversarial`, `retention`, `normalize`, `migration`, `seed`, `privacy-logs`, `performance` · `createProcessesStub` y `createCandidate` |
+| Tests API | `apps/api/test/candidates/` · `apps/api/test/helpers/candidates.ts` | `create`, `create-adversarial`, `get`, `update`, `update-adversarial`, `list`, `list-adversarial`, `consent`, `consent-adversarial`, `consent-version` (ata `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API), `retention`, `normalize`, `migration`, `seed`, `privacy-logs`, `performance` · `createProcessesStub` y `createCandidate` |
 | Tests web · e2e | `apps/web/test/features/candidates/` · `apps/web/test/components/` · `e2e/candidates.spec.ts`, `e2e/candidates-list.spec.ts` | Testing Library con `fetch` simulado (`apps/web/test/helpers/fetch.ts`, `dialog.ts`, `focus.ts`) · Playwright sobre `data/e2e.db` (10 recorridos) |
 
 Piezas transversales que usa: `apps/api/src/http/` (`error-handler.ts`, `validation.ts`, `cross-site.ts`),
@@ -46,7 +49,7 @@ milisegundos (`GLOB` en la base); `retention_ends_at` es un día natural `AAAA-M
 | `created_at` | `TEXT NOT NULL` | Lo pone el servicio con el reloj inyectado; `GLOB` ISO con ms |
 | `consent_given_at` · `consent_withdrawn_at` | `TEXT` | Nulo o `GLOB` ISO con ms |
 | `consent_version` | `TEXT` | Nulo o `GLOB 'v[0-9]*'` |
-| `retention_ends_at` | `TEXT` | Nulo o `GLOB` `AAAA-MM-DD`; admite `NULL` ya (HU-04 no migra) |
+| `retention_ends_at` | `TEXT` | Nulo o `GLOB` `AAAA-MM-DD`; `NULL` = «mientras dure el proceso» (inscripción abierta, desde HU-04; la migración `003` no toca esta tabla) |
 
 - `CHECK ((consent_given_at IS NULL) = (consent_version IS NULL))` y `CHECK (consent_withdrawn_at IS NULL OR
   consent_given_at IS NOT NULL)` (INV-04): la versión existe si y solo si existe el otorgamiento, y no hay retirada sin
@@ -63,7 +66,9 @@ milisegundos (`GLOB` en la base); `retention_ends_at` es un día natural `AAAA-M
 (i = 0…29), así que ninguno está vencido; vigentes los índices múltiplos de 3 (10), retirados 1, 7, 13 y 19 (4) y el
 resto sin consentimiento (16); 0-4 skills de un conjunto de 12. Las fechas son **relativas al reset**
 (`npm run db:reset`), nunca absolutas. El seed escribe con el repositorio y calcula la retención con
-`computeRetentionEndsAt` y `noCandidateProcesses`.
+`computeRetentionEndsAt` y `noCandidateProcesses` (todavía no hay inscripciones); a continuación `seedApplications`
+(`apps/api/src/db/seed-applications.ts`) recalcula la de cada candidato inscrito con el puerto real (los 25 de las
+posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 000 0xx` (RGPD §6.3).
 
 ## Endpoints
 
@@ -95,7 +100,7 @@ resto sin consentimiento (16); 0-4 skills de un conjunto de 12. Las fechas son *
 |---|---|---|
 | `/candidates` | `CandidateListScreen` → `CandidateFilters`, `CandidateTable`, `Pagination` | «Candidatos · ATS». Búsqueda en `list-state.ts`, no en la URL; paginación con botones; foco al h1 tras cambiar de página; cargando, vacío (con o sin filtros), error con «Reintentar» |
 | `/candidates/new` · `/candidates/:id/edit` | `CandidateFormScreen` → `CandidateForm` | «Nuevo candidato · ATS» · «Editar candidato · ATS». Un formulario para alta y edición; el alta lleva la casilla de consentimiento; la edición envía solo lo cambiado (`toPatch`) y sin cambios no hace petición; 409 → error junto al email y enlace «Ver el candidato existente» por `existingId` |
-| `/candidates/:id` | `CandidateDetailScreen` → `CandidateDetails`, `ConsentSection` | «Ficha de candidato · ATS» (también cargando y con error); «Candidato no encontrado · ATS» si no existe. Sección de consentimiento con casilla, «Renovar consentimiento» y `ConfirmDialog` para retirar |
+| `/candidates/:id` | `CandidateDetailScreen` → `CandidateDetails`, `ConsentSection` | «Ficha de candidato · ATS» (también cargando y con error); «Candidato no encontrado · ATS» si no existe. Sección de consentimiento con casilla, «Renovar consentimiento» y `ConfirmDialog` para retirar. Con `retentionEndsAt: null` (una inscripción abierta, desde HU-04) pinta «Fin de retención: Mientras dure el proceso» sin cambios de código (`CandidateDetails.tsx`; e2e en `e2e/applications.spec.ts`) |
 
 - **Títulos genéricos (DT-10 a, RNF-09):** cada pantalla fija un texto constante con `useDocumentTitle`; el nombre solo
   va en el `h1` de la ficha. Las rutas llevan solo el ID.
@@ -151,14 +156,21 @@ resto sin consentimiento (16); 0-4 skills de un conjunto de 12. Las fechas son *
   `computeRetentionEndsAt` lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:69-77`); con
   otro plazo vigente, un puerto incoherente no se detecta.
 - **`recalculateRetention(id)`** (en el servicio, se une a la transacción en curso) es el único escritor de
-  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent` y `withdrawConsent`. El alta
-  inserta con retención `NULL` y recalcula en la misma transacción, así que un fallo del puerto deshace también el
-  alta. Editar nunca la recalcula (RN-10). El seed calcula con la misma función, pero escribe con `setRetention`
-  sin pasar por el servicio.
-- **Puerto** `CandidateProcessesPort.getProcesses(candidateId)`: síncrono, dentro de la transacción de quien lo llama.
-  `buildApp` lo recibe como `candidateProcesses?` y usa `noCandidateProcesses` (`{ false, false, null }`). **Latente:**
-  HU-04 aporta la implementación real desde `inscripciones` y llama a `recalculateRetention` al inscribir; HU-05 lo hace
-  al cerrar. Dobles de test: `createProcessesStub({ processes, fail })` en `apps/api/test/helpers/candidates.ts`.
+  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent` y,
+  desde HU-04, `applications` al inscribir (por una función que le pasa `app.ts`, no por un `import`). El alta inserta con
+  retención `NULL` y recalcula en la misma transacción, así que un fallo del puerto deshace también el alta. Editar
+  nunca la recalcula (RN-10). El seed de candidatos calcula con la misma función y escribe con `setRetention` sin pasar
+  por el servicio; `seedApplications` sí llama a `recalculateRetention` del servicio con el puerto real.
+- **Puerto** `CandidateProcessesPort.getProcesses(candidateId)`: síncrono, dentro de la transacción de quien lo llama. Lo
+  define `candidates` y lo implementa `inscripciones` (`createCandidateProcessesReader`, una sola consulta sobre
+  `applications`); `buildApp` lo recibe como `candidateProcesses?` y, si falta, usa ese lector real. El stub
+  `noCandidateProcesses` (`{ false, false, null }`) **solo queda para tests y para `seed-candidates.ts`**, que corre
+  antes de que existan inscripciones. Con una inscripción abierta, la fórmula da `null` aunque el consentimiento
+  esté vigente o retirado y aunque la fecha anterior ya hubiera vencido. **Latente:** HU-05 llamará al recálculo al
+  cerrar. Dobles de test: `createProcessesStub({ processes, fail })` en `apps/api/test/helpers/candidates.ts`.
+- **Lecturas para `inscripciones`** (puerto `CandidateLookupPort`, que define `applications`): `exists(id)` y
+  `findNames(ids)` en `CandidatesService`, sobre `existsById` y `findNamesByIds` (columnas explícitas; `findNames([])`
+  devuelve un `Map` vacío sin consultar; los IDs inexistentes no salen). No abren transacción.
 
 ## Listado y búsqueda
 
@@ -181,6 +193,8 @@ columnas del elemento (sin `SELECT *`).
 - El listado devuelve solo los 4 campos de `CandidateListItem`; la ficha completa solo sale en `GET /:id` y en las
   respuestas de alta, edición y consentimiento.
 - Los solo lectura del esquema se declaran con `forbiddenFields` para que `details` los nombre (DEC-11.4).
+- Lo que otro módulo lee de `candidates` sale por una operación del servicio con columnas explícitas (`exists`,
+  `findNames`), nunca por `SELECT *` ni por SQL ajeno (DEC-06, DP-02).
 - Datos personales: nunca en la URL, el título del documento, `history.state`, el almacenamiento del navegador ni los
   logs; formularios y búsqueda con `autoComplete="off"`; seed, fixtures y tests con `@example.com`.
 - Los textos libres (nombre, resumen, skills) se pintan como texto JSX, nunca como HTML.
@@ -209,21 +223,22 @@ columnas del elemento (sin `SELECT *`).
 
 ## Deuda técnica
 
-Observaciones aceptadas de la review de HU-03 (§9) y avisos para HU-04.
+Observaciones aceptadas de las reviews de HU-03 (§9) y HU-04 (§9). Las filas cerradas se quitan en el siguiente sync.
 
 | Deuda | Estado | Origen |
 |---|---|---|
 | Sin lista de `Host` en `apps/api/src/http/cross-site.ts:22`: un DNS rebinding llegaría como `same-origin`; ahora expone también candidatos | Abierta (teórica; auditoría de sprint) | SEC-06 · HU-03 §9.1 |
 | `NO_CONTROL_CHARS` no cubre `\p{Cf}` (RLO, ZWSP) en nombre y skills (`apps/api/src/modules/candidates/schemas.ts`): solo suplantación visual, React escapa | Abierta | SEC-07 · §9.2 |
-| Teléfonos del seed y de los tests con formato de móvil (`+34 600 111 2xx`), no la serie `+34 600 000 0xx` de `docs/RGPD.md` §6 | Abierta: se unifica en HU-04 | DP-02 · §9.3 |
+| Teléfonos del seed y de los tests con formato de móvil (`+34 600 111 2xx`), no la serie `+34 600 000 0xx` de `docs/RGPD.md` §6 | **Cerrada** (tarea T-04 del sprint; el seed y los tests de HU-04 usan la serie) | DP-02 · HU-03 §9.3 |
 | Un `path` con texto libre que da 400 queda en el log (`apps/api/src/logger.ts`) | Abierta (residual) | DP-03 · §9.4 |
 | La edición no fija su título («Editar candidato · ATS») durante la carga directa: hasta que carga, queda el título anterior | Abierta | DD-06 · §9.5 |
 | El TD-frontend de HU-03 no lista `consent.test.ts`, `isValidId` ni `gone?` (anotado en las tareas) | Aceptada | DD-07 · §9.6 |
 | Candidatos con la retención vencida siguen en el listado sin marca, hasta la feature A | Abierta (decisión del responsable) | §9.8 |
-| `apps/web/src/features/candidates/CandidateFormScreen.tsx` tiene una copia local de `CandidateNotFound` además de la de `CandidateDetailScreen.tsx` | Abierta (trivial): se quita en HU-04 si se toca esa pantalla | `/module-sync` de HU-03 |
-| Redacción de UC-11 sobre «elegir una skill» (la web es un campo de texto) | **Cerrada** en este sync | DD-09 · §9.7 |
-| `CONSENT_VERSION` (web) y `CONSENT_TEXT_VERSION` (API) son dos constantes sin test que las ate (hoy solo las compara el e2e del alta) | Aviso para HU-04: añade el test que las ata | Review §9, avisos |
-| `CandidateProcessesPort` sin implementación real: HU-04 la conecta y recalcula la retención al inscribir | Aviso para HU-04 | Review §9, avisos |
+| `apps/web/src/features/candidates/CandidateFormScreen.tsx` tiene una copia local de `CandidateNotFound` además de la de `CandidateDetailScreen.tsx` | Abierta (trivial): HU-04 no tocó esa pantalla; se quita cuando se toque | `/module-sync` de HU-03 |
+| `CONSENT_VERSION` (web) y `CONSENT_TEXT_VERSION` (API) eran dos constantes sin test que las ate | **Cerrada** (tarea T-04; `apps/api/test/candidates/consent-version.test.ts`) | Review HU-03 §9, avisos |
+| `CandidateProcessesPort` sin implementación real | **Cerrada** en HU-04 (lector de `applications` por defecto en `buildApp`; recálculo al inscribir) | Review HU-03 §9, avisos |
+| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 |
+| Sin decidir en `docs/RGPD.md`, para la feature A: si un candidato con la retención vencida puede inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames` | Abierta | HU-04 §9.7 |
 
 ## Requisitos no funcionales
 

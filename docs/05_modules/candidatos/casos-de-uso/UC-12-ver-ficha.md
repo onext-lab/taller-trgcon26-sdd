@@ -3,7 +3,7 @@ id: UC-12
 titulo: "Ver la ficha de un candidato"
 modulo: candidatos
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-02
 hus: [HU-03, HU-04]
 ---
