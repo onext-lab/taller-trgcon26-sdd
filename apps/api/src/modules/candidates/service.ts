@@ -41,6 +41,10 @@ export interface CandidatesService {
    * la fórmula y guarda. Se une a la transacción en curso. `NOT_FOUND` si no existe.
    */
   recalculateRetention(id: number): Candidate;
+  /** Lectura para el puerto de `applications`: ¿existe la ficha? Sin transacción ni columnas. */
+  exists(id: number): boolean;
+  /** Lectura para el puerto de `applications`: solo `id` → `full_name`. `[]` devuelve un `Map` vacío sin consultar. */
+  findNames(ids: readonly number[]): Map<number, string>;
 }
 
 export interface CandidatesServiceDeps {
@@ -49,7 +53,7 @@ export interface CandidatesServiceDeps {
   now: Clock;
   /** `(fn) => withTransaction(db, fn)` (DEC-06). */
   transaction: <T>(fn: () => T) => T;
-  /** Puerto hacia `inscripciones`; `noCandidateProcesses` hasta HU-04. */
+  /** Puerto hacia `inscripciones`: el lector real de `applications` (HU-04) o un doble en los tests. */
   processes: CandidateProcessesPort;
 }
 
@@ -142,7 +146,8 @@ export function createCandidatesService({
 
   function withdrawConsent(id: number): Candidate {
     const candidate = requireCandidate(repository, id);
-    const hasActiveConsent = candidate.consentGivenAt !== null && candidate.consentWithdrawnAt === null;
+    const hasActiveConsent =
+      candidate.consentGivenAt !== null && candidate.consentWithdrawnAt === null;
     if (!hasActiveConsent) return candidate;
     repository.setConsent(id, {
       givenAt: candidate.consentGivenAt,
@@ -169,5 +174,7 @@ export function createCandidatesService({
     giveConsent: (id) => transaction(() => giveConsent(id)),
     withdrawConsent: (id) => transaction(() => withdrawConsent(id)),
     recalculateRetention,
+    exists: (id) => repository.existsById(id),
+    findNames: (ids) => (ids.length === 0 ? new Map() : repository.findNamesByIds(ids)),
   };
 }

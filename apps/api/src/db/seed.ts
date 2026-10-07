@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { createJobsRepository } from '../modules/jobs/repository.ts';
 import type { JobInput } from '../modules/jobs/schemas.ts';
+import { seedApplications } from './seed-applications.ts';
 import { seedCandidates } from './seed-candidates.ts';
 import { withTransaction } from './transaction.ts';
 
@@ -147,17 +148,19 @@ export const SEED_TITLES_IN_LIST_ORDER: readonly string[] = [...SEED_JOBS]
   .map(({ input }) => input.title);
 
 /**
- * Carga las 10 ofertas y los 30 candidatos en una sola transacción. `now` es la referencia de las altas de los
- * candidatos (DD-10): `reset.ts` usa el reloj del sistema y los tests pasan un instante fijo.
+ * Carga las 10 ofertas, los 30 candidatos y las 40 inscripciones en una sola transacción. `now` es la referencia
+ * de las altas de los candidatos y de las inscripciones de las ofertas publicadas (DD-10): `reset.ts` usa el reloj del sistema y los tests pasan un instante fijo.
  */
 export function seed(db: DatabaseSync, now: Date = new Date()): void {
   const repository = createJobsRepository(db);
   withTransaction(db, () => {
-    for (const { input, createdAt, publishedAt, closedAt } of SEED_JOBS) {
+    const jobIds = SEED_JOBS.map(({ input, createdAt, publishedAt, closedAt }) => {
       const { id } = repository.insert(input, createdAt);
       if (publishedAt) repository.markPublished(id, publishedAt);
       if (closedAt) repository.markClosed(id, closedAt);
-    }
-    seedCandidates(db, now);
+      return id;
+    });
+    const candidateIds = seedCandidates(db, now);
+    seedApplications(db, now, jobIds, candidateIds);
   });
 }

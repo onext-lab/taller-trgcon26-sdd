@@ -4,30 +4,34 @@ import { buildApp } from '../../src/app.ts';
 import type { Clock } from '../../src/clock.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
+import type { JobStatusPort } from '../../src/modules/applications/ports.ts';
 import type { CandidateProcessesPort } from '../../src/modules/candidates/processes-port.ts';
 import type { JobApplicationsPort } from '../../src/modules/jobs/applications-port.ts';
 import type { Job } from '../../src/modules/jobs/schemas.ts';
 
 /**
  * App sobre una base `:memory:` migrada. Quien la use cierra con `await app.close()` en `afterEach`. `now`,
- * `jobApplications` y `candidateProcesses` son opcionales: sin ellos, reloj del sistema, `noJobApplications` y
- * `noCandidateProcesses`.
+ * `jobApplications`, `candidateProcesses` y `jobStatus` son opcionales: sin ellos, reloj del sistema,
+ * `noJobApplications`, el lector real de procesos de `applications` (sin inscripciones responde lo mismo que
+ * `noCandidateProcesses`) y el lector real del estado de la oferta.
  */
 export function createTestApp({
   now,
   jobApplications,
   candidateProcesses,
+  jobStatus,
 }: {
   now?: Clock;
   jobApplications?: JobApplicationsPort;
   candidateProcesses?: CandidateProcessesPort;
+  jobStatus?: JobStatusPort;
 } = {}): {
   app: FastifyInstance;
   db: DatabaseSync;
 } {
   const db = openDatabase(':memory:');
   migrate(db);
-  const app = buildApp({ db, now, jobApplications, candidateProcesses });
+  const app = buildApp({ db, now, jobApplications, candidateProcesses, jobStatus });
   return { app, db };
 }
 

@@ -5,6 +5,16 @@ import { mockFetch } from './helpers/fetch.ts';
 
 const HEALTH_OK = { 'GET /api/health': { status: 200, json: { status: 'ok' } } };
 const EMPTY_PAGE = { items: [], total: 0, page: 1, pageSize: 20 };
+const JOB = {
+  description: 'Gestión de procesos de selección.',
+  location: 'Valencia',
+  workMode: 'híbrida',
+  salaryMin: 30000,
+  salaryMax: 36000,
+  createdAt: '2026-09-30T09:00:00.000Z',
+  publishedAt: '2026-10-01T09:00:00.000Z',
+  closedAt: null,
+};
 
 // Same starting point as the browser: the route and the title of index.html.
 function startAt(path: string): void {
@@ -101,6 +111,52 @@ describe('App', () => {
       'page',
     );
     expect(document.title).toBe('Candidatos · ATS');
+  });
+
+  it('RF-07/EC-39: «Ver pipeline» desde la ficha abre /jobs/7/pipeline con su título y el foco en <main>', async () => {
+    startAt('/jobs/7');
+    const job = { id: 7, title: 'Técnica/o de selección', status: 'published' };
+    const mock = mockFetch({
+      ...HEALTH_OK,
+      'GET /api/jobs/7': { status: 200, json: { ...JOB, ...job } },
+      'GET /api/jobs/7/applications': {
+        status: 200,
+        json: { job: { id: 7, status: 'published' }, items: [] },
+      },
+    });
+
+    render(<App />);
+    fireEvent.click(await screen.findByRole('link', { name: 'Ver pipeline' }));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Pipeline de la oferta' }),
+    ).toBeDefined();
+    expect(
+      await screen.findByText('Todavía no hay candidatos inscritos en esta oferta.'),
+    ).toBeDefined();
+    expect(window.location.pathname).toBe('/jobs/7/pipeline');
+    await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+    expect(mock.calls.filter((call) => call.url.endsWith('/applications'))).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Volver a la oferta' }).getAttribute('href')).toBe(
+      '/jobs/7',
+    );
+  });
+
+  it('EC-35/EC-39: /jobs/abc/pipeline muestra «Página no encontrada» sin petición y con el título del pipeline', async () => {
+    startAt('/jobs/abc/pipeline');
+    const mock = mockFetch(HEALTH_OK);
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Ir a las ofertas' }).getAttribute('href')).toBe(
+      '/jobs',
+    );
+    await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
+    expect(window.location.pathname).toBe('/jobs/abc/pipeline');
+    await within(screen.getByRole('contentinfo')).findByText('Estado de la API: ok');
+    expect(mock.calls.map((call) => call.url)).toEqual(['/api/health']);
   });
 
   it('muestra «Estado de la API: ok» en el pie', async () => {

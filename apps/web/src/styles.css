@@ -136,6 +136,64 @@ dialog {
   margin-block-start: 1rem;
 }
 
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-block-start: 1rem;
+  overflow-x: auto;
+}
+
+.pipeline section {
+  min-width: 0;
+}
+
+.pipeline ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-card {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #595959;
+  border-radius: 0.25rem;
+}
+
+.pipeline-card p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pipeline-card p:first-child {
+  font-weight: bold;
+}
+
+.enroll-panel {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid #595959;
+  border-radius: 0.25rem;
+}
+
+.enroll-panel h2 {
+  margin-block-start: 0;
+}
+
+.enroll-panel .actions {
+  margin-block-start: 0.5rem;
+}
+
+.enroll-panel table {
+  margin-block-start: 1rem;
+}
+
+.enroll-panel td {
+  overflow-wrap: anywhere;
+}
+
 .consent-section {
   margin-block-start: 1.5rem;
   padding: 1rem;

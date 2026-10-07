@@ -1,4 +1,5 @@
 import { Link } from '../../components/router.tsx';
+import { pipelinePath } from '../applications/paths.ts';
 import { CloseJobAction } from './CloseJobAction.tsx';
 import { DeleteJobAction } from './DeleteJobAction.tsx';
 import { jobPaths } from './paths.ts';
@@ -37,6 +38,7 @@ export function JobActions(props: Props) {
   if (job.status === 'published') {
     return (
       <div className="actions">
+        <Link to={pipelinePath(job.id)}>Ver pipeline</Link>
         {edit}
         <CloseJobAction
           id={job.id}

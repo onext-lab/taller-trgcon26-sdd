@@ -105,7 +105,7 @@ test('CA-01/CA-23 publicar un borrador completo: acciones por estado y fecha de 
 
   await expect(page.getByText('Oferta publicada.')).toBeVisible();
   await expect(detailValue(page, 'Estado')).toHaveText('Publicada');
-  await expect(actionNames(page)).toHaveText(['Editar', 'Cerrar', 'Duplicar']);
+  await expect(actionNames(page)).toHaveText(['Ver pipeline', 'Editar', 'Cerrar', 'Duplicar']);
   const job = await readJob(page, id);
   expect(job.status).toBe('published');
   await expect(detailValue(page, 'Fecha de publicación')).toHaveText(madridDate(job.publishedAt));

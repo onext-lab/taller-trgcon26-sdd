@@ -4,7 +4,8 @@ import { buildApp } from '../../src/app.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
 import { seed } from '../../src/db/seed.ts';
-import { noCandidateProcesses } from '../../src/modules/candidates/processes-port.ts';
+import { createCandidateProcessesReader } from '../../src/modules/applications/candidate-processes.ts';
+import { createApplicationsRepository } from '../../src/modules/applications/repository.ts';
 import {
   computeRetentionEndsAt,
   madridCalendarDate,
@@ -98,18 +99,27 @@ describe('seed de candidatos — datos de ejemplo (RF-08)', () => {
   it('RF-08 ninguno con la retención vencida y cada retentionEndsAt igual a la fórmula', async () => {
     const candidates = await loadSeededCandidates();
     const today = madridCalendarDate(NOW.toISOString());
+    // Base gemela con la misma semilla y el mismo NOW (EC-57): mismos IDs y mismas inscripciones que la de `app`.
+    const twin = openDatabase(':memory:');
+    migrate(twin);
+    seed(twin, NOW);
+    const processes = createCandidateProcessesReader(createApplicationsRepository(twin));
 
     for (const c of candidates) {
-      expect(c.retentionEndsAt).not.toBeNull();
-      expect(c.retentionEndsAt! > today).toBe(true);
+      const facts = processes.getProcesses(c.id);
+      if (!facts.hasOpenApplication) {
+        expect(c.retentionEndsAt).not.toBeNull();
+        expect(c.retentionEndsAt! > today).toBe(true);
+      }
       expect(c.retentionEndsAt).toBe(
         computeRetentionEndsAt({
           createdAt: c.createdAt,
           consentGivenAt: c.consentGivenAt,
           consentWithdrawnAt: c.consentWithdrawnAt,
-          processes: noCandidateProcesses.getProcesses(c.id),
+          processes: facts,
         }),
       );
     }
+    twin.close();
   });
 });

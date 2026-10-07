@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactElement, type RefObject } from 'react';
 import { ApiHealth } from './components/ApiHealth.tsx';
 import { Link, matchPath, navigate, usePath } from './components/router.tsx';
+import { PIPELINE_ROUTE } from './features/applications/paths.ts';
+import { PipelineScreen } from './features/applications/PipelineScreen.tsx';
 import { CandidateDetailScreen } from './features/candidates/CandidateDetailScreen.tsx';
 import { CandidateFormScreen } from './features/candidates/CandidateFormScreen.tsx';
 import { CandidateListScreen } from './features/candidates/CandidateListScreen.tsx';
@@ -38,6 +40,11 @@ const ROUTES: readonly Route[] = [
   { pattern: jobPaths.list, title: 'Ofertas', element: <JobListScreen /> },
   { pattern: jobPaths.create, title: 'Nueva oferta', element: <JobFormScreen mode="create" /> },
   { pattern: '/jobs/:id/edit', title: 'Editar oferta', element: <JobFormScreen mode="edit" /> },
+  {
+    pattern: PIPELINE_ROUTE,
+    title: 'Pipeline de la oferta',
+    element: <PipelineScreen jobPath={jobPaths.detail} notFound={<NotFoundScreen />} />,
+  },
   { pattern: '/jobs/:id', title: 'Oferta', element: <JobDetailScreen /> },
   { pattern: candidatePaths.list, title: 'Candidatos', element: <CandidateListScreen /> },
   {

@@ -175,11 +175,12 @@ function toFields({ fullName, email, phone, summary, skills }: SeedCandidate): C
 /**
  * Inserta los 30 candidatos con el repositorio (DD-10). `createdAt = now - (3 + 5·i)` días, de 3 a 148: ninguno vencido
  * (alta + 6 meses ≥ 181 días). Se llama dentro de la transacción de `seed`. La retención sale de
- * `computeRetentionEndsAt` con `noCandidateProcesses`: el seed nunca crea inscripciones.
+ * `computeRetentionEndsAt` con `noCandidateProcesses` (aún no hay inscripciones: `seedApplications` la recalcula
+ * después). Devuelve los IDs en el orden de `SEED_CANDIDATES`.
  */
-export function seedCandidates(db: DatabaseSync, now: Date): void {
+export function seedCandidates(db: DatabaseSync, now: Date): number[] {
   const repository = createCandidatesRepository(db);
-  SEED_CANDIDATES.forEach((candidate, index) => {
+  return SEED_CANDIDATES.map((candidate, index) => {
     const createdAt = new Date(now.getTime() - (3 + 5 * index) * DAY_MS).toISOString();
     const givenAt = new Date(Date.parse(createdAt) + DAY_MS).toISOString();
     const kind = consentKind(index);
@@ -197,5 +198,6 @@ export function seedCandidates(db: DatabaseSync, now: Date): void {
       processes: noCandidateProcesses.getProcesses(id),
     });
     repository.setRetention(id, retention);
+    return id;
   });
 }

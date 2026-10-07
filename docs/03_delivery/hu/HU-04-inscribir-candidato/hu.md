@@ -4,7 +4,7 @@ feature: FEAT-03
 titulo: "Inscribir en una oferta publicada, sin duplicados"
 estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
-modulos_afectados: [inscripciones, candidatos]
+modulos_afectados: [inscripciones, candidatos, ofertas]
 sprint: null             # sprint-NN
 rama: "hu/HU-04-inscribir-candidato"
 ---
@@ -23,8 +23,8 @@ su columna. Además, `inscripciones` implementa aquí el puerto de procesos del 
 en HU-03 y, al inscribir, invoca en la misma transacción el recálculo de la retención, de modo que la ficha del
 candidato pasa a mostrar «Mientras dure el proceso» (UC-12 · A1). Es atómica porque se entrega sola sobre HU-02 y
 HU-03, vertical porque toca reglas, persistencia transaccional entre módulos, API y pantallas (pipeline, buscador de
-candidatos, detalle de la inscripción y ficha del candidato), y con valor porque une ofertas y candidatos por primera
-vez. Avanzar, rechazar y el cierre con inscripciones llegan en HU-05.
+candidatos y ficha del candidato), y con valor porque une ofertas y candidatos por primera vez. El detalle de la
+inscripción con su historial, avanzar, rechazar y el cierre con inscripciones llegan en HU-05.
 
 ## Casos de uso
 Qué casos de uso del catálogo del módulo cubre esta HU y qué flujos (P principal, A alternativos, E excepciones).
@@ -34,7 +34,6 @@ Se citan por ID y ruta desde la raíz, sin enlace relativo (la HU se mueve a `co
 |---|---|---|
 | UC-14 | P, E1, E2, E3, E4, E5 | `docs/05_modules/inscripciones/casos-de-uso/UC-14-inscribir-candidato.md` |
 | UC-17 | P (pasos 1-4 y la acción «Inscribir candidato» del paso 5), A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-17-ver-pipeline.md` |
-| UC-18 | P, A1 | `docs/05_modules/inscripciones/casos-de-uso/UC-18-consultar-historial.md` |
 | UC-12 | A1 | `docs/05_modules/candidatos/casos-de-uso/UC-12-ver-ficha.md` |
 
 Flujos de esos UC que **no** cubre esta HU:
@@ -42,7 +41,9 @@ Flujos de esos UC que **no** cubre esta HU:
   (pipeline de una oferta cerrada): los cubre HU-05.
 - UC-17 · A3 (etiqueta «Candidato anonimizado»): fuera de alcance del núcleo; el estado «anonimizado» lo introduce la
   feature A, y su HU lo cubrirá (S-05).
-- UC-18 · A2, E1 y E2: los cubre HU-05.
+- UC-18 (`docs/05_modules/inscripciones/casos-de-uso/UC-18-consultar-historial.md`), todos sus flujos (P, A1, A2, E1
+  y E2): los cubre HU-05. P y A1 (la API del detalle de la inscripción y su pantalla) salieron de esta HU por decisión
+  del responsable del 2026-10-06, por el techo de 15 tareas; en HU-05 el historial crece con avanzar y rechazar.
 - UC-12 · P, E1 y E2: los cubre HU-03.
 
 ## Criterios de aceptación
@@ -79,9 +80,6 @@ Flujos de esos UC que **no** cubre esta HU:
       error _(UC-17 · E1)_.
 - [ ] Dado que la API no responde, cuando abro un pipeline, entonces veo el estado de error con un mensaje útil, sin
       *stack trace* _(UC-17 · E2)_.
-- [ ] Dada una inscripción recién creada, cuando consulto su detalle, entonces veo la etapa actual `received` y un único
-      `StageChange`, sin origen → `received`, con la fecha de inscripción en `dd/mm/aaaa` (hora de Europe/Madrid)
-      _(UC-18 · P, A1)_.
 - [ ] Dado un candidato con una inscripción no final, cuando abro su ficha, entonces el fin de retención aparece como
       «Mientras dure el proceso» _(UC-12 · A1)_.
 - [ ] Dado un candidato con una inscripción no final, cuando `candidatos` consulta sus procesos por el puerto, entonces
@@ -94,20 +92,19 @@ Flujos de esos UC que **no** cubre esta HU:
 - **Bloquea:** HU-05.
 - **Puertos (DEC-06):** esta HU implementa los dos. `inscripciones` implementa el de procesos del candidato (lo define
   `candidatos`) y define el de estado de la oferta, que implementa `ofertas` (RV-17, UC-14 · E1, S-18). Así
-  `inscripciones` no importa nada de `ofertas` y no hay ciclo.
-- **Mismo UC en dos HU:** UC-12 lo comparte con HU-03, y UC-17 y UC-18 con HU-05. Van en secuencia por las
-  dependencias: esta HU empieza cuando HU-03 está en `main`, y HU-05 cuando esta lo está.
+  `inscripciones` no importa nada de `ofertas` y no hay ciclo. Por eso `ofertas` está entre los módulos afectados:
+  `jobs` implementa el puerto y esta HU añade la guarda de estado en su SQL (SEC-02).
+- **Mismo UC en dos HU:** UC-12 lo comparte con HU-03, y UC-17 con HU-05. Van en secuencia por las dependencias: esta
+  HU empieza cuando HU-03 está en `main`, y HU-05 cuando esta lo está.
 - **Reparto entre módulos** (`docs/02_discovery/reglas-validadas.md`): `inscripciones` implementa el puerto que lee
   `candidatos` e invoca su recálculo; no duplica la fórmula de retención.
-- Cómo llega el reclutador al detalle de la inscripción antes de que HU-05 añada el acceso desde cada tarjeta lo fija
-  el PRD.
 - El seed de unas 40 inscripciones inventadas (RV-26) cumple INV-04, INV-05 e INV-06 de FEAT-03 y la retención que
   da la fórmula de `candidatos`.
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
-- [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
-- [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
-- [ ] Implementación + integración — `/implementar-hu`
-- [ ] Review (`review/REVIEW.md`) — `/reviewer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `-frontend.md`) — `/tech-design`
+- [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
+- [x] Implementación + integración — `/implementar-hu`
+- [x] Review (`review/REVIEW.md`) — `/reviewer`
 - [ ] Sync de módulos + merge local a `main` — `/module-sync`

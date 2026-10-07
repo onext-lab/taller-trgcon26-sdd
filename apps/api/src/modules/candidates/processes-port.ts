@@ -20,7 +20,7 @@ export interface CandidateProcessesPort {
   getProcesses(candidateId: number): CandidateProcesses;
 }
 
-/** Implementación por defecto mientras no existe `applications`: nadie tiene ni tuvo inscripciones. */
+/** Stub para tests y para el seed de candidatos, antes de que existan inscripciones: nadie tiene ni tuvo inscripciones. */
 export const noCandidateProcesses: CandidateProcessesPort = {
   getProcesses: () => ({
     hasOpenApplication: false,

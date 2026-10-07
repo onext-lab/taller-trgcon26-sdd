@@ -21,7 +21,7 @@ const DRAFT: Job = {
 };
 
 const PUBLISHED: Job = { ...DRAFT, status: 'published', publishedAt: '2026-10-06T09:00:00.000Z' };
-
+const PUBLISHED_CONTROLS = ['Ver pipeline', 'Editar', 'Cerrar', 'Duplicar'];
 // The copy keeps the title exactly as the API returns it (EC-26).
 const COPY: Job = { ...DRAFT, id: 8, title: 'Técnica/o de selección (copia) <b>' };
 
@@ -74,7 +74,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
     const terms = screen.getAllByRole('term').map((term) => term.textContent);
     expect(terms).toContain('Fecha de publicación');
     expect(document.querySelectorAll('dd time')[1]?.textContent).toBe('06/10/2026');
-    expect(controls()).toEqual(['Editar', 'Cerrar', 'Duplicar']);
+    expect(controls()).toEqual(PUBLISHED_CONTROLS);
     await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
     expect(mock.calls.filter((call) => call.method === 'GET')).toHaveLength(1);
   });
@@ -212,7 +212,7 @@ describe('JobDetailScreen: publicar y duplicar', () => {
 
     click('Publicar');
 
-    await waitFor(() => expect(controls()).toEqual(['Editar', 'Cerrar', 'Duplicar']));
+    await waitFor(() => expect(controls()).toEqual(PUBLISHED_CONTROLS));
     expect(screen.getByRole('alert').textContent).toBe('La oferta ya no es un borrador.');
     await expectFocusOn(() => screen.getByRole('heading', { level: 1 }));
   });

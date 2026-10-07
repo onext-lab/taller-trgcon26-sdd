@@ -39,10 +39,14 @@ const INSERT_SQL = `INSERT INTO job_openings
   RETURNING *`;
 
 // DD-05: lista fija de las 6 columnas editables; nunca un `SET` construido con las claves recibidas.
+// SEC-02: la guarda de estado (una `closed` no se edita) va en el propio `WHERE`, como en `MARK_*_SQL`.
 const UPDATE_SQL = `UPDATE job_openings
   SET title = ?, description = ?, location = ?, work_mode = ?, salary_min = ?, salary_max = ?
-  WHERE id = ?
+  WHERE id = ? AND status IN ('draft', 'published')
   RETURNING *`;
+
+// SEC-02: solo se borra un `draft`; sin fila afectada → 0.
+const DELETE_DRAFT_SQL = `DELETE FROM job_openings WHERE id = ? AND status = 'draft'`;
 
 // DD-08: la guarda de estado va en el propio UPDATE; sin fila afectada → `undefined`.
 const MARK_PUBLISHED_SQL = `UPDATE job_openings SET status = 'published', published_at = ?
@@ -98,6 +102,11 @@ export function createJobsRepository(db: DatabaseSync) {
       const row = db.prepare('SELECT * FROM job_openings WHERE id = ?').get(id);
       return row ? toJob(row as unknown as JobRow) : undefined;
     },
+    /** Solo el estado (lo lee el puerto de `applications`); `undefined` si la oferta no existe. */
+    findStatusById(id: number): JobStatus | undefined {
+      const row = db.prepare('SELECT status FROM job_openings WHERE id = ?').get(id);
+      return row ? (row.status as JobStatus) : undefined;
+    },
     listPage(filter: JobListFilter, limit: number, offset: number): JobListItem[] {
       const rows = db
         .prepare(LIST_PAGE_SQL)
@@ -129,7 +138,7 @@ export function createJobsRepository(db: DatabaseSync) {
       if (!row) throw new Error('INSERT ... RETURNING no devolvió la fila');
       return toJob(row as unknown as JobRow);
     },
-    /** `undefined` si no hay fila con ese `id`. */
+    /** `undefined` si no hay fila con ese `id` o está `closed` (la guarda va en el `WHERE`). */
     update(id: number, fields: JobEditableFields): Job | undefined {
       const row = db
         .prepare(UPDATE_SQL)
@@ -154,9 +163,9 @@ export function createJobsRepository(db: DatabaseSync) {
       const row = db.prepare(MARK_CLOSED_SQL).get(closedAt, id);
       return row ? toJob(row as unknown as JobRow) : undefined;
     },
-    /** Borrado físico; devuelve las filas borradas (0 o 1). */
+    /** Borrado físico, solo de un `draft`; devuelve las filas borradas (0 si no existe o no está en `draft`). */
     deleteById(id: number): number {
-      return Number(db.prepare('DELETE FROM job_openings WHERE id = ?').run(id).changes);
+      return Number(db.prepare(DELETE_DRAFT_SQL).run(id).changes);
     },
   };
 }

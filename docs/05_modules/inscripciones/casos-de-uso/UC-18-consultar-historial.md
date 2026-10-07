@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: aprobado
 feature: FEAT-03
-hus: [HU-04, HU-05]
+hus: [HU-05]
 ---
 
 # UC-18 — Consultar el historial de una inscripción
@@ -58,8 +58,8 @@ pipeline ni en listados (RGPD §6.2).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-04 | | |
-| A1 | HU-04 | | |
+| P | HU-05 | | |
+| A1 | HU-05 | | |
 | A2 | HU-05 | | |
 | E1 | HU-05 | | |
 | E2 | HU-05 | | |
