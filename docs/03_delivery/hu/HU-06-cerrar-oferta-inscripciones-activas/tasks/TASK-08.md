@@ -4,7 +4,7 @@
 - **HU:** HU-06 · **Feature:** FEAT-03
 - **Scope:** frontend (e2e)
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-05)
 - **Complejidad:** S (< 1 h; estimada 1 h)
 

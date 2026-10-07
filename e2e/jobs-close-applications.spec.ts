@@ -78,3 +78,28 @@ test('CA-12 y EC-26 cerrar con 2 activas y 1 contratada: diálogo con 2, «Ofert
   await expect(lastChange).toContainText('Motivo: Oferta cerrada');
   await expect(lastChange).not.toContainText('Nota:');
 });
+
+test('EC-28 y EC-11 una inscripción creada con el diálogo abierto también se rechaza', async ({
+  page,
+}) => {
+  const job = await createJobByApi(page, 'published');
+  const [a, b] = [await createCandidateByApi(page), await createCandidateByApi(page)];
+  await enrollByApi(page, job.id, a.id);
+
+  await page.goto(`/jobs/${job.id}`);
+  await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  const dialog = closeDialog(page);
+  await expect(dialog.getByRole('status')).toHaveText('Se rechazará 1 inscripción activa.');
+
+  // The count of the dialog is already shown and is not recalculated (DT-03): B arrives after it.
+  await enrollByApi(page, job.id, b.id);
+  await dialog.getByRole('button', { name: 'Cerrar oferta' }).click();
+  await expect(page.getByText('Oferta cerrada.')).toBeVisible();
+  await expect(dialog).toBeHidden();
+
+  await page.getByRole('link', { name: 'Ver pipeline' }).click();
+  await expect(page).toHaveURL(pipelinePath(job));
+  await expect(cardIn(page, 'Rechazado', a)).toContainText('Motivo: Oferta cerrada');
+  await expect(cardIn(page, 'Rechazado', b)).toContainText('Motivo: Oferta cerrada');
+  await expect(stageRegion(page, 'Recibida').getByRole('listitem')).toHaveCount(0);
+});
