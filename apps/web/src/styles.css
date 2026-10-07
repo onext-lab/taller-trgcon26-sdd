@@ -88,6 +88,18 @@ dd,
   white-space: pre-wrap;
 }
 
+.history {
+  padding-left: 1.5rem;
+}
+
+.history li {
+  margin-bottom: 1rem;
+}
+
+.history p {
+  margin: 0.25rem 0;
+}
+
 dialog {
   max-width: min(32rem, 90vw);
 }

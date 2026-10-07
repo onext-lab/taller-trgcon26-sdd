@@ -1,3 +1,6 @@
+import { render } from '@testing-library/react';
+import { createElement } from 'react';
+import { ApplicationDetailScreen } from '../../../src/features/applications/ApplicationDetailScreen.tsx';
 import type {
   Application,
   ApplicationDetail,
@@ -5,6 +8,8 @@ import type {
   RejectionReason,
   Stage,
 } from '../../../src/features/applications/types.ts';
+import { mockFetch, type FetchMock, type MockRoute } from '../../helpers/fetch.ts';
+import { NOT_FOUND_HEADING } from './fixtures.ts';
 
 /** Invented data only, for the stage-change tests: no real people; emails always `@example.com`. */
 
@@ -98,4 +103,16 @@ export function advanced(toStage: Stage, id: number = APPLICATION_ID): Applicati
 /** 200 of `reject`: the `Application` in `rejected` (the note never comes back). */
 export function rejected(id: number = APPLICATION_ID): Application {
   return advanced('rejected', id);
+}
+
+/** Starts at `path`, simulates the network with `routes` and renders the application detail screen. */
+export function renderDetail(path: string, routes: Record<string, MockRoute>): FetchMock {
+  window.history.replaceState(null, '', path);
+  const mock = mockFetch(routes);
+  render(
+    createElement(ApplicationDetailScreen, {
+      notFound: createElement('h1', null, NOT_FOUND_HEADING),
+    }),
+  );
+  return mock;
 }
