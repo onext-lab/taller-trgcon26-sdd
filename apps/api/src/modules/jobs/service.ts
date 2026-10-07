@@ -1,6 +1,6 @@
 import type { Clock } from '../../clock.ts';
 import { foldSearchText } from '../../db/text-search.ts';
-import { notFound } from '../../errors.ts';
+import { invalidTransition, notFound } from '../../errors.ts';
 import type { JobApplicationsPort } from './applications-port.ts';
 import type { JobEditableFields, JobsRepository } from './repository.ts';
 import {
@@ -49,6 +49,8 @@ export interface JobsServiceDeps {
 }
 
 const NOT_FOUND_MESSAGE = 'La oferta no existe.';
+// DD-09: inalcanzable por la API (el servicio comprueba antes); distinto de los mensajes de `rules.ts` a propósito.
+const STATE_CHANGED_MESSAGE = 'El estado de la oferta ha cambiado: recarga e inténtalo de nuevo.';
 
 /** Solo los 6 campos editables de la oferta guardada: `status` y las fechas nunca entran en la fusión. */
 function editableFields({
@@ -98,7 +100,8 @@ export function createJobsService({
         // Un único 400 con los obligatorios y, detrás, la banda (DD-07).
         assertNoDetails([...missing, ...salaryRangeDetails(merged.salaryMin, merged.salaryMax)]);
         const updated = repository.update(id, merged);
-        if (!updated) throw notFound(NOT_FOUND_MESSAGE);
+        // DD-09: tras `requireJob` y `checkAction`, bajo BEGIN IMMEDIATE, sin fila solo puede ser un estado no permitido.
+        if (!updated) throw invalidTransition(STATE_CHANGED_MESSAGE);
         return updated;
       });
     },
@@ -106,7 +109,7 @@ export function createJobsService({
       return transaction(() => {
         const current = requireJob(repository, id);
         checkAction('remove', current.status);
-        if (repository.deleteById(id) === 0) throw notFound(NOT_FOUND_MESSAGE);
+        if (repository.deleteById(id) === 0) throw invalidTransition(STATE_CHANGED_MESSAGE);
       });
     },
     publish(id) {

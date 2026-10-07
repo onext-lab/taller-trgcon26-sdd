@@ -4,7 +4,7 @@
 - **HU:** HU-04 · **Feature:** FEAT-03
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Should (RF-12; cierra SEC-02 de la review de HU-02)
 - **Complejidad:** M (1–2 h; estimada 1,5 h)
 
