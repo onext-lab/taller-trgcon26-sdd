@@ -26,7 +26,8 @@ España, con tuteo.
 
 - **Features por carpeta** en `apps/web/src/features/{módulo}/` (modelo: `apps/web/src/features/jobs/`): pantallas
   contenedoras que cargan datos, presentacionales que solo reciben props, `api.ts`, `types.ts` y `paths.ts`. Lo que usan
-  dos o más features va a `apps/web/src/components/`.
+  dos o más features va a `apps/web/src/components/`. Entre features, solo en la dirección `jobs → applications →
+  candidates` y nunca un componente de otra (DEC-06; `docs/ARCHITECTURE.md`).
 - **Reutiliza, no reinventes:**
   - Navegación: el router propio `apps/web/src/components/router.tsx` (`Link`, `navigate`, `matchPath`, avisos).
   - Datos: `requestJson`, `ApiError` y `userMessage` de `apps/web/src/components/http.ts` (envelope de error, timeout
@@ -46,7 +47,9 @@ España, con tuteo.
   URL ni en `console`; sin secretos en `VITE_*`.
 - **Tests:** Vitest + Testing Library en `apps/web/test/`, espejo de `src/`; consultas por rol y nombre accesible,
   `fetch` simulado con `mockFetch` de `apps/web/test/helpers/fetch.ts` y `<dialog>` con
-  `apps/web/test/helpers/dialog.ts`. El ID (`CA-NN`, `EC-NN`) va en el nombre del test.
+  `apps/web/test/helpers/dialog.ts`. El ID (`CA-NN`, `EC-NN`) va en el nombre del test. Foco, `document.title` y
+  cierre de un `<dialog>` los pone un efecto pasivo: nunca se asertan en seguida, sino con `await expectFocusOn(...)`
+  (`apps/web/test/helpers/focus.ts`) o `await waitFor(...)` (QUALITY-GATES §4.12; lo vigila `npm run check:harness`).
 - TypeScript estricto. Nunca NUL ni U+2028/U+2029 crudos (usa la secuencia de escape).
 
 ## Tareas de calidad

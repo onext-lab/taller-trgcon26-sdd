@@ -123,6 +123,22 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   aborta. Tarea S obligatoria en `/audit-sprint`, antes de la etiqueta. Decisión del responsable técnico: el historial
   inmutable es lo que la feature A enseña en directo.
 
+### T-06 · Ninguna aserción síncrona sobre lo que pone un efecto pasivo · estado: en curso
+- **Tipo:** deuda de tests (auditoría del sprint, C-01 y A-01; prioridad alta del responsable técnico)
+- El foco, `document.title` y el cierre de un `dialog` los pone un efecto pasivo, que corre después del commit: un test
+  que los aserta en seguida falla a veces (EC-46 de HU-02 y `DeleteJobAction` EC-21 en este sprint). Primero la
+  comprobación automática en `npm run check:harness` con su autoprueba (`scripts/check-passive-effects.mjs`) y la
+  convención (`docs/07_architecture_principles/QUALITY-GATES.md` §4, `.claude/agents/web-builder.md`); después, el
+  barrido de las 45 aserciones en este orden: las 5 negativas de título y la de `dialog`, el resto de títulos, el foco.
+  Tope del responsable técnico: lo que no esté barrido a las 20:30 queda como excepción explícita y fechada de la
+  comprobación (nunca desactivada) y pasa a paso-3.
+
+### T-07 · Docs y kit al día tras la auditoría · estado: en curso
+- **Tipo:** docs (auditoría del sprint, A-04, A-05, A-06 y A-08)
+- Segunda aclaración fechada de DEC-06 (cuatro puertos y la dirección de cada uno); skills y agentes al día (DEC-06
+  aclarado, puertos y `apps/api/test/module-boundaries.test.ts`); citas y docs de módulo de C-06, C-07 y los bajos de
+  docs; y las tres cuestiones nuevas de `docs/RGPD.md` §7, sin resolverlas.
+
 ## Orden de ejecución
 1. HU-01 (sin dependencias)
 2. HU-02 (depende de HU-01)

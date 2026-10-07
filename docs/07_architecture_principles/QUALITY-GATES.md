@@ -74,6 +74,13 @@ categoría puede ir como `N/A — <razón>` si de verdad no aplica; «no se me o
 9. **Operaciones no idempotentes** donde puede haber reintentos.
 10. **Errores tragados** (`catch` vacío) sin log ni propagación.
 11. **Datos reales** (CVs, personas) en seeds, fixtures o tests: siempre inventados.
+12. **Aserciones síncronas sobre lo que pone un efecto pasivo** en los tests web: el foco, `document.title` y el
+    cierre de un `<dialog>` cambian en un `useEffect` que corre después del commit, así que un test que los aserta en
+    seguida falla a veces con la CPU cargada (sprint-01: EC-46 de HU-02 y EC-21 de `DeleteJobAction`). Se espera al
+    estado final: `await expectFocusOn(() => campo)` (`apps/web/test/helpers/focus.ts`) o
+    `await waitFor(() => expect(document.title).toBe('Oferta · ATS'))`. Una aserción negativa («el título no contiene
+    el nombre») espera antes al título positivo, o pasaría en vacío. Si el caso es síncrono de verdad, se marca con
+    `// efecto-síncrono: <motivo>`. Lo comprueba `npm run check:harness` (`scripts/check-passive-effects.mjs`).
 
 ## 5. Checklist ready-to-review (antes de `/reviewer`)
 
