@@ -4,7 +4,7 @@
 - **HU:** HU-04 · **Feature:** FEAT-03
 - **Scope:** frontend
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (adversarial de RF-07 y RF-08; RNF-05, RNF-06)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 
