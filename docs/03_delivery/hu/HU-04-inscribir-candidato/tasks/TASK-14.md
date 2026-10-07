@@ -60,3 +60,9 @@ Fichero `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx
   panel se cierra y el botón ya no existe. Tras un *timeout* el 409 es verídico y la recarga enseña la tarjeta (EC-11).
 - Solo se simula la red (`mockFetch`); datos inventados (`@example.com`).
 - Nada de `console.*` en `features/applications/` (DP-01 en la web).
+
+## Reapertura · review ronda 1 (curado) (2026-10-06)
+- **Origen:** `review/REVIEW.md` (ronda 1, curado de observaciones antes del merge), §9.
+- **Qué hay que hacer:** Etiquetas de test: en `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx`, el test de la línea ~120 se llama «EC-11» pero ejerce EC-46 (o el reintento tras un timeout, que es EC-11 del PRD de HU-04: comprueba cuál y deja el ID correcto del PRD de HU-04); y los `it.each` de la línea ~150 usan «EC-01/05/10» con la numeración de HU-02: renómbralos con los IDs del PRD de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/specs/PRD.md`, § Edge cases) o con una descripción sin ID. Sin cambiar aserciones.
+- **Ficheros:** `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx`
+- **Criterios de done:** `npm test -w @ats/web -- applications/PipelineScreen.adversarial` en verde; eslint a 0; ≤ 300 líneas.

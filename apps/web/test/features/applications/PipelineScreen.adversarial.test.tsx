@@ -117,7 +117,7 @@ describe('PipelineScreen: hostiles y fallos (RF-07, RF-08)', () => {
     expect(posts(mock)).toBe(1);
   });
 
-  it('EC-11: timeout y reintento → 409 DUPLICATE verídico, alerta en el panel y la recarga enseña la tarjeta en Recibida', async () => {
+  it('EC-42/EC-43: timeout y reintento → 409 DUPLICATE verídico, alerta en el panel y la recarga enseña la tarjeta en Recibida', async () => {
     const duplicate = envelope(409, 'DUPLICATE', 'Ya inscrito.');
     const mock = await openAndSearch(duplicate, [ok(PUBLISHED_PIPELINE), ok(WITH_NEW_CARD)]);
     // The first POST gets a signal that has already timed out: the client raises CLIENT_TIMEOUT.
@@ -149,22 +149,22 @@ describe('PipelineScreen: hostiles y fallos (RF-07, RF-08)', () => {
 
   it.each<[string, MockReply, string]>([
     [
-      'EC-01: 400',
+      'EC-42: 400',
       envelope(400, 'VALIDATION_ERROR', 'Los datos enviados no son válidos.'),
       'Los datos enviados no son válidos.',
     ],
     [
-      'EC-05: 403',
+      'EC-42: 403',
       envelope(403, 'CROSS_SITE_REQUEST', 'Petición no permitida.'),
       'Petición no permitida.',
     ],
     [
-      'EC-10: 500',
+      'EC-42: 500',
       envelope(500, 'INTERNAL_ERROR', 'No se ha podido completar la operación.'),
       'No se ha podido completar la operación.',
     ],
     [
-      'EC-10: 500 sin envelope y con stack',
+      'EC-42: 500 sin envelope y con stack',
       { status: 500, text: 'Error: boom\n    at run (/srv/app.js:1:1)' },
       CONNECTION_MESSAGE,
     ],

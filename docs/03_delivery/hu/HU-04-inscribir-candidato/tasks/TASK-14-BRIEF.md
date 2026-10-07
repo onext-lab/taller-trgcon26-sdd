@@ -91,3 +91,35 @@ INTEGRACION COMPLETA rc=0
 - **Resultado:** en verde: 12 casos y ninguno falla. No se ha tocado producción. Integración completa de la sesión sin carga en paralelo. Con los e2e de TASK-15 corriendo a la vez, 16 tests web agotaron el tiempo de 5 s (tardaban 6-21 s, CPU saturada); sin carga, 628/628.
 - **Commit:** el de esta tarea (`[HU-04 TASK-14]`)
 
+
+## 8. Reapertura · review ronda 1 (curado)
+> Encargo adicional de `/implementar-hu` tras `review/REVIEW.md` (ronda 1, curado). Rigen las mismas secciones 2 a 6 de este
+> brief. **La task es el contrato:** su sección «Reapertura · review ronda 1 (curado)».
+
+- **Qué hacer:** Etiquetas de test: en `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx`, el test de la línea ~120 se llama «EC-11» pero ejerce EC-46 (o el reintento tras un timeout, que es EC-11 del PRD de HU-04: comprueba cuál y deja el ID correcto del PRD de HU-04); y los `it.each` de la línea ~150 usan «EC-01/05/10» con la numeración de HU-02: renómbralos con los IDs del PRD de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/specs/PRD.md`, § Edge cases) o con una descripción sin ID. Sin cambiar aserciones.
+- **Ficheros:** `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx`
+- **Verificación que debes pegar:** `npm test -w @ats/web -- applications/PipelineScreen.adversarial` en verde; eslint a 0; ≤ 300 líneas.
+
+### Resultado de la integración (reapertura)
+```
+$ npm run typecheck
+exit=0
+$ npm run lint
+exit=0
+$ npm test
+ Test Files  58 passed (58)
+      Tests  715 passed (715)
+ Test Files  48 passed (48)
+      Tests  628 passed (628)
+exit=0
+$ npm run e2e
+  39 passed (22.0s)
+exit=0
+$ npm run check:harness
+check:harness: todo en verde.
+exit=0
+INTEGRACION COMPLETA rc=0
+```
+
+- **Resultado:** en verde: etiquetas con los IDs del PRD de HU-04 (EC-42/EC-43 y EC-42 en los it.each).
+
