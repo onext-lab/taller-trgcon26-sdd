@@ -58,10 +58,10 @@ pipeline ni en listados (RGPD §6.2).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-05 | | |
-| A1 | HU-05 | | |
-| A2 | HU-05 | | |
-| E1 | HU-05 | | |
-| E2 | HU-05 | | |
+| P | HU-05 | CA-24 | |
+| A1 | HU-05 | CA-25 | |
+| A2 | HU-05 | CA-26 | |
+| E1 | HU-05 | CA-27 | |
+| E2 | HU-05 | CA-28 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -78,14 +78,14 @@ de fin de retención del candidato (RGPD §3).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-05 | | |
-| A1 | HU-05 | | |
-| A2 | HU-05 | | |
-| E1 | HU-05 | | |
-| E2 | HU-05 | | |
-| E3 | HU-05 | | |
-| E4 | HU-05 | | |
-| E5 | HU-05 | | |
-| E6 | HU-05 | | |
+| P | HU-05 | CA-01, CA-02 | |
+| A1 | HU-05 | CA-03 | |
+| A2 | HU-05 | CA-04, CA-05, CA-40 | |
+| E1 | HU-05 | CA-06 | |
+| E2 | HU-05 | CA-07 | |
+| E3 | HU-05 | CA-08 | |
+| E4 | HU-05 | CA-09 | |
+| E5 | HU-05 | CA-10 | |
+| E6 | HU-05 | CA-11 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

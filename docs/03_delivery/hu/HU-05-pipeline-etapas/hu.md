@@ -132,7 +132,7 @@ Flujos de esos UC que **no** cubre esta HU:
   solo crece (INV-03 de FEAT-03).
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
 - [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
 - [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [ ] Implementación + integración — `/implementar-hu`
