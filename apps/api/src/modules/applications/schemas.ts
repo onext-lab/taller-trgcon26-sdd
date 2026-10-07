@@ -30,6 +30,19 @@ export const enrollBodySchema = {
   properties: { jobId: ID, candidateId: ID },
 } as const;
 
+const STAGE = { type: 'string', enum: STAGES } as const;
+
+/** Cuerpo de `POST /api/applications/:id/advance`; cualquier clave de más sale agrupada en `{ field: 'body' }` (DEC-11.4). */
+export const advanceBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['expectedStage', 'toStage'],
+  properties: { expectedStage: STAGE, toStage: STAGE },
+} as const;
+
+/** Entrada ya validada de `advance`. */
+export type AdvanceInput = { expectedStage: Stage; toStage: Stage };
+
 /** Respuesta 201: exactamente los 6 campos de `Application`, sin datos del candidato (RNF-04). */
 export const applicationSchema = {
   type: 'object',

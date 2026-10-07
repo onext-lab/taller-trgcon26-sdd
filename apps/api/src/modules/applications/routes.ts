@@ -1,10 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { idParamsSchema, type IdParams } from '../../http/validation.ts';
 import {
+  advanceBodySchema,
   applicationSchema,
   enrollBodySchema,
   pipelineParamsSchema,
   pipelineQuerySchema,
   pipelineSchema,
+  type AdvanceInput,
   type EnrollInput,
 } from './schemas.ts';
 import type { ApplicationsService } from './service.ts';
@@ -21,6 +24,18 @@ export const applicationsRoutes: FastifyPluginAsync<{ service: ApplicationsServi
     '/applications',
     { schema: { body: enrollBodySchema, response: { 201: applicationSchema } } },
     (request, reply) => reply.code(201).send(service.enroll(request.body)),
+  );
+
+  app.post<{ Params: IdParams; Body: AdvanceInput }>(
+    '/applications/:id/advance',
+    {
+      schema: {
+        params: idParamsSchema,
+        body: advanceBodySchema,
+        response: { 200: applicationSchema },
+      },
+    },
+    (request) => service.advance(Number(request.params.id), request.body),
   );
 
   app.get<{ Params: { jobId: string } }>(

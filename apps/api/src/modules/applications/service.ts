@@ -1,8 +1,17 @@
 import type { Clock } from '../../clock.ts';
-import { duplicate, invalidTransition, notFound } from '../../errors.ts';
+import { duplicate, invalidTransition, notFound, stageMismatch } from '../../errors.ts';
 import type { CandidateLookupPort, JobStatusPort } from './ports.ts';
 import type { ApplicationsRepository, PipelineRow } from './repository.ts';
-import type { Application, EnrollInput, Pipeline, PipelineItem } from './schemas.ts';
+import type {
+  AdvanceInput,
+  Application,
+  EnrollInput,
+  Pipeline,
+  PipelineItem,
+  RejectionReason,
+  Stage,
+} from './schemas.ts';
+import { decideAdvance, isFinal, STAGE_MISMATCH_MESSAGE } from './transitions.ts';
 
 /**
  * Casos de uso de las inscripciones (TECHNICAL_DOC-backend § Firmas internas). No conoce `request` ni `reply`: los
@@ -18,6 +27,11 @@ export interface ApplicationsService {
    * Pipeline de una oferta en cualquier estado (DT-03): 404 si no existe. Lecturas síncronas sin transacción (DD-07).
    */
   getPipeline(jobId: number): Pipeline;
+  /**
+   * Avanza a la etapa siguiente en una transacción (DEC-06): 404, reintento (200 sin escrituras) y 409
+   * `STAGE_MISMATCH` / `INVALID_TRANSITION`, en ese orden (DT-02, DT-13). No mira el estado de la oferta (DT-09).
+   */
+  advance(id: number, input: AdvanceInput): Application;
 }
 
 export interface ApplicationsServiceDeps {
@@ -35,6 +49,7 @@ export interface ApplicationsServiceDeps {
 }
 
 const JOB_NOT_FOUND_MESSAGE = 'La oferta no existe.';
+const APPLICATION_NOT_FOUND_MESSAGE = 'La inscripción no existe.';
 const CANDIDATE_NOT_FOUND_MESSAGE = 'El candidato no existe.';
 const NOT_PUBLISHED_MESSAGE = 'La oferta no está publicada: no admite inscripciones.';
 const DUPLICATE_MESSAGE = 'Este candidato ya está inscrito en la oferta.';
@@ -99,6 +114,52 @@ function enroll(deps: ApplicationsServiceDeps, input: EnrollInput): Application 
   return application;
 }
 
+/** Qué se escribe en el `StageChange`: motivo y nota solo existen en un rechazo (INV-07). */
+interface StageChangeRequest {
+  toStage: Stage;
+  reason: RejectionReason | null;
+  note: string | null;
+}
+
+/**
+ * Escritura compartida por avanzar y rechazar (DD-02): `changedAt` se pide al reloj una sola vez; el `UPDATE` lleva la
+ * guarda de la etapa leída en el `WHERE` (0 filas → `STAGE_MISMATCH`); el historial se escribe con el mismo instante y
+ * la retención se recalcula solo si la inscripción queda en una etapa final (DD-07). Sin `jobStatus` (DT-09, DD-03).
+ */
+function applyStageChange(
+  deps: ApplicationsServiceDeps,
+  application: Application,
+  { toStage, reason, note }: StageChangeRequest,
+): Application {
+  const changedAt = deps.now().toISOString();
+  const fromStage = application.stage;
+  const updated = deps.repository.updateStage({
+    id: application.id,
+    fromStage,
+    toStage,
+    changedAt,
+  });
+  if (updated === undefined) throw stageMismatch(STAGE_MISMATCH_MESSAGE);
+  deps.repository.insertStageChange({
+    applicationId: application.id,
+    fromStage,
+    toStage,
+    changedAt,
+    reason,
+    note,
+  });
+  if (isFinal(toStage)) deps.recalculateRetention(application.candidateId);
+  return updated;
+}
+
+/** `noop` devuelve la inscripción leída, sin escrituras ni `now()` (RV-23); `apply` escribe el cambio (DD-05). */
+function advance(deps: ApplicationsServiceDeps, id: number, input: AdvanceInput): Application {
+  const application = deps.repository.findById(id);
+  if (application === undefined) throw notFound(APPLICATION_NOT_FOUND_MESSAGE);
+  if (decideAdvance(application.stage, input) === 'noop') return application;
+  return applyStageChange(deps, application, { toStage: input.toStage, reason: null, note: null });
+}
+
 function getPipeline(
   { jobStatus, repository, candidates }: ApplicationsServiceDeps,
   jobId: number,
@@ -113,6 +174,7 @@ function getPipeline(
 export function createApplicationsService(deps: ApplicationsServiceDeps): ApplicationsService {
   return {
     enroll: (input) => deps.transaction(() => enroll(deps, input)),
+    advance: (id, input) => deps.transaction(() => advance(deps, id, input)),
     getPipeline: (jobId) => getPipeline(deps, jobId),
   };
 }
