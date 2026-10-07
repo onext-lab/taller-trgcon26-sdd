@@ -17,8 +17,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 4 / total 5 · bloqueadas 0
-- Última actualización: 2026-10-07 12:50 (HU-04 aprobada con observaciones en la ronda 1, mergeada y sincronizada; T-04 hecha; T-05 pendiente)
+- HU: hechas 4 / total 6 · en curso 1 · bloqueadas 0
+- Última actualización: 2026-10-07 13:04 (HU-05 en curso: PRD en marcha; UC-19 y UC-04 · A1 pasan de HU-05 a la nueva HU-06; T-05 pendiente)
 
 ## Historias de usuario
 
@@ -62,8 +62,18 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-05 · Pipeline con cambio de etapa e historial · estado: pendiente
+### HU-05 · Pipeline con cambio de etapa e historial · estado: en curso
 - **Origen:** FEAT-03 · **Depende de:** HU-04 · **Rama:** `hu/HU-05-pipeline-etapas`
+- [ ] prd-writer (en marcha)
+- [ ] tech-design
+- [ ] task-planner
+- [ ] implementar-hu
+- [ ] reviewer
+- [ ] merge a main
+- [ ] module-sync
+
+### HU-06 · Cerrar una oferta con inscripciones activas · estado: pendiente
+- **Origen:** FEAT-03 · **Depende de:** HU-05 · **Rama:** `hu/HU-06-cerrar-oferta-inscripciones-activas`
 - [ ] prd-writer
 - [ ] tech-design
 - [ ] task-planner
@@ -71,6 +81,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [ ] reviewer
 - [ ] merge a main
 - [ ] module-sync
+- [ ] `npm run db:reset` tras el merge (cierra la ventana de INV-05)
 
 ## Tareas sin HU
 
@@ -116,6 +127,7 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 3. HU-03 (sin dependencias; puede solaparse con HU-02 si no comparten ficheros)
 4. HU-04 (depende de HU-02 y HU-03)
 5. HU-05 (depende de HU-04)
+6. HU-06 (depende de HU-05; en secuencia, porque toca su servicio de avanzar y rechazar)
 
 ## Recordatorio de reglas de oro
 - Cero asunciones; ninguna etapa SDD se salta; brief obligatorio; integración ejecutada.
@@ -123,11 +135,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - Ningún sprint se cierra sin `/audit-sprint` aprobado.
 
 ## Notas
-- Ventana tolerada en `main` (HU-02): entre el merge de HU-04 y el de HU-05, cerrar una oferta con inscripciones
-  activas la cierra sin rechazarlas; INV-05 se cumple al entrar HU-05.
+- Ventana tolerada en `main` (HU-02): entre el merge de HU-04 y el de HU-06, cerrar una oferta con inscripciones
+  activas la cierra sin rechazarlas; INV-05 se cumple al entrar HU-06 (antes, HU-05), y tras su merge,
+  `npm run db:reset`.
 - Para HU-04 (review de HU-03): un test que ate `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API, y
   unificar los teléfonos del seed y de los tests en la serie `+34 600 000 0xx` (`docs/RGPD.md` §6).
 - Los candidatos con la retención vencida siguen en el listado sin marca hasta la feature A (supresión y retención).
 - 2026-10-06 · Decisión del responsable al revisar el PRD de HU-04: UC-18 · P y A1 (detalle de la inscripción con su
   historial: API y pantalla) pasan de HU-04 a HU-05, por el techo de 15 tareas de HU-04; HU-04 suma `ofertas` a sus
   módulos afectados (puerto de estado de la oferta en `jobs` y guarda de estado en su SQL, SEC-02).
+- 2026-10-07 · Decisión del responsable («Sí, sprint de 6 HU»): por el techo de 15 tareas de
+  `docs/07_architecture_principles/QUALITY-GATES.md` §2 (incluidas las adversariales), UC-19 y UC-04 · A1 salen de
+  HU-05 y forman HU-06, «Cerrar una oferta con inscripciones activas», dentro de este sprint.

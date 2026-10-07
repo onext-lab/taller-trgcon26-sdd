@@ -13,19 +13,19 @@ rama: "hu/HU-05-pipeline-etapas"
 
 ## Historia
 Como **reclutador**, quiero **avanzar o rechazar a los candidatos desde el pipeline de la oferta y consultar el
-historial de cada inscripción**, para **llevarlos hasta la contratación o el rechazo con rastro de cada decisión, sin
-que el cierre de una oferta deje procesos abiertos**.
+historial de cada inscripción**, para **llevarlos hasta la contratación o el rechazo con rastro de cada decisión**.
 
 ## Contexto
 Segunda rebanada de FEAT-03 (`docs/02_discovery/features/FEAT-03-inscripciones/feature.md`): sobre las inscripciones de
 HU-04, añade el avance a la etapa siguiente con etapa esperada e idempotencia, el rechazo con motivo y nota, el detalle
 de la inscripción con su historial (su API y su pantalla, que antes estaban en HU-04: decisión del responsable del
-2026-10-06) y el acceso a él desde cada tarjeta, el pipeline de solo lectura de las ofertas cerradas y la operación
-interna que rechaza las inscripciones activas al cerrar una oferta (UC-19). Conecta esa operación dentro de la transacción de cierre de
-`ofertas` (UC-04 · A1), que HU-02 dejó preparada. Cada paso a etapa final invoca el recálculo de retención de
-`candidatos` en la misma transacción. Es atómica porque se entrega sola sobre HU-04, vertical porque toca reglas de
-transición, persistencia transaccional entre tres módulos, API y pantallas (tarjetas, formulario de rechazo, detalle
-de la inscripción con su historial y pipeline cerrado), y con valor porque completa el proceso de selección de punta a punta.
+2026-10-06) y el acceso a él desde cada tarjeta, y el pipeline de solo lectura de las ofertas cerradas. Cada paso a
+etapa final invoca el recálculo de retención de `candidatos` en la misma transacción. El rechazo de las inscripciones
+activas al cerrar una oferta (UC-19 y UC-04 · A1, con la conexión de `JobApplicationsPort`) ya no está en esta HU: pasó
+a HU-06 por decisión del responsable del 2026-10-07, por el techo de 15 tareas. Es atómica porque se entrega sola sobre
+HU-04, vertical porque toca reglas de transición, persistencia transaccional entre módulos, API y pantallas (tarjetas,
+formulario de rechazo, detalle de la inscripción con su historial y pipeline cerrado), y con valor porque el reclutador
+lleva a cada candidato hasta la contratación o el rechazo.
 
 ## Casos de uso
 Qué casos de uso del catálogo del módulo cubre esta HU y qué flujos (P principal, A alternativos, E excepciones).
@@ -37,13 +37,15 @@ Se citan por ID y ruta desde la raíz, sin enlace relativo (la HU se mueve a `co
 | UC-16 | P, A1, E1, E2, E3, E4, E5, E6 | `docs/05_modules/inscripciones/casos-de-uso/UC-16-rechazar-inscripcion.md` |
 | UC-17 | P (acciones «Avanzar» y «Rechazar» y acceso al historial del paso 5), A1 | `docs/05_modules/inscripciones/casos-de-uso/UC-17-ver-pipeline.md` |
 | UC-18 | P, A1, A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-18-consultar-historial.md` |
-| UC-19 | P, A1, A2, E1, E2 | `docs/05_modules/inscripciones/casos-de-uso/UC-19-rechazo-al-cerrar-oferta.md` |
-| UC-04 | A1 | `docs/05_modules/ofertas/casos-de-uso/UC-04-cerrar-oferta.md` |
 
 Flujos de esos UC que **no** cubre esta HU:
 - UC-17 · P en los pasos 1-4 y la acción «Inscribir candidato» del paso 5, A2, E1 y E2: los cubre HU-04.
 - UC-17 · A3 (etiqueta «Candidato anonimizado»): fuera de alcance del núcleo; el estado «anonimizado» lo introduce la
   feature A, y su HU lo cubrirá (S-05).
+- UC-19 · P, A1, A2, E1 y E2 (`docs/05_modules/inscripciones/casos-de-uso/UC-19-rechazo-al-cerrar-oferta.md`) y
+  UC-04 · A1 (`docs/05_modules/ofertas/casos-de-uso/UC-04-cerrar-oferta.md`) → **HU-06**. Estaban en esta HU y salieron
+  el 2026-10-07 por decisión de la persona responsable («Sí, sprint de 6 HU»): con ellos, HU-05 superaba el techo
+  de 15 tareas de `docs/07_architecture_principles/QUALITY-GATES.md` §2, que incluye las adversariales.
 - UC-04 · P, A2, A3, E1 y E2: los cubre HU-02.
 
 ## Criterios de aceptación
@@ -108,37 +110,26 @@ Flujos de esos UC que **no** cubre esta HU:
       estado de error _(UC-18 · E1)_.
 - [ ] Dado que la API no responde, cuando abro un historial, entonces veo el estado de error con un mensaje útil
       _(UC-18 · E2)_.
-- [ ] Dada una oferta `published` con inscripciones en `received`, `offer` y `hired`, cuando la cierro y confirmo el
-      diálogo, que anuncia 2 inscripciones activas, entonces la oferta queda `closed`, las dos primeras pasan a
-      `rejected` con el motivo «oferta cerrada», sin nota y con su `StageChange` con la fecha del cierre, y la de `hired`
-      no cambia _(UC-19 · P; UC-04 · A1)_.
-- [ ] Dado el cierre del criterio anterior, cuando a un candidato rechazado no le queda ninguna inscripción no final,
-      entonces su retención se recalcula desde ese día en la misma transacción _(UC-19 · P)_.
-- [ ] Dada una oferta publicada con el diálogo de cierre abierto, cuando se crea una inscripción antes de confirmar,
-      entonces el cierre la rechaza igualmente, porque rechaza las activas en el momento de cerrar _(UC-04 · A1)_.
-- [ ] Dada una oferta publicada sin inscripciones o con todas en `hired` o `rejected`, cuando la cierro, entonces la
-      operación devuelve 0, no se rechaza ni se recalcula nada y la oferta queda `closed` _(UC-19 · A1)_.
-- [ ] Dado un candidato con una inscripción en la oferta que se cierra y otra abierta en otra oferta, cuando se cierra
-      la primera oferta, entonces su inscripción en ella pasa a `rejected` y él sigue sin fecha de fin de retención
-      _(UC-19 · A2)_.
-- [ ] Dado que falla una escritura durante el rechazo por cierre, cuando cierro la oferta, entonces la oferta sigue
-      `published`, ninguna inscripción cambia y ninguna retención se recalcula _(UC-19 · E1)_.
-- [ ] Dada una inscripción en `interview` de una oferta que se está cerrando, cuando llega después del cierre un avance
-      con la etapa esperada `interview`, entonces responde 409; y si lo que llega es un rechazo, responde 200 sin cambios
-      _(UC-19 · E2)_.
 
 ## Notas y dependencias
 - **Enlaces que llegan con el detalle (decisión del responsable, 2026-10-06, por el corte de UC-18):** HU-05 añade (1) el enlace del nombre de cada tarjeta del pipeline a `/applications/:id` y (2) el enlace «Ver la inscripción» en el aviso del 409 de inscripción duplicada («Este candidato ya está inscrito en la oferta.»). En HU-04 ambos van sin enlace (DT-01, DT-02 y DT-04 del PRD de HU-04).
-- **Depende de:** HU-04 (y, a través de ella, HU-02, que entrega el cierre de ofertas de UC-04).
-- **Bloquea:** nada.
-- **Mismo UC en dos HU:** UC-17 lo comparte con HU-04, y UC-04 con HU-02; UC-18 es entero de esta HU. Van en
-  secuencia: esta HU empieza cuando HU-04 está en `main`, y HU-02 ya lo está para entonces.
-- **Reparto entre módulos** (`docs/02_discovery/reglas-validadas.md`): `inscripciones` expone la operación interna de
-  UC-19, `ofertas` la invoca dentro de su transacción de cierre y `candidatos` recalcula la retención cuando se le pide;
-  nadie duplica la fórmula.
-- Esta HU cierra el riesgo de FEAT-01 sobre INV-05: «ninguna oferta `closed` tiene inscripciones en etapa no final» se
-  prueba aquí.
-- El motivo «oferta cerrada» solo lo pone el sistema (S-15); el historial solo crece (INV-03 de FEAT-03).
+- **Depende de:** HU-04 (y, a través de ella, HU-02 y HU-03).
+- **Bloquea:** HU-06 (el rechazo al cerrar una oferta se apoya en el servicio de avanzar y rechazar de esta HU).
+- **Mismo UC en dos HU:** UC-17 lo comparte con HU-04; UC-15, UC-16 y UC-18 son enteros de esta HU. Van en secuencia:
+  esta HU empieza cuando HU-04 está en `main`.
+- **Decisión del responsable (2026-10-07, «Sí, sprint de 6 HU»):** UC-19 y UC-04 · A1, con sus 7 criterios de
+  aceptación, pasan a HU-06 (`docs/03_delivery/hu/HU-06-cerrar-oferta-inscripciones-activas/hu.md`) por el techo de 15
+  tareas. Las preguntas OQ-08 (avanzar y rechazar no comprueban el estado de la oferta) y OQ-09 (el aviso tras cerrar
+  sigue siendo «Oferta cerrada.») del PRD de esta HU las hereda HU-06; la OQ-08 la revisa HU-06 a propósito.
+- **Reparto entre módulos** (`docs/02_discovery/reglas-validadas.md`): `inscripciones` avanza y rechaza, y
+  `candidatos` recalcula la retención cuando se le pide; nadie duplica la fórmula.
+- **La ventana de INV-05 sigue abierta tras el merge de esta HU** (DT-10 de HU-04): `JobApplicationsPort` sigue con el
+  stub `noJobApplications`, así que cerrar una oferta con inscripciones activas la cierra sin rechazarlas. La cierra
+  HU-06. Ningún test de esta HU cierra ofertas con inscripciones activas.
+- UC-18 · A2 con el motivo «oferta cerrada» se prueba con inscripciones rechazadas por cierre que ya escribe el seed (o
+  con un `StageChange` de prueba), no con el cierre real, que es de HU-06.
+- El motivo «oferta cerrada» solo lo pone el sistema (S-15): rechazar a mano con él da 400 (UC-16 · E1); el historial
+  solo crece (INV-03 de FEAT-03).
 
 ## Progreso SDD
 - [ ] PRD (`specs/PRD.md`) — `/prd-writer`

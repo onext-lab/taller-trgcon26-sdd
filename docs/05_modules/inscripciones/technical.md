@@ -150,7 +150,7 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
 | `JobStatusPort` (`getJobStatus(jobId)` → `draft`, `published`, `closed` o `null`) | `applications` (`ports.ts`) | `jobs`: `createJobStatusReader(repo)` en `apps/api/src/modules/jobs/job-status.ts`, sobre `findStatusById` | `const jobStatusPort: JobStatusPort = jobStatus ?? createJobStatusReader(jobsRepository)` |
 | `CandidateLookupPort` (`exists(id)`, `findNames(ids)` → `id` → `full_name`) | `applications` (`ports.ts`) | `candidates`: `exists` y `findNames` en `CandidatesService` (`existsById` y `findNamesByIds`, columnas explícitas) | Un objeto con dos funciones que delegan en `candidatesService` |
 | `CandidateProcessesPort` (`getProcesses(candidateId)`) | `candidates` (`processes-port.ts`) | `applications`: `createCandidateProcessesReader(repo)` (`candidate-processes.ts`) | `processesPort: CandidateProcessesPort = candidateProcesses ?? createCandidateProcessesReader(applicationsRepository)`; sustituye al stub como valor por defecto |
-| `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) | `jobs` (`applications-port.ts`) | **Nadie aún**: HU-05 | `jobApplications = noJobApplications` por defecto |
+| `JobApplicationsPort` (`countActiveApplications`, `rejectActiveApplications`) | `jobs` (`applications-port.ts`) | **Nadie aún**: HU-06 | `jobApplications = noJobApplications` por defecto |
 
 - **Dirección de las llamadas:** `ofertas → inscripciones → candidatos` (la compone `app.ts`, sin ciclos). `buildApp` acepta
   `jobApplications?`, `candidateProcesses?` y `jobStatus?` para inyectar dobles; `jobStatus?` existe solo para provocar
@@ -172,10 +172,10 @@ que lo necesita y lo **implementa** el módulo que tiene los datos; la implement
   escritor de `retention_ends_at`), que se une a la transacción en curso. Con una inscripción abierta, la retención pasa
   a `NULL` («mientras dure el proceso»), también si ya había vencido (DT-06) o si el consentimiento está vigente o
   retirado. **Cerrar** inscripciones y recalcular es de HU-05.
-- **Ventana de INV-05 (DT-10), hasta HU-05:** con `noJobApplications`, `GET /api/jobs/:id/close-preview` dice 0 y
+- **Ventana de INV-05 (DT-10), hasta HU-06 (antes, HU-05):** con `noJobApplications`, `GET /api/jobs/:id/close-preview` dice 0 y
   `POST /api/jobs/:id/close` deja abiertas las inscripciones de la oferta (INV-05 roto en datos creados a mano, con la
   retención del candidato en `null`). El seed lo respeta, ningún test cierra ofertas con inscripciones, y tras el
-  merge de HU-05 hay que hacer `npm run db:reset`.
+  merge de HU-06 hay que hacer `npm run db:reset`.
 
 ## Pantallas y componentes
 
@@ -293,7 +293,7 @@ Observaciones aceptadas de la review de HU-04 (§9) y avisos para HU-05.
 | Sin decidir en `docs/RGPD.md` (feature A): ¿puede inscribirse o aparecer en el buscador un candidato con la retención vencida (hoy sí, DT-06)?; marca de anonimizado en los puertos `exists` y `findNames`; ¿la anonimización vacía siempre la nota del rechazo (el trigger ya lo permite)? | Abierta | §9.7 |
 | Deuda de demo: (a) integración con unitarios y e2e en serie, y e2e con *workers* acotados; (b) *timeout* por test de la web fijado y justificado; (c) medir la pasada completa en una máquina modesta | Abierta: va al `/audit-sprint` (decisión del responsable técnico) | §9.8 |
 | `createApplicationsService` mide 54 líneas (el umbral es 50; excusado como las factorías de HU-02 y HU-03) | Aviso para HU-05: sacar helpers antes de añadir avanzar y rechazar | Review §6 y avisos |
-| `JobApplicationsPort` sin implementación real; la ventana de INV-05 sigue abierta | Aviso para HU-05: conectarlo (con retención y `StageChange` de `job_closed`) y recalcular al cerrar | DT-10 · avisos |
+| `JobApplicationsPort` sin implementación real; la ventana de INV-05 sigue abierta | Aviso para HU-06 (antes, HU-05): conectarlo (con retención y `StageChange` de `job_closed`) y recalcular al cerrar | DT-10 · avisos |
 | Las tarjetas y el 409 `DUPLICATE` van sin enlace; falta `GET /api/applications/:id` y la ruta del detalle | Aviso para HU-05: los dos enlaces que dejó esta HU (`docs/03_delivery/hu/HU-05-pipeline-etapas/hu.md`, Notas) | DT-01, DT-02, DT-11 |
 
 ## Requisitos no funcionales

@@ -54,7 +54,7 @@ estructural; `buildApp` lo conecta y la propia asignación lo comprueba al compi
 | `JobStatusPort` (estado de una oferta) | `applications` | `jobs` (`job-status.ts`) | Real (HU-04) |
 | `CandidateLookupPort` (¿existe? y nombres) | `applications` | `candidates` (`exists`, `findNames`) | Real (HU-04) |
 | `CandidateProcessesPort` (procesos del candidato) | `candidates` | `applications` (`candidate-processes.ts`) | Real (HU-04); el stub `noCandidateProcesses` solo para tests y el seed de candidatos |
-| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` | Stub `noJobApplications` hasta HU-05 |
+| `JobApplicationsPort` (contar y rechazar inscripciones activas) | `jobs` | `applications` | Stub `noJobApplications` hasta HU-06 |
 
 **Integridad de la base entre módulos:** las claves foráneas entre tablas de módulos distintos (`applications.candidate_id →
 candidates.id` y `applications.job_id → job_openings.id`, ambas `ON DELETE RESTRICT`) son integridad referencial de la

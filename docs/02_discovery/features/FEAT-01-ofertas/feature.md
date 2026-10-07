@@ -208,4 +208,4 @@ Las HU las crea el `product-owner` con `node scripts/next-id.mjs hu`; `/crear-sp
    cubre la HU de FEAT-03 que implemente UC-19, y esa HU conecta la invocación desde el cierre de `ofertas`. Queda
    declarado aquí para que la cobertura de flujos de FEAT-01 esté completa.
 
-**HU creadas (2026-10-06):** HU-01 y HU-02; UC-04 · A1 lo cubre HU-05 (FEAT-03).
+**HU creadas (2026-10-06):** HU-01 y HU-02; UC-04 · A1 lo cubre HU-06 (FEAT-03; era HU-05 hasta la decisión del 2026-10-07).
