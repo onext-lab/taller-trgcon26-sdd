@@ -124,6 +124,39 @@ function toStageChangeEntry(row: Record<string, unknown>): StageChangeEntry {
   };
 }
 
+/** Inscripción activa de una oferta: lo mínimo para rechazarla por cierre (sin datos del candidato). */
+export interface ActiveApplicationRow {
+  id: number;
+  candidateId: number;
+  stage: Stage;
+}
+
+// HU-06 (DD-02): activas = no finales; `ORDER BY id` fija un orden determinista de rechazo.
+const COUNT_ACTIVE_BY_JOB_SQL = `SELECT COUNT(*) AS active FROM applications
+  WHERE job_id = ? AND stage NOT IN ('hired', 'rejected')`;
+
+const LIST_ACTIVE_BY_JOB_SQL = `SELECT id, candidate_id, stage FROM applications
+  WHERE job_id = ? AND stage NOT IN ('hired', 'rejected') ORDER BY id`;
+
+function toActiveApplicationRow(row: Record<string, unknown>): ActiveApplicationRow {
+  return { id: Number(row.id), candidateId: Number(row.candidate_id), stage: row.stage as Stage };
+}
+
+/** Recuento y listado de las inscripciones activas de una oferta (HU-06); parte de `createApplicationsRepository`. */
+function createActiveByJobQueries(db: DatabaseSync) {
+  return {
+    /** Cuántas inscripciones de la oferta no están en una etapa final: un agregado, sin traer filas. */
+    countActiveByJob(jobId: number): number {
+      const row = db.prepare(COUNT_ACTIVE_BY_JOB_SQL).get(jobId);
+      return Number(row?.active ?? 0);
+    },
+    /** Las inscripciones activas de la oferta en orden de `id`, solo con ID, candidato y etapa. */
+    listActiveByJob(jobId: number): ActiveApplicationRow[] {
+      return db.prepare(LIST_ACTIVE_BY_JOB_SQL).all(jobId).map(toActiveApplicationRow);
+    },
+  };
+}
+
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
 
 /** Lecturas de una inscripción y su historial, y el cambio de etapa guardado (HU-05); parte de `createApplicationsRepository`. */
@@ -176,6 +209,7 @@ export function createApplicationsRepository(db: DatabaseSync) {
       return typeof row?.id === 'number' ? row.id : undefined;
     },
     ...createStageOperations(db),
+    ...createActiveByJobQueries(db),
     /** ¿El error es el choque con el índice único `(candidate_id, job_id)`? (INV-01, DEC-08). */
     isDuplicatePairError(error: unknown): boolean {
       if (!(error instanceof Error)) return false;

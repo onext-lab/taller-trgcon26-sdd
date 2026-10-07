@@ -1,5 +1,6 @@
 import type { Clock } from '../../clock.ts';
 import { duplicate, invalidTransition, notFound, stageMismatch } from '../../errors.ts';
+import { countActiveApplications, rejectActiveApplications } from './job-closing.ts';
 import type { CandidateLookupPort, JobStatusPort } from './ports.ts';
 import type { ApplicationsRepository, PipelineRow } from './repository.ts';
 import type {
@@ -45,6 +46,13 @@ export interface ApplicationsService {
    * candidato. Lecturas síncronas sin transacción (DD-08).
    */
   getDetail(id: number): ApplicationDetail;
+  /** Recuento de inscripciones no finales de la oferta (HU-06, RF-02): un agregado, sin transacción. */
+  countActiveApplications(jobId: number): number;
+  /**
+   * Rechaza por cierre las activas de la oferta con `closedAt` (HU-06, RF-01): se une a la transacción del cierre o
+   * abre la suya (DEC-11.7). Devuelve cuántas rechazó; si algo falla, no queda nada a medias.
+   */
+  rejectActiveApplications(input: { jobId: number; closedAt: string }): number;
 }
 
 export interface ApplicationsServiceDeps {
@@ -228,5 +236,8 @@ export function createApplicationsService(deps: ApplicationsServiceDeps): Applic
     reject: (id, input) => deps.transaction(() => reject(deps, id, input)),
     getPipeline: (jobId) => getPipeline(deps, jobId),
     getDetail: (id) => getDetail(deps, id),
+    countActiveApplications: (jobId) => countActiveApplications(deps, jobId),
+    rejectActiveApplications: (input) =>
+      deps.transaction(() => rejectActiveApplications(deps, input)),
   };
 }
