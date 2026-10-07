@@ -158,6 +158,23 @@ describe('GET /api/applications/:id', () => {
     });
   });
 
+  // RGPD §5: la única escritura que admite el historial es vaciar la nota; el detalle la devuelve como `null`.
+  it('DP-02 (review) nota vaciada con UPDATE … SET note = NULL → 200 con note null', async () => {
+    const created = seed(['received', 'screening', 'rejected'], {
+      reason: 'not_a_fit',
+      note: 'Nota inventada que se vacía.',
+    });
+
+    db.prepare('UPDATE stage_changes SET note = NULL WHERE application_id = ?').run(created.id);
+
+    const detail = await detailOf(created.id);
+    expect(detail.history[2]).toMatchObject({
+      toStage: 'rejected',
+      reason: 'not_a_fit',
+      note: null,
+    });
+  });
+
   it('EC-20 contratada: 5 cambios en orden', async () => {
     const path: Stage[] = ['received', 'screening', 'interview', 'offer', 'hired'];
     const created = seed(path);

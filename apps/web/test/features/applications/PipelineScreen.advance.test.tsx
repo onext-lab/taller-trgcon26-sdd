@@ -140,7 +140,7 @@ describe('PipelineScreen: avanzar de etapa', () => {
     ['red', { networkError: true } as MockReply, CONNECTION_MESSAGE],
     ['500', envelope(500, 'INTERNAL_ERROR', SERVER_TEXT), SERVER_TEXT],
   ])(
-    'EC-32/EC-05 %s → alerta userMessage sin recarga y botones activos de nuevo',
+    'EC-32 %s → alerta userMessage sin recarga y botones activos de nuevo',
     async (_name, reply, text) => {
       const mock = renderWith(reply);
       await advanceOriol();

@@ -129,7 +129,7 @@ describe('PipelineScreen: cambios de etapa frente a hostiles y dobles envíos', 
     expect(dialog.hasAttribute('open')).toBe(true);
   });
 
-  it('EC-10 un 200 de reintento es éxito', async () => {
+  it('EC-35 (DT-06) un 200 de reintento es éxito', async () => {
     const mock = renderAdvance(sequence({ networkError: true }, ok(advanced('offer'))));
     await clickOriolAdvance();
     expect((await screen.findByRole('alert')).textContent).toBe(CONNECTION_MESSAGE);

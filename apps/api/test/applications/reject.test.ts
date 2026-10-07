@@ -121,7 +121,7 @@ describe('POST /api/applications/:id/reject — rechazar', () => {
     expect(await retentionOf(candidate.id)).toBe('2027-05-20');
   });
 
-  it('CA-14 reintento con otro motivo y otra nota → 200 sin StageChange, originales intactos', async () => {
+  it('CA-14/EC-18 reintento con otro motivo y nota → 200 sin StageChange, originales intactos', async () => {
     const created = seedAt('interview');
     const first = await reject(app, created.id, {
       expectedStage: 'interview',

@@ -141,7 +141,7 @@ describe('PipelineScreen: rechazar', () => {
     ['red', { networkError: true } as MockReply, CONNECTION_MESSAGE],
     ['500', envelope(500, 'INTERNAL_ERROR', SERVER_TEXT), SERVER_TEXT],
   ])(
-    'EC-38/EC-14 %s → diálogo abierto con motivo y nota y role=alert dentro del dialog, sin recarga',
+    'EC-38 %s → diálogo abierto con motivo y nota y role=alert dentro del dialog, sin recarga',
     async (_name, reply, text) => {
       const mock = renderReject(reply);
       const { dialog } = await openRejectDialog();
