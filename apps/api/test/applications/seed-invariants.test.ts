@@ -221,8 +221,18 @@ describe('seed de inscripciones — retención (RF-10, EC-51)', () => {
       expect(candidate.retentionEndsAt).not.toBeNull();
       expect(candidate.retentionEndsAt).toBe(computeRetentionEndsAt({ ...candidate, processes }));
     }
-    // Con alguna abierta: candidatos 1-9, 11, 12 y 16-19; el resto de los inscritos (10, 13-15, 20, 25-29) solo tiene finales.
+    // IDs reales de la base. Con alguna abierta: 2-10, 12, 13 y 17-20; el resto de los inscritos (11, 14-16, 21, 26-30) solo tiene finales.
     expect(withOpen).toBe(15);
+  });
+
+  it('RF-10 caso mixto: candidato con una inscripción final (hired o rejected) y otra abierta → retención null', () => {
+    const mixed = candidates().filter((candidate) => {
+      const { total, open } = createApplicationsRepository(db).getProcessFacts(candidate.id);
+      return open >= 1 && total > open;
+    });
+
+    expect(mixed.length).toBeGreaterThanOrEqual(1);
+    for (const candidate of mixed) expect(candidate.retentionEndsAt).toBeNull();
   });
 
   it('EC-51 candidato con una única inscripción rejected → fecha calculada con lastProcessClosedAt', () => {

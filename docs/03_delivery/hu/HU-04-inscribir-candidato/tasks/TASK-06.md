@@ -105,3 +105,16 @@ rendimiento.
 - Ventana de INV-05 (DT-10): el seed la respeta (solo `hired` y `rejected` en las cerradas).
 - Rendimiento: varias repeticiones y el peor caso contra el umbral, como `apps/api/test/jobs/performance.test.ts`.
 - Datos inventados siempre (RGPD §6.3).
+
+## Reapertura · petición del responsable técnico (2026-10-07)
+- **Origen:** comprobación del seed tras el commit `0c996f0`. La retención `null` coincide con «tiene alguna
+  inscripción no final» (consulta sobre `data/ats.db`: 15 candidatos, IDs 2-10, 12, 13 y 17-20), pero el caso mixto (una
+  inscripción final y otra abierta, IDs 6 y 10 de la base) solo está cubierto de forma implícita.
+- **Qué hay que hacer:** en `apps/api/test/applications/seed-invariants.test.ts`, un test explícito: «RF-10 caso mixto:
+  candidato con una inscripción final (`hired` o `rejected`) y otra abierta → retención `null`», que localice esos
+  candidatos por consulta (sin IDs a mano), exija que haya al menos uno y compruebe `null` en cada uno. Corrige además el
+  comentario del test de la línea ~225, que da los IDs en base 0 («candidatos 1-9, 11, 12 y 16-19»): o los pasa a los IDs
+  reales de la base, o dice explícitamente que son índices del seed.
+- **Ficheros:** `apps/api/test/applications/seed-invariants.test.ts`
+- **Criterios de done:** `npm test -w @ats/api -- applications/seed` en verde; el fichero ≤ 300 líneas; eslint a 0.
+- **Resultado (2026-10-07):** en verde (`npm test -w @ats/api -- applications/seed`: 2 files / 19 tests; eslint 0; 266 líneas). El test encuentra los candidatos 6 y 10 y el comentario usa los IDs reales de la base. Ciclo 0/2.
