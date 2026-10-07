@@ -8,10 +8,11 @@ import type {
   EnrollInput,
   Pipeline,
   PipelineItem,
+  RejectInput,
   RejectionReason,
   Stage,
 } from './schemas.ts';
-import { decideAdvance, isFinal, STAGE_MISMATCH_MESSAGE } from './transitions.ts';
+import { decideAdvance, decideReject, isFinal, STAGE_MISMATCH_MESSAGE } from './transitions.ts';
 
 /**
  * Casos de uso de las inscripciones (TECHNICAL_DOC-backend § Firmas internas). No conoce `request` ni `reply`: los
@@ -32,6 +33,12 @@ export interface ApplicationsService {
    * `STAGE_MISMATCH` / `INVALID_TRANSITION`, en ese orden (DT-02, DT-13). No mira el estado de la oferta (DT-09).
    */
   advance(id: number, input: AdvanceInput): Application;
+  /**
+   * Rechaza con motivo y nota opcional en una transacción (DEC-06): 404, reintento sobre una rechazada (200 sin
+   * escrituras, con cualquier esperada) y 409 `STAGE_MISMATCH` / `INVALID_TRANSITION` (contratada). Sin estado de la
+   * oferta (DT-09).
+   */
+  reject(id: number, input: RejectInput): Application;
 }
 
 export interface ApplicationsServiceDeps {
@@ -160,6 +167,18 @@ function advance(deps: ApplicationsServiceDeps, id: number, input: AdvanceInput)
   return applyStageChange(deps, application, { toStage: input.toStage, reason: null, note: null });
 }
 
+/** Ya rechazada → `noop` con cualquier esperada: motivo y nota originales intactos, sin escrituras (DT-13, UC-16 · A1). */
+function reject(deps: ApplicationsServiceDeps, id: number, input: RejectInput): Application {
+  const application = deps.repository.findById(id);
+  if (application === undefined) throw notFound(APPLICATION_NOT_FOUND_MESSAGE);
+  if (decideReject(application.stage, input.expectedStage) === 'noop') return application;
+  return applyStageChange(deps, application, {
+    toStage: 'rejected',
+    reason: input.reason,
+    note: input.note ?? null,
+  });
+}
+
 function getPipeline(
   { jobStatus, repository, candidates }: ApplicationsServiceDeps,
   jobId: number,
@@ -175,6 +194,7 @@ export function createApplicationsService(deps: ApplicationsServiceDeps): Applic
   return {
     enroll: (input) => deps.transaction(() => enroll(deps, input)),
     advance: (id, input) => deps.transaction(() => advance(deps, id, input)),
+    reject: (id, input) => deps.transaction(() => reject(deps, id, input)),
     getPipeline: (jobId) => getPipeline(deps, jobId),
   };
 }

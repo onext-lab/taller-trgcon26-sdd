@@ -1,4 +1,4 @@
-import { idParamsSchema } from '../../http/validation.ts';
+import { idParamsSchema, NO_CONTROL_CHARS_EXCEPT_WHITESPACE } from '../../http/validation.ts';
 import type { JobStatus } from './ports.ts';
 
 /** Etapas del proceso, en orden (RV-19). `hired` y `rejected` son finales. */
@@ -42,6 +42,29 @@ export const advanceBodySchema = {
 
 /** Entrada ya validada de `advance`. */
 export type AdvanceInput = { expectedStage: Stage; toStage: Stage };
+
+/** Motivos de rechazo manual (S-15): nunca `job_closed`, que solo escriben el seed y el cierre de la oferta. */
+export const MANUAL_REJECTION_REASONS = ['not_a_fit', 'candidate_withdrew', 'other'] as const;
+
+/** Cuerpo de `POST /api/applications/:id/reject`; `note` se valida ya recortada y con `""` → `null` (hook `trimNote`). */
+export const rejectBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['expectedStage', 'reason'],
+  properties: {
+    expectedStage: STAGE,
+    reason: { type: 'string', enum: MANUAL_REJECTION_REASONS },
+    // Ajv cuenta puntos de código, como length() de SQLite (DEC-11.3, DEC-11.8).
+    note: { type: ['string', 'null'], maxLength: 500, pattern: NO_CONTROL_CHARS_EXCEPT_WHITESPACE },
+  },
+} as const;
+
+/** Entrada ya validada de `reject`; `note` ausente equivale a `null`. */
+export type RejectInput = {
+  expectedStage: Stage;
+  reason: ManualRejectionReason;
+  note?: string | null;
+};
 
 /** Respuesta 201: exactamente los 6 campos de `Application`, sin datos del candidato (RNF-04). */
 export const applicationSchema = {
