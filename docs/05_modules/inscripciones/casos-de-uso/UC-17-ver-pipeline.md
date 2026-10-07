@@ -64,11 +64,11 @@ un valor de lista cerrada, no texto libre.
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-04, HU-05 | CA-12, CA-13 (HU-04) | |
+| P | HU-04, HU-05 | CA-12, CA-13 (HU-04) | `apps/api/test/applications/pipeline.test.ts:60`, `apps/web/test/features/applications/PipelineScreen.test.tsx:40` |
 | A1 | HU-05 | | |
-| A2 | HU-04 | CA-14 | |
+| A2 | HU-04 | CA-14 | `apps/api/test/applications/pipeline.test.ts:137`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:41` |
 | A3 | — (feature A) | | |
-| E1 | HU-04 | CA-15 | |
-| E2 | HU-04 | CA-16 | |
+| E1 | HU-04 | CA-15 | `apps/api/test/applications/pipeline.test.ts:146`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:87` |
+| E2 | HU-04 | CA-16 | `apps/web/test/features/applications/PipelineScreen.states.test.tsx:105` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
