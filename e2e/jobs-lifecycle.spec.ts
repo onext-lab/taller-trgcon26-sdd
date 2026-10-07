@@ -157,7 +157,7 @@ test('CA-05/CA-06/CA-22 cerrar con confirmación: Escape cancela y confirmar dej
 
   await expect(page.getByText('Oferta cerrada.')).toBeVisible();
   await expect(detailValue(page, 'Estado')).toHaveText('Cerrada');
-  await expect(actionNames(page)).toHaveText(['Duplicar']);
+  await expect(actionNames(page)).toHaveText(['Ver pipeline', 'Duplicar']);
   await expect(page.getByText('Esta oferta está cerrada y no se puede modificar.')).toBeVisible();
   const job = await readJob(page, id);
   await expect(detailValue(page, 'Fecha de cierre')).toHaveText(madridDate(job.closedAt));
@@ -243,5 +243,5 @@ test('CA-12/EC-44 guardar una oferta cerrada en otra pestaña: mensaje del 409 y
   await expect(page).toHaveURL(new RegExp(`/jobs/${id}$`));
   await expect(detailValue(page, 'Estado')).toHaveText('Cerrada');
   await expect(detailValue(page, 'Ubicación')).toHaveText('Valencia');
-  await expect(actionNames(page)).toHaveText(['Duplicar']);
+  await expect(actionNames(page)).toHaveText(['Ver pipeline', 'Duplicar']);
 });

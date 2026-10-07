@@ -18,8 +18,13 @@ export interface EnrollPanelState {
   search: CandidateSearch;
   /** Alert of the panel (the enrollment outcomes): it takes the focus when it appears. */
   alert: string | undefined;
-  /** `undefined` clears it, so the same text shown twice in a row moves the focus twice. */
-  showAlert: (message: string | undefined) => void;
+  /** Application to link from the alert («Ver la inscripción», 409 `DUPLICATE`), if there is one. */
+  alertLinkId: number | undefined;
+  /**
+   * `undefined` clears it, so the same text shown twice in a row moves the focus twice. `existingId` is the
+   * application the alert links to; without it there is no link (EC-43).
+   */
+  showAlert: (message: string | undefined, existingId?: number) => void;
 }
 
 // Focus that moves in effects: to the field when the panel opens (it is painted in the same commit that sets
@@ -39,6 +44,17 @@ function usePanelFocus(
   }, [alert, alertRef]);
 }
 
+// Text of the alert and, if the 409 `DUPLICATE` brought one, the application it links to: they change together.
+function usePanelAlert() {
+  const [alert, setAlert] = useState<string | undefined>(undefined);
+  const [alertLinkId, setAlertLinkId] = useState<number | undefined>(undefined);
+  function showAlert(message: string | undefined, existingId?: number): void {
+    setAlert(message);
+    setAlertLinkId(message === undefined ? undefined : existingId);
+  }
+  return { alert, alertLinkId, showAlert };
+}
+
 /**
  * Open state, focus and alert of the «Inscribir candidato» panel (DD-02: not modal, no focus trap), composed
  * with its search. `published` is whether the job accepts enrollments: if it stops being so, the panel is dropped.
@@ -46,7 +62,7 @@ function usePanelFocus(
  */
 export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => void) {
   const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState<string | undefined>(undefined);
+  const { alert, alertLinkId, showAlert } = usePanelAlert();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLParagraphElement>(null);
@@ -60,7 +76,7 @@ export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => 
 
   function dismiss(): void {
     setOpen(false);
-    setAlert(undefined);
+    showAlert(undefined);
     search.reset();
   }
 
@@ -71,7 +87,7 @@ export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => 
 
   function submit(): void {
     if (busy) return;
-    setAlert(undefined);
+    showAlert(undefined);
     search.submit();
   }
 
@@ -94,7 +110,8 @@ export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => 
     },
     search,
     alert,
-    showAlert: setAlert,
+    alertLinkId,
+    showAlert,
   };
   return { panel, triggerRef, inputRef, alertRef };
 }

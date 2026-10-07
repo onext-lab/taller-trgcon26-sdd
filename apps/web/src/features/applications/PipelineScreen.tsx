@@ -90,8 +90,8 @@ function enrollCallbacks(
       feedback.show('notice', ENROLLED_TEXT);
       reload();
     },
-    onDuplicate() {
-      panel.showAlert(DUPLICATE_MESSAGE);
+    onDuplicate(existingId) {
+      panel.showAlert(DUPLICATE_MESSAGE, existingId);
       reload();
     },
     onNotPublished() {

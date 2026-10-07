@@ -1,13 +1,17 @@
 import { formatDate } from '../../components/format.ts';
+import { Link } from '../../components/router.tsx';
 import { groupByStage, rejectionReasonLabel, stageLabel } from './labels.ts';
+import { applicationPath } from './paths.ts';
 import { STAGES, type PipelineItem, type Stage } from './types.ts';
 
-// The card paints only these fields, even if the item carries more (RNF-04, EC-30). The name is JSX text
-// and never a link (DT-01, RNF-06).
+// The card paints only these fields, even if the item carries more (RNF-04, EC-30). The name is JSX text,
+// a link to the application (RNF-06); the first `<p>` stays the name.
 function PipelineCard({ item }: { item: PipelineItem }) {
   return (
     <li className="pipeline-card">
-      <p>{item.candidateName}</p>
+      <p>
+        <Link to={applicationPath(item.id)}>{item.candidateName}</Link>
+      </p>
       <p>
         Último cambio: <time dateTime={item.lastChangeAt}>{formatDate(item.lastChangeAt)}</time>
       </p>

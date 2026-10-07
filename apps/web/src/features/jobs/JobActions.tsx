@@ -27,18 +27,26 @@ function DuplicateButton({ pending, onDuplicate }: Pick<Props, 'pending' | 'onDu
 }
 
 // Actions per status (RF-06): draft edits, publishes, deletes or duplicates; published edits, closes or
-// duplicates; closed only duplicates (CA-10, CA-13, CA-22, CA-23, EC-24).
+// duplicates; closed views its pipeline (read-only) or duplicates (CA-10, CA-13, CA-22, CA-23, EC-24).
 export function JobActions(props: Props) {
   const { job, pending, onPublish, onDuplicate, onClosed, onConflict, onGone } = props;
   const busy = pending !== null;
   const duplicate = <DuplicateButton pending={pending} onDuplicate={onDuplicate} />;
-  if (job.status === 'closed') return <div className="actions">{duplicate}</div>;
+  const pipeline = <Link to={pipelinePath(job.id)}>Ver pipeline</Link>;
+  if (job.status === 'closed') {
+    return (
+      <div className="actions">
+        {pipeline}
+        {duplicate}
+      </div>
+    );
+  }
 
   const edit = <Link to={jobPaths.edit(job.id)}>Editar</Link>;
   if (job.status === 'published') {
     return (
       <div className="actions">
-        <Link to={pipelinePath(job.id)}>Ver pipeline</Link>
+        {pipeline}
         {edit}
         <CloseJobAction
           id={job.id}

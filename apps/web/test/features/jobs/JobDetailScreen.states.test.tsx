@@ -79,20 +79,17 @@ describe('JobDetailScreen por estado', () => {
     expect(screen.queryByText(CLOSED_TEXT)).toBeNull();
   });
 
-  it('RF-07: «Ver pipeline» con href="/jobs/7/pipeline" solo en published; ausente en draft y closed', async () => {
+  it('RF-07: «Ver pipeline» con href="/jobs/7/pipeline" en published; ausente solo en draft', async () => {
     await renderDetail(PUBLISHED);
     expect(screen.getByRole('link', { name: 'Ver pipeline' }).getAttribute('href')).toBe(
       '/jobs/7/pipeline',
     );
     cleanup();
-    for (const job of [DRAFT, CLOSED]) {
-      await renderDetail(job);
-      expect(screen.queryByRole('link', { name: 'Ver pipeline' })).toBeNull();
-      cleanup();
-    }
+    await renderDetail(DRAFT);
+    expect(screen.queryByRole('link', { name: 'Ver pipeline' })).toBeNull();
   });
 
-  it('CA-22, EC-42, CA-10, CA-13, EC-24: una cerrada muestra 3 fechas, el aviso y solo «Duplicar»', async () => {
+  it('CA-22, EC-42, CA-10, CA-13, EC-24: una cerrada muestra 3 fechas, el aviso, «Ver pipeline» y «Duplicar»', async () => {
     await renderDetail(CLOSED);
 
     expect(terms().slice(-3)).toEqual([
@@ -102,7 +99,7 @@ describe('JobDetailScreen por estado', () => {
     ]);
     expect(dateValues()).toEqual(['30/09/2026', '01/10/2026', '06/10/2026']);
     expect(screen.getByText(CLOSED_TEXT)).toBeDefined();
-    expect(controls()).toEqual(['Duplicar']);
+    expect(controls()).toEqual(['Ver pipeline', 'Duplicar']);
     expect(screen.queryByRole('link', { name: 'Editar' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Borrar' })).toBeNull();
   });
@@ -138,6 +135,6 @@ describe('JobDetailScreen por estado', () => {
     expect(document.querySelector('h1 b')).toBeNull();
     expect(document.querySelectorAll('b')).toHaveLength(0);
     expect(document.title).toBe(`${title} · ATS`);
-    expect(controls()).toEqual(['Duplicar']);
+    expect(controls()).toEqual(['Ver pipeline', 'Duplicar']);
   });
 });

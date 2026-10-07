@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { userMessage } from '../../components/http.ts';
+import { ApiError, userMessage } from '../../components/http.ts';
 import { useLifetimeSignal } from '../../components/use-lifetime-signal.ts';
 import { enrollCandidate } from './api.ts';
 import { classifyEnrollError } from './enroll-errors.ts';
@@ -7,8 +7,8 @@ import { classifyEnrollError } from './enroll-errors.ts';
 /** Where each outcome of `POST /api/applications` goes (DD-05): the screen decides what each one paints. */
 export interface EnrollCallbacks {
   onEnrolled: () => void;
-  /** 409 `DUPLICATE`. */
-  onDuplicate: () => void;
+  /** 409 `DUPLICATE`; `existingId` is the application that already exists, if the API sent a valid one. */
+  onDuplicate: (existingId: number | undefined) => void;
   /** 409 `INVALID_TRANSITION`: the job is no longer published. */
   onNotPublished: () => void;
   /** 404 `NOT_FOUND`: the `message` of the API (it carries no personal data). */
@@ -17,10 +17,16 @@ export interface EnrollCallbacks {
   onFailed: (message: string) => void;
 }
 
+// The first detail that carries an `existingId` (`http.ts` keeps it only if it is a valid ID).
+function existingIdOf(error: unknown): number | undefined {
+  if (!(error instanceof ApiError)) return undefined;
+  return error.details?.find((detail) => detail.existingId !== undefined)?.existingId;
+}
+
 function failureOutcome(error: unknown, callbacks: EnrollCallbacks): () => void {
   switch (classifyEnrollError(error)) {
     case 'duplicate':
-      return callbacks.onDuplicate;
+      return () => callbacks.onDuplicate(existingIdOf(error));
     case 'not-published':
       return callbacks.onNotPublished;
     case 'not-found':
