@@ -184,12 +184,21 @@ describe('POST /api/applications/:id/advance — rechazos', () => {
     expect(totalChanges()).toBe(writesBefore);
   });
 
-  it.each(['offer', 'received', 'rejected'] as const)(
-    'CA-07 screening → %s con la esperada al día → 409 INVALID_TRANSITION',
-    async (toStage) => {
-      const created = seedAt('screening');
+  // Los tres de CA-07 y los saltos desde las demás etapas no finales (refuerzo de la mutación M3 de la review).
+  it.each([
+    ['screening', 'offer'],
+    ['screening', 'received'],
+    ['screening', 'rejected'],
+    ['received', 'interview'],
+    ['received', 'hired'],
+    ['interview', 'hired'],
+  ] as const)(
+    'CA-07 %s → %s con la esperada al día → 409 INVALID_TRANSITION',
+    async (fromStage, toStage) => {
+      const created = seedAt(fromStage);
+      const before = countChanges(created.id);
 
-      const response = await move(created.id, 'screening', toStage);
+      const response = await move(created.id, fromStage, toStage);
 
       expect(response.statusCode).toBe(409);
       expect(response.json()).toEqual({
@@ -199,7 +208,7 @@ describe('POST /api/applications/:id/advance — rechazos', () => {
         },
       });
       expect(stored(created.id)).toEqual(created);
-      expect(countChanges(created.id)).toBe(2);
+      expect(countChanges(created.id)).toBe(before);
     },
   );
 
