@@ -1,5 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { applicationSchema, enrollBodySchema, type EnrollInput } from './schemas.ts';
+import {
+  applicationSchema,
+  enrollBodySchema,
+  pipelineParamsSchema,
+  pipelineQuerySchema,
+  pipelineSchema,
+  type EnrollInput,
+} from './schemas.ts';
 import type { ApplicationsService } from './service.ts';
 
 /**
@@ -14,5 +21,17 @@ export const applicationsRoutes: FastifyPluginAsync<{ service: ApplicationsServi
     '/applications',
     { schema: { body: enrollBodySchema, response: { 201: applicationSchema } } },
     (request, reply) => reply.code(201).send(service.enroll(request.body)),
+  );
+
+  app.get<{ Params: { jobId: string } }>(
+    '/jobs/:jobId/applications',
+    {
+      schema: {
+        params: pipelineParamsSchema,
+        querystring: pipelineQuerySchema,
+        response: { 200: pipelineSchema },
+      },
+    },
+    (request) => service.getPipeline(Number(request.params.jobId)),
   );
 };

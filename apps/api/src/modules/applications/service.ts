@@ -1,8 +1,8 @@
 import type { Clock } from '../../clock.ts';
 import { duplicate, invalidTransition, notFound } from '../../errors.ts';
 import type { CandidateLookupPort, JobStatusPort } from './ports.ts';
-import type { ApplicationsRepository } from './repository.ts';
-import type { Application, EnrollInput } from './schemas.ts';
+import type { ApplicationsRepository, PipelineRow } from './repository.ts';
+import type { Application, EnrollInput, Pipeline, PipelineItem } from './schemas.ts';
 
 /**
  * Casos de uso de las inscripciones (TECHNICAL_DOC-backend § Firmas internas). No conoce `request` ni `reply`: los
@@ -14,6 +14,10 @@ export interface ApplicationsService {
    * candidato, 409 `INVALID_TRANSITION` si la oferta no está publicada y 409 `DUPLICATE` si ya estaba inscrito.
    */
   enroll(input: EnrollInput): Application;
+  /**
+   * Pipeline de una oferta en cualquier estado (DT-03): 404 si no existe. Lecturas síncronas sin transacción (DD-07).
+   */
+  getPipeline(jobId: number): Pipeline;
 }
 
 export interface ApplicationsServiceDeps {
@@ -34,6 +38,16 @@ const JOB_NOT_FOUND_MESSAGE = 'La oferta no existe.';
 const CANDIDATE_NOT_FOUND_MESSAGE = 'El candidato no existe.';
 const NOT_PUBLISHED_MESSAGE = 'La oferta no está publicada: no admite inscripciones.';
 const DUPLICATE_MESSAGE = 'Este candidato ya está inscrito en la oferta.';
+
+/** Une cada fila con su nombre; la FK de la base garantiza el candidato, y si no saliera no se inventa un nombre. */
+function toPipelineItems(rows: PipelineRow[], names: Map<number, string>): PipelineItem[] {
+  return rows.flatMap((row) => {
+    const candidateName = names.get(row.candidateId);
+    if (candidateName === undefined) return [];
+    const { id, stage, lastChangeAt, rejectionReason } = row;
+    return [{ id, candidateName, stage, lastChangeAt, rejectionReason }];
+  });
+}
 
 export function createApplicationsService({
   repository,
@@ -86,5 +100,13 @@ export function createApplicationsService({
     return application;
   }
 
-  return { enroll: (input) => transaction(() => enroll(input)) };
+  function getPipeline(jobId: number): Pipeline {
+    const status = jobStatus.getJobStatus(jobId);
+    if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
+    const rows = repository.listByJob(jobId);
+    const names = candidates.findNames(rows.map((row) => row.candidateId));
+    return { job: { id: jobId, status }, items: toPipelineItems(rows, names) };
+  }
+
+  return { enroll: (input) => transaction(() => enroll(input)), getPipeline };
 }

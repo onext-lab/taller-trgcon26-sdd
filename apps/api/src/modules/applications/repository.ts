@@ -22,6 +22,25 @@ function toApplication(row: ApplicationRow): Application {
   };
 }
 
+/** Fila del pipeline: lo mínimo de una inscripción más el motivo de su rechazo (sin datos del candidato). */
+export interface PipelineRow {
+  id: number;
+  candidateId: number;
+  stage: Stage;
+  lastChangeAt: string;
+  rejectionReason: RejectionReason | null;
+}
+
+function toPipelineRow(row: Record<string, unknown>): PipelineRow {
+  return {
+    id: Number(row.id),
+    candidateId: Number(row.candidate_id),
+    stage: row.stage as Stage,
+    lastChangeAt: String(row.last_change_at),
+    rejectionReason: (row.rejection_reason as RejectionReason | null) ?? null,
+  };
+}
+
 /** Datos de una inscripción nueva: la primera escritura de la fila (`last_change_at` ≥ `created_at`). */
 export interface ApplicationInsert {
   candidateId: number;
@@ -65,6 +84,14 @@ const PROCESS_FACTS_SQL = `SELECT
   FROM applications
   WHERE candidate_id = ?`;
 
+// DD-07: sin `JOIN` con `candidates` (DEC-06). `stage_changes_one_final_uq` deja como mucho un cambio final por
+// inscripción, así que el `LEFT JOIN` al cambio a `rejected` no duplica filas; `reason` solo existe en un rechazo (INV-07).
+const LIST_BY_JOB_SQL = `SELECT a.id, a.candidate_id, a.stage, a.last_change_at, sc.reason AS rejection_reason
+  FROM applications a
+  LEFT JOIN stage_changes sc ON sc.application_id = a.id AND sc.to_stage = 'rejected'
+  WHERE a.job_id = ?
+  ORDER BY a.last_change_at DESC, a.id DESC`;
+
 const FIND_ID_BY_PAIR_SQL = `SELECT id FROM applications WHERE candidate_id = ? AND job_id = ?`;
 
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
@@ -102,6 +129,10 @@ export function createApplicationsRepository(db: DatabaseSync) {
       return (
         errcode === SQLITE_CONSTRAINT_UNIQUE && error.message.includes('applications.candidate_id')
       );
+    },
+    /** Inscripciones de la oferta, la más reciente primero (`last_change_at` y `id` descendentes), sin paginar (S-18). */
+    listByJob(jobId: number): PipelineRow[] {
+      return db.prepare(LIST_BY_JOB_SQL).all(jobId).map(toPipelineRow);
     },
     /** Total, abiertas y fecha del último cierre del candidato (0, 0 y `null` si no tiene inscripciones). */
     getProcessFacts(candidateId: number): ProcessFacts {

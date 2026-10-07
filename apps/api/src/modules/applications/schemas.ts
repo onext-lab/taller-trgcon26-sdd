@@ -1,3 +1,6 @@
+import { idParamsSchema } from '../../http/validation.ts';
+import type { JobStatus } from './ports.ts';
+
 /** Etapas del proceso, en orden (RV-19). `hired` y `rejected` son finales. */
 export const STAGES = ['received', 'screening', 'interview', 'offer', 'hired', 'rejected'] as const;
 export type Stage = (typeof STAGES)[number];
@@ -40,6 +43,54 @@ export const applicationSchema = {
   },
 } as const;
 
+/** `params` del pipeline: reutiliza el `pattern` del ID de ruta (DEC-11.2); el texto se pasa a `Number()` en la ruta. */
+export const pipelineParamsSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['jobId'],
+  properties: { jobId: { type: 'string', pattern: idParamsSchema.properties.id.pattern } },
+} as const;
+
+/** `querystring` del pipeline: ninguno (sin filtros ni paginación, S-18); cualquier clave es un 400. */
+export const pipelineQuerySchema = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {},
+} as const;
+
+/** Respuesta 200: exactamente los 5 campos de `PipelineItem` y el estado de la oferta; nada más puede salir (RNF-04). */
+export const pipelineSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['job', 'items'],
+  properties: {
+    job: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'status'],
+      properties: {
+        id: { type: 'integer' },
+        status: { type: 'string', enum: ['draft', 'published', 'closed'] },
+      },
+    },
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['id', 'candidateName', 'stage', 'lastChangeAt', 'rejectionReason'],
+        properties: {
+          id: { type: 'integer' },
+          candidateName: { type: 'string' },
+          stage: { type: 'string', enum: STAGES },
+          lastChangeAt: { type: 'string' },
+          rejectionReason: { type: ['string', 'null'], enum: [...REJECTION_REASONS, null] },
+        },
+      },
+    },
+  },
+} as const;
+
 /** Entrada ya validada de `enroll`. */
 export interface EnrollInput {
   jobId: number;
@@ -54,4 +105,20 @@ export interface Application {
   stage: Stage;
   createdAt: string;
   lastChangeAt: string;
+}
+
+/** Una inscripción en el pipeline: solo el nombre del candidato, nunca email, teléfono ni nota (RNF-04). */
+export interface PipelineItem {
+  id: number;
+  candidateName: string;
+  stage: Stage;
+  lastChangeAt: string;
+  /** No nulo si y solo si `stage === 'rejected'`. */
+  rejectionReason: RejectionReason | null;
+}
+
+/** Pipeline de una oferta: lista plana, `lastChangeAt` y `id` descendentes; la web agrupa por etapa (DD-07). */
+export interface Pipeline {
+  job: { id: number; status: JobStatus };
+  items: PipelineItem[];
 }
