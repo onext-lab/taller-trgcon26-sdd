@@ -13,6 +13,8 @@ type EnrollPanelProps = {
   panel: EnrollPanelState;
   inputRef: RefObject<HTMLInputElement | null>;
   alertRef: RefObject<HTMLParagraphElement | null>;
+  /** Candidate being enrolled, or `null`: it paints «Inscribiendo…» and disables the buttons (DD-06). */
+  pendingId: number | null;
   /** Enrolls this candidate (connected by the screen). */
   onEnroll: (candidate: CandidateListItem) => void;
 };
@@ -20,9 +22,11 @@ type EnrollPanelProps = {
 // Names and emails are JSX text, never HTML (RNF-06). `skills` come in the item but are not painted (RGPD §6.2).
 function ResultRow({
   candidate,
+  pendingId,
   onEnroll,
 }: {
   candidate: CandidateListItem;
+  pendingId: number | null;
   onEnroll: EnrollPanelProps['onEnroll'];
 }) {
   const nameId = `enroll-result-${candidate.id}`;
@@ -31,8 +35,13 @@ function ResultRow({
       <td id={nameId}>{candidate.fullName}</td>
       <td>{candidate.email}</td>
       <td>
-        <button type="button" aria-describedby={nameId} onClick={() => onEnroll(candidate)}>
-          Inscribir
+        <button
+          type="button"
+          aria-describedby={nameId}
+          disabled={pendingId !== null}
+          onClick={() => onEnroll(candidate)}
+        >
+          {pendingId === candidate.id ? 'Inscribiendo…' : 'Inscribir'}
         </button>
       </td>
     </tr>
@@ -41,9 +50,11 @@ function ResultRow({
 
 function EnrollResults({
   state,
+  pendingId,
   onEnroll,
 }: {
   state: SearchState;
+  pendingId: number | null;
   onEnroll: EnrollPanelProps['onEnroll'];
 }) {
   if (state.status === 'loading') return <LoadingMessage>Buscando candidatos…</LoadingMessage>;
@@ -66,7 +77,12 @@ function EnrollResults({
         </thead>
         <tbody>
           {items.slice(0, SEARCH_LIMIT).map((candidate) => (
-            <ResultRow key={candidate.id} candidate={candidate} onEnroll={onEnroll} />
+            <ResultRow
+              key={candidate.id}
+              candidate={candidate}
+              pendingId={pendingId}
+              onEnroll={onEnroll}
+            />
           ))}
         </tbody>
       </table>
@@ -76,7 +92,7 @@ function EnrollResults({
 }
 
 /** Inline panel (not a dialog, DD-02): search form, messages and results table (RF-08). */
-export function EnrollPanel({ panel, inputRef, alertRef, onEnroll }: EnrollPanelProps) {
+export function EnrollPanel({ panel, inputRef, alertRef, pendingId, onEnroll }: EnrollPanelProps) {
   const { search } = panel;
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -110,8 +126,10 @@ export function EnrollPanel({ panel, inputRef, alertRef, onEnroll }: EnrollPanel
           )}
         </FormField>
         <div className="actions">
-          <button type="submit">Buscar</button>
-          <button type="button" onClick={panel.close}>
+          <button type="submit" disabled={panel.busy}>
+            Buscar
+          </button>
+          <button type="button" disabled={panel.busy} onClick={panel.close}>
             Cerrar
           </button>
         </div>
@@ -121,7 +139,7 @@ export function EnrollPanel({ panel, inputRef, alertRef, onEnroll }: EnrollPanel
           {panel.alert}
         </p>
       ) : null}
-      <EnrollResults state={search.state} onEnroll={onEnroll} />
+      <EnrollResults state={search.state} pendingId={pendingId} onEnroll={onEnroll} />
     </section>
   );
 }
