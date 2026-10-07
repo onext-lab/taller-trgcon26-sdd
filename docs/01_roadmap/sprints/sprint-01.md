@@ -17,8 +17,8 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 (avance, rechazo e historial), con el cierre de una oferta rechazando sus inscripciones activas.
 
 ## Resumen de estado
-- HU: hechas 4 / total 6 · en curso 1 · bloqueadas 0
-- Última actualización: 2026-10-07 13:04 (HU-05 en curso: PRD en marcha; UC-19 y UC-04 · A1 pasan de HU-05 a la nueva HU-06; T-05 pendiente)
+- HU: hechas 5 / total 6 · en curso 0 · bloqueadas 0
+- Última actualización: 2026-10-07 (HU-05 hecha: review «Aprobado con observaciones», merge y module-sync; sigue HU-06)
 
 ## Historias de usuario
 
@@ -62,15 +62,15 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
 - [x] merge a main
 - [x] module-sync
 
-### HU-05 · Pipeline con cambio de etapa e historial · estado: en curso
+### HU-05 · Pipeline con cambio de etapa e historial · estado: hecha
 - **Origen:** FEAT-03 · **Depende de:** HU-04 · **Rama:** `hu/HU-05-pipeline-etapas`
-- [ ] prd-writer (en marcha)
-- [ ] tech-design
-- [ ] task-planner
-- [ ] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
-- [ ] module-sync
+- [x] prd-writer
+- [x] tech-design
+- [x] task-planner
+- [x] implementar-hu
+- [x] reviewer
+- [x] merge a main
+- [x] module-sync
 
 ### HU-06 · Cerrar una oferta con inscripciones activas · estado: pendiente
 - **Origen:** FEAT-03 · **Depende de:** HU-05 · **Rama:** `hu/HU-06-cerrar-oferta-inscripciones-activas`

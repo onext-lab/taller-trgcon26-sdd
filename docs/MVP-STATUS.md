@@ -3,7 +3,7 @@
 Vista única de qué hay hecho en cada módulo del ATS. La fila de cada módulo la actualiza `/module-sync` al cerrar cada
 HU; el detalle vive en `docs/05_modules/{módulo}/functional.md`.
 
-- **Última actualización:** 2026-10-07 (HU-04: nace `inscripciones` con inscribir y pipeline; `candidatos` al 100 %).
+- **Última actualización:** 2026-10-07 (HU-05: avanzar, contratar, rechazar y el historial; `inscripciones` al ~83 %).
 
 ## Leyenda
 
@@ -17,9 +17,9 @@ HU; el detalle vive en `docs/05_modules/{módulo}/functional.md`.
 
 | Módulo | Estado | Capacidades ✅ / total | HU entregadas | Notas |
 |---|---|---|---|---|
-| `ofertas` | 🚧 | 7 / 8 | HU-01, HU-02 | ~94 % MVP (7 ✅ / 1 🚧 / 0 ⬜). Falta UC-04 · A1, el rechazo de inscripciones activas al cerrar (HU-06). HU-04 solo tocó el módulo: cerró SEC-02 (guarda de estado en el SQL), implementó el puerto «estado de la oferta» y añadió «Ver pipeline». [functional.md](05_modules/ofertas/functional.md) |
+| `ofertas` | 🚧 | 7 / 8 | HU-01, HU-02 | ~94 % MVP (7 ✅ / 1 🚧 / 0 ⬜). Falta UC-04 · A1, el rechazo de inscripciones activas al cerrar (HU-06). HU-04 solo tocó el módulo: cerró SEC-02 (guarda de estado en el SQL), implementó el puerto «estado de la oferta» y añadió «Ver pipeline»; HU-05 añadió `getJobSummary` al puerto y «Ver pipeline» en una cerrada. [functional.md](05_modules/ofertas/functional.md) |
 | `candidatos` | ✅ | 5 / 5 | HU-03, HU-04 | 100 % MVP (5 ✅ / 0 🚧 / 0 ⬜). «Mientras dure el proceso» y el puerto de procesos real, desde HU-04. Quedan para la feature A la anonimización y la marca de los candidatos con la retención vencida. [functional.md](05_modules/candidatos/functional.md) |
-| `inscripciones` | 🚧 | 1 / 6 | HU-04 | ~25 % MVP (1 ✅ / 1 🚧 / 4 ⬜). Hecho: inscribir (UC-14) y el pipeline de una oferta (UC-17, sin acciones). Faltan avanzar, rechazar, historial y UC-17 · A1 (HU-05), y el rechazo al cerrar una oferta (HU-06). [functional.md](05_modules/inscripciones/functional.md) |
+| `inscripciones` | 🚧 | 5 / 6 | HU-04, HU-05 | ~83 % MVP (5 ✅ / 0 🚧 / 1 ⬜). Hecho: inscribir (UC-14), avanzar y contratar (UC-15), rechazar (UC-16), el pipeline con sus acciones, también de una cerrada (UC-17), y el historial (UC-18). Falta el rechazo al cerrar una oferta (UC-19, HU-06), que cierra la ventana de INV-05 y revisa DT-09. [functional.md](05_modules/inscripciones/functional.md) |
 
 ## Transversal
 

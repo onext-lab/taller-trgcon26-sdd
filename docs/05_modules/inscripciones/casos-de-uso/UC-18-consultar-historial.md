@@ -3,7 +3,7 @@ id: UC-18
 titulo: "Consultar el historial de una inscripción"
 modulo: inscripciones
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-03
 hus: [HU-05]
 ---

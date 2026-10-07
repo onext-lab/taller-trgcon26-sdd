@@ -89,8 +89,9 @@ Suprimir no borra filas: **anonimiza** al candidato para no romper las estadíst
 
 ## 7. Cuestiones abiertas para la feature A (supresión y retención)
 
-Salen de la review de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9). Se dejan
-abiertas a propósito para el *shaping* de la feature A.
+Salen de las reviews de HU-04 (`docs/03_delivery/hu/HU-04-inscribir-candidato/review/REVIEW.md` §4 y §9) y de HU-05
+(`docs/03_delivery/hu/HU-05-pipeline-etapas/review/REVIEW.md` §4 y §9). Se dejan abiertas a propósito para el
+*shaping* de la feature A.
 
 1. **¿Se puede inscribir, o encontrar en el buscador, a un candidato con la retención vencida que aún no se ha
    anonimizado?** Hoy sí: al inscribirlo su retención pasa a «mientras dure el proceso» (DT-06 del PRD de HU-04; lo fija
@@ -102,3 +103,16 @@ abiertas a propósito para el *shaping* de la feature A.
 3. **¿La anonimización vacía siempre la nota libre del rechazo?** El historial es inmutable salvo `SET note = NULL`
    (DT-12 del PRD de HU-04, `apps/api/src/db/migrations/003-create-applications.sql`), pensado para esto. Falta decidir
    si se vacía en toda anonimización (por petición y por vencimiento).
+4. **¿Contratar o rechazar a un candidato con la retención vencida prolonga la conservación?** Al pasar su última
+   inscripción abierta a `hired` o `rejected`, la retención se recalcula a «cierre + 6 meses»
+   (`apps/api/src/modules/applications/service.ts`, `applyStageChange`), aunque ya hubiera vencido. Es la misma duda
+   que la 1, en la salida del proceso en vez de en la entrada.
+5. **Anonimizado en avanzar, rechazar y el detalle.** Avanzar y rechazar no consultan ninguna marca de anonimizado, y el
+   recálculo reescribiría la retención de un anonimizado, en contra de «irreversible e idempotente» (§5). El detalle
+   (`GET /api/applications/:id`) da **500** si `findNames` no devuelve el nombre del candidato. Hoy ese 500 es
+   **inalcanzable**, porque la anonimización no existe y la clave foránea impide borrar al candidato. La feature A
+   tiene que convertirlo en una respuesta decidida (por ejemplo, 404 o 410, o el detalle con «Candidato
+   anonimizado»), no dejarlo como error interno.
+6. **Texto libre en el historial.** La nota del rechazo (hasta 500 caracteres, solo con un aviso en la web) se guarda en
+   un historial inmutable y sale tal cual en el detalle. Si la feature A no la vacía siempre (cuestión 3), el historial
+   conserva texto libre que puede identificar a la persona, en contra de §5.

@@ -3,7 +3,7 @@ id: UC-16
 titulo: "Rechazar una inscripción"
 modulo: inscripciones
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-03
 hus: [HU-05]
 ---

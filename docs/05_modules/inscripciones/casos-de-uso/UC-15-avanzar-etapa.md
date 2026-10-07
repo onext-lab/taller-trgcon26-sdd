@@ -3,7 +3,7 @@ id: UC-15
 titulo: "Avanzar una inscripción a la etapa siguiente"
 modulo: inscripciones
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-03
 hus: [HU-05]
 ---

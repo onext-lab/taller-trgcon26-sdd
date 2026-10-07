@@ -2,7 +2,8 @@
 
 Estado de `main` sincronizado hasta **HU-02** (2026-10-06, review «Aprobado con observaciones», ronda 2), con los cambios
 transversales de **HU-03** que tocan a ofertas (`details` acotado, piezas web compartidas, tabla `ROUTES`) y los de
-**HU-04** (2026-10-07: guardas de estado en el SQL, lector del puerto «estado de la oferta» y «Ver pipeline»). Lo
+**HU-04** (2026-10-07: guardas de estado en el SQL, lector del puerto «estado de la oferta» y «Ver pipeline») y
+**HU-05** (2026-10-07: `getJobSummary` en el lector y «Ver pipeline» en una cerrada). Lo
 mantiene `/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo
 condicionan: DEC-01, DEC-03, DEC-06 (aclarada en HU-04) a DEC-12 de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (DEC-11.4 enmendado en HU-03).
@@ -106,7 +107,7 @@ también las piezas que se movieron allí desde esta feature y que `jobs` sigue 
 |---|---|---|
 | `/jobs` (entrada; `/` redirige) | `JobListScreen` → `JobFilters`, `JobTable`, `JobPagination` | Filtros y página en la URL (`?status=&q=&page=&pageSize=`, `list-query.ts`); cargando, vacío (con o sin filtros), error con «Reintentar» (un 400 muestra el parámetro y «Quitar filtros»); «Por página» ofrece 20, 50 y 100 |
 | `/jobs/new` · `/jobs/:id/edit` | `JobFormScreen` → `JobForm` | Un formulario para alta y edición; la edición envía solo lo cambiado (`toPatch`); en una publicada marca los obligatorios; un 409 o un 404 al guardar recarga la oferta (`job-form-errors.ts`) |
-| `/jobs/:id` | `JobDetailScreen` → `JobDetails`, `JobActions` (`CloseJobAction`, `DeleteJobAction`) | Acciones por estado en `JobActions`: `draft` edita, publica, borra y duplica; `published` ofrece **«Ver pipeline»** (un `Link` a `pipelinePath(job.id)`, primer control, desde HU-04), edita, cierra (diálogo con las inscripciones activas) y duplica; `closed` solo duplica (ficha de solo lectura; el enlace al pipeline de una cerrada es de HU-05). Publicar y duplicar van en `use-job-actions.ts` |
+| `/jobs/:id` | `JobDetailScreen` → `JobDetails`, `JobActions` (`CloseJobAction`, `DeleteJobAction`) | Acciones por estado en `JobActions`: `draft` edita, publica, borra y duplica; `published` ofrece **«Ver pipeline»** (un `Link` a `pipelinePath(job.id)`, primer control, desde HU-04), edita, cierra (diálogo con las inscripciones activas) y duplica; `closed` ofrece «Ver pipeline» (pipeline en solo lectura, desde HU-05) y duplica (ficha de solo lectura). Publicar y duplicar van en `use-job-actions.ts` |
 
 `apps/web/src/App.tsx` resuelve las pantallas con la tabla `ROUTES` (patrón, título y elemento, en orden de
 coincidencia: `/jobs/new` antes de `/jobs/:id`). Sustituyó las ramas propias de `resolveScreen` para no pasar de 10 de
@@ -150,7 +151,7 @@ Los avisos tras navegar («Oferta creada.», «Cambios guardados.», «Oferta bo
 - La web decide las acciones de la ficha por estado en `JobActions`.
 - Toda escritura que depende del estado lleva la guarda en el `WHERE` y el servicio traduce 0 filas a 409 (SEC-02); una
   escritura nueva de este tipo hace lo mismo.
-- Lo que otro módulo necesita saber de una oferta sale por un lector con columnas explícitas (`findStatusById` → `job-status.ts`),
+- Lo que otro módulo necesita saber de una oferta sale por un lector con columnas explícitas (`findStatusById` y, desde HU-05, `findSummaryById` → `job-status.ts`),
   no por `findById` (que usa `SELECT *`) ni por SQL ajeno.
 - Las reglas de estado viven en `rules.ts` (tabla acción × estado); el servicio las aplica dentro de la transacción y,
   en el cierre, llama al puerto después del `UPDATE`: si lanza, se deshace todo (DEC-06).
