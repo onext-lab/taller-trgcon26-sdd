@@ -148,7 +148,7 @@ describe('CandidateListScreen · búsqueda, paginación y estado sin URL', () =>
     expect(box('Skill').value).toBe('sql');
     expect(window.location.search).toBe('');
     expect(JSON.stringify(window.history.state ?? null)).not.toContain('ana');
-    expect(document.title).toBe('Candidatos · ATS');
+    await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
   });
 
   it('DD-01 el estado guardado se restaura con su tamaño de página en el selector', async () => {

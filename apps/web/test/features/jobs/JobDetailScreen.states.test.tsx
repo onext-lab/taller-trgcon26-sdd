@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx';
 import type { Job } from '../../../src/features/jobs/types.ts';
@@ -134,7 +134,8 @@ describe('JobDetailScreen por estado', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(title);
     expect(document.querySelector('h1 b')).toBeNull();
     expect(document.querySelectorAll('b')).toHaveLength(0);
-    expect(document.title).toBe(`${title} · ATS`);
+    // The title is set in a passive effect, which can run after the heading is already in the DOM.
+    await waitFor(() => expect(document.title).toBe(`${title} · ATS`));
     expect(controls()).toEqual(['Ver pipeline', 'Duplicar']);
   });
 });

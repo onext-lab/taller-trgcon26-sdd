@@ -110,7 +110,7 @@ describe('App', () => {
     expect(within(nav).getByRole('link', { name: 'Candidatos' }).getAttribute('aria-current')).toBe(
       'page',
     );
-    expect(document.title).toBe('Candidatos · ATS');
+    await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
   });
 
   it('RF-07/EC-39: «Ver pipeline» desde la ficha abre /jobs/7/pipeline con su título y el foco en <main>', async () => {

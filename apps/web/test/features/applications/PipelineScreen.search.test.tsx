@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CONNECTION_MESSAGE } from '../../../src/components/http.ts';
 import type { FetchMock, MockRoute } from '../../helpers/fetch.ts';
@@ -282,6 +282,7 @@ describe('PipelineScreen: errores y cierre del panel', () => {
 
   it('RNF-05 la búsqueda no sale del estado: ni URL, ni título, ni history.state, ni almacenamiento', async () => {
     await renderOpen({ [ANA]: ok(TEN_CANDIDATES_PAGE) });
+    await waitFor(() => expect(document.title).toBe('Pipeline de la oferta · ATS'));
     const before = { href: window.location.href, title: document.title };
 
     search('ana');
