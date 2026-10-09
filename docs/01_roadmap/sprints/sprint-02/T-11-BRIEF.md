@@ -139,5 +139,30 @@ $ node scripts/check-machine-paths.mjs
 check:machine-paths: 60 ruta(s) de máquina con usuario:   (las 60 líneas de los briefs del criterio 6)
 ```
 
-- **Commit:** el de esta tarea, `[T-11]` (parcial). El cierre (saneado, encadenado y 0 coincidencias) irá en un commit
-  propio cuando se desbloquee.
+- **Commit:** `cea98f1` `[T-11]` (parcial).
+
+**Cierre (2026-10-09, mismo día).** Desbloqueado por la persona responsable, que ejecutó ella misma el script de
+saneado (opción a del escalado). Su salida: «ficheros cambiados: 59; líneas cambiadas: 60». La sesión revisó el diff
+(59 ficheros, 60+/60-, solo las dos sustituciones del criterio 6), retocó la redacción de
+`HU-04 TASK-01:37` («… que vivió fuera del repo y ya no existe (era la referencia de los 14 casos)») y encadenó la regla
+en `check:harness` (criterio 5). Los tres ficheros que un `grep '/Users/'` aún encuentra
+(`.claude/skills/module-sync/SKILL.md`, `sprint-02.md` y este brief) describen la regla sin nombre de usuario: son los
+falsos positivos que el criterio 2 descarta.
+
+```
+$ node scripts/check-machine-paths.mjs
+  ✔ rutas de máquina: 14 casos de autoprueba; 0 coincidencias en 634 ficheros
+$ npm run check:harness
+check:harness: todo en verde.
+  ✔ efectos pasivos: 11 casos de autoprueba; 0 aserciones síncronas, 0 en excepciones fechadas; 2 marcas efecto-síncrono (…)
+  ✔ integrate: autoprueba con pasos falsos (para en el rojo, no sigue, guarda logs y tabla)
+  ✔ rutas de máquina: 14 casos de autoprueba; 0 coincidencias en 634 ficheros
+$ npx prettier --check docs/03_delivery/hu/completadas/HU-0*/tasks/TASK-*-BRIEF.md
+All matched files use Prettier code style!
+```
+
+El cierre solo toca docs y el encadenado de `check:harness`: no cambia código ni tests. La pasada completa
+(`npm run integrate`) se ejecuta tras T-12 y T-14, que estaban en curso en el mismo árbol, y se pega en sus briefs.
+
+- **Resultado:** verde. Criterios 1-8 cumplidos.
+- **Commit:** el de cierre, `[T-11]`.

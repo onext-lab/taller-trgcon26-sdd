@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 3 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 4 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -57,7 +57,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   `ApplicationDetailScreen` y `PipelineScreen`). Se extrae a un único helper común, sin cambio de comportamiento. El
   repo se va a enseñar y a publicar, y 5 copias de lo mismo en las pantallas se ven.
 
-### T-11 · Ninguna ruta de máquina y citas de módulo al día · estado: parcial (bloqueada)
+### T-11 · Ninguna ruta de máquina y citas de módulo al día · estado: hecha
 - **Tipo:** publicación (auditoría del sprint-01, A-10; publicación P6)
 - Una regla automática contra `/Users/`, `/home/` y `C:\Users\`, con su test, y los briefs de las HU saneados. Además, el
   barrido de las citas `fichero:línea` de `functional.md` y `technical.md` de los tres módulos, como el de los UC
@@ -66,6 +66,8 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   plantilla del brief y en `/implementar-hu`, y el barrido de módulo (6 citas, todas correctas). **Bloqueado:** el
   saneado de los 59 + 1 briefs, que el clasificador de permisos denegó al builder; escalado a la persona responsable.
   Hasta entonces, el script no se encadena en `check:harness`. Detalle en `sprint-02/T-11-BRIEF.md` §7.
+- 2026-10-09 · **Desbloqueada y cerrada:** la persona responsable ejecutó el saneado (59 ficheros, 60 líneas); la regla
+  ya va en `check:harness`, con 0 coincidencias.
 
 ### T-12 · Autoría para publicar: `check-clean` de identidades y puerta `--publish` · estado: pendiente
 - **Tipo:** publicación (P6, decisión del responsable técnico del 2026-10-07)

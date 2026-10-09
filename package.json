@@ -21,7 +21,7 @@
     "e2e": "playwright test",
     "db:reset": "npm run db:reset -w apps/api",
     "check:env": "node scripts/check-env.mjs",
-    "check:harness": "node scripts/check-harness.mjs && node scripts/check-passive-effects.mjs && node scripts/integrate.mjs --self-test",
+    "check:harness": "node scripts/check-harness.mjs && node scripts/check-passive-effects.mjs && node scripts/integrate.mjs --self-test && node scripts/check-machine-paths.mjs",
     "check:clean": "node scripts/check-clean.mjs",
     "integrate": "node scripts/integrate.mjs"
   },
