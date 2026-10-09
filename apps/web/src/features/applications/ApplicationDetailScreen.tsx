@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
@@ -14,11 +14,6 @@ type ScreenProps = {
   /** What to show when the application does not exist or the ID is not valid (DD-09). */
   notFound: ReactElement;
 };
-
-// 404 and 400 from the API show the same as an invalid ID in the URL (CA-27).
-function isNotFound(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 404 || error.status === 400);
-}
 
 function ApplicationLoader({ id, notFound }: ScreenProps & { id: number }) {
   const application = useResource((signal) => getApplicationDetail(id, signal), [id]);

@@ -3,6 +3,7 @@ import {
   ApiError,
   BAD_RESPONSE_MESSAGE,
   CONNECTION_MESSAGE,
+  isNotFound,
   requestJson,
   userMessage,
 } from '../../src/components/http.ts';
@@ -232,4 +233,24 @@ describe('existingId de details (S5, DD-06)', () => {
       ]);
     },
   );
+});
+
+describe('isNotFound (EC-43)', () => {
+  it.each([
+    ['404', new ApiError(404, 'NOT_FOUND', 'La oferta no existe.')],
+    ['400', new ApiError(400, 'VALIDATION_ERROR', 'Hay campos con errores.')],
+  ])('true para un ApiError con %s', (_name, error) => {
+    expect(isNotFound(error)).toBe(true);
+  });
+
+  it.each([
+    ['un ApiError 409', new ApiError(409, 'DUPLICATE', 'Registro duplicado.')],
+    ['un ApiError 500', new ApiError(500, 'INTERNAL_ERROR', 'Error interno.')],
+    ['un ApiError del cliente (status 0)', new ApiError(0, 'CLIENT_NETWORK', CONNECTION_MESSAGE)],
+    ['un Error normal', new Error('Not Found')],
+    ['null', null],
+    ['un objeto con status 404 que no es ApiError', { status: 404, code: 'NOT_FOUND' }],
+  ])('false para %s', (_name, error) => {
+    expect(isNotFound(error)).toBe(false);
+  });
 });

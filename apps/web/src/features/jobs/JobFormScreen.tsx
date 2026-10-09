@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, matchPath, navigate, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
 import { useResource } from '../../components/use-resource.ts';
 import { createJob, getJob, updateJob } from './api.ts';
-import { isNotFound, NotFound } from './JobDetailScreen.tsx';
+import { NotFound } from './JobDetailScreen.tsx';
 import { JobForm } from './JobForm.tsx';
 import { focusFirstError, splitServerError } from './job-form-errors.ts';
 import {

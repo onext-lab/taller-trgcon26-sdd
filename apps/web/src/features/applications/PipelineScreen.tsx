@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage, Notice } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
@@ -28,11 +28,6 @@ type ScreenProps = {
   /** What to show when the job does not exist or the ID is not valid (DD-09). */
   notFound: ReactElement;
 };
-
-// 404 and 400 from the API show the same as an invalid ID in the URL (DD-09).
-function isNotFound(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 404 || error.status === 400);
-}
 
 type PanelProps = ReturnType<typeof useEnrollPanel>;
 

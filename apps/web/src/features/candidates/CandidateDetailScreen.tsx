@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, matchPath, useNotice, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage, Notice } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
@@ -13,11 +13,6 @@ import type { Candidate } from './types.ts';
 // The title is fixed: the name never goes to the title, the history or the tabs (DD-08, RNF-09).
 const DETAIL_TITLE = 'Ficha de candidato';
 const NOT_FOUND_TITLE = 'Candidato no encontrado';
-
-// 404 and 400 from the API show the same as an invalid ID (EC-35).
-function isNotFound(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 404 || error.status === 400);
-}
 
 export function CandidateNotFound() {
   useDocumentTitle(NOT_FOUND_TITLE);

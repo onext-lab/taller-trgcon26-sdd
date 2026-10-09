@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, matchPath, useNotice, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage, Notice } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
@@ -15,12 +15,6 @@ const NOT_FOUND_TITLE = 'Oferta no encontrada';
 const GONE_MESSAGE = 'Esta oferta ya no existe.';
 const CLOSED_NOTICE = 'Oferta cerrada.';
 const PUBLISHED_NOTICE = 'Oferta publicada.';
-
-// 404 and 400 from the API show the same as an invalid ID (EC-43); `status` is never 400/404 unless the
-// API said so in its envelope.
-export function isNotFound(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 404 || error.status === 400);
-}
 
 export function NotFound() {
   useDocumentTitle(NOT_FOUND_TITLE);

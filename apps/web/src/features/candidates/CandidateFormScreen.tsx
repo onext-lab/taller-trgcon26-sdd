@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { ApiError, userMessage } from '../../components/http.ts';
+import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, matchPath, navigate, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
 import { useDocumentTitle } from '../../components/use-document-title.ts';
@@ -30,12 +30,6 @@ const NOT_FOUND_TITLE = 'Candidato no encontrado';
 type Submit = (values: CandidateFormValues, signal?: AbortSignal) => Promise<void>;
 
 const NO_FEEDBACK: CandidateServerErrors = { fields: {} };
-
-// 404 and 400 from the API show the same as an invalid ID; `status` is never 400/404 unless the API
-// said so in its envelope.
-function isNotFound(error: unknown): boolean {
-  return error instanceof ApiError && (error.status === 404 || error.status === 400);
-}
 
 function CandidateNotFound() {
   useDocumentTitle(NOT_FOUND_TITLE);

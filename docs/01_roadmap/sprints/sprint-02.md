@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 5 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 6 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -50,7 +50,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   columnas explícitas; etapa, fechas y motivo nunca vienen del cliente, y la guarda de estado va en el `WHERE`, con 0
   filas → 409. Todo en `docs/ARCHITECTURE.md` §Convenciones, por capa, con un ejemplo `fichero:línea` en cada una.
 
-### T-14 · Un solo `isNotFound` en la web · estado: pendiente
+### T-14 · Un solo `isNotFound` en la web · estado: hecha
 - **Tipo:** refactor interno de capa web (auditoría del sprint-01, §2 info; decisión del responsable técnico del
   2026-10-09)
 - `isNotFound(error)` está copiada en 5 pantallas (`JobDetailScreen`, `CandidateFormScreen`, `CandidateDetailScreen`,

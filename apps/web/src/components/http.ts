@@ -49,6 +49,12 @@ export class ApiError extends Error {
   }
 }
 
+// 404 and 400 from the API show the same as an invalid ID (EC-43); `status` is never 400/404 unless the
+// API said so in its envelope.
+export function isNotFound(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 404 || error.status === 400);
+}
+
 export function badResponseError(): ApiError {
   return new ApiError(0, 'CLIENT_BAD_RESPONSE', BAD_RESPONSE_MESSAGE);
 }
