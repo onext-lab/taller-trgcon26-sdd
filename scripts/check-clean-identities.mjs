@@ -119,6 +119,32 @@ export const SELF_TEST_INPUTS = {
   leaks: ['zorzal', 'mirlo', 'garza', ...[ANA, BRUNO, CARLA].flatMap((p) => [p.name, p.email])],
 };
 
+// Casos: [qué se prueba, argumentos, código esperado, patrones de la salida]. D y C son la denylist sucia y la limpia
+// (sin --denylist se usa C), M y F el .mailmap parcial y el completo, y X uno que no existe. Antes del último caso,
+// check-clean deja un marcador en el árbol del repo temporal.
+export const SELF_CASES = [
+  [
+    'modo normal',
+    ['--denylist', 'D'],
+    1,
+    [
+      /autor \(email\) · regla 1 /,
+      /committer \(nombre\) · regla 2 /,
+      /v1 · tagger \(nombre\) · regla 3 /,
+    ],
+  ],
+  [
+    '--publish con una identidad fuera del .mailmap',
+    ['--publish', '--mailmap', 'M'],
+    1,
+    [/1 commit\(s\) y 1 etiqueta\(s\)/, /2 identidad\(es\) distinta\(s\)/],
+  ],
+  ['--publish con todas mapeadas o de Claude', ['--publish', '--mailmap', 'F'], 0, [/listos/]],
+  ['--publish sin --mailmap', ['--publish'], 1, [/falta --mailmap/, /titular/]],
+  ['--publish con un --mailmap que no existe', ['--publish', '--mailmap', 'X'], 1, [/no existe/]],
+  ['--publish con un marcador', ['--publish', '--mailmap', 'F'], 1, [/TITULAR · marca\.md:2/]],
+];
+
 /** Entorno de git sin la configuración ni la identidad de quien ejecuta la autoprueba. */
 export function selfTestEnv(devNull) {
   const env = { ...process.env, GIT_CONFIG_GLOBAL: devNull, GIT_CONFIG_NOSYSTEM: '1' };

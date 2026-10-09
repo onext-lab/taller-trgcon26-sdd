@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 8 / 9 (T-08 a T-14, y T-16 y T-17 de la auditoría)
+- HU: 0 · tareas sin HU: hechas 9 / 9 (T-08 a T-14, y T-16 y T-17 de la auditoría)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -104,7 +104,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   fila «Scripts» de `docs/ARCHITECTURE.md`, al día. A-05 (DP-01): en este sprint, el rol en lugar del nombre; la
   decisión sobre el resto de docs y la denylist, escalada a la persona responsable.
 
-### T-17 · Complejidad de `main` en `check-clean` · estado: pendiente
+### T-17 · Complejidad de `main` en `check-clean` · estado: hecha
 - **Tipo:** refactor de script (auditoría del sprint-02, A-03 y C-01)
 - `main` de `scripts/check-clean.mjs` tiene complejidad 11 (umbral: 10). Sacar el despacho de modos a funciones
   pequeñas, sin cambio de comportamiento, con la autoprueba en verde.

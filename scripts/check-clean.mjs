@@ -29,6 +29,7 @@ import {
   identitiesProblem,
   MAILMAP_HELP,
   scanIdentities,
+  SELF_CASES,
   SELF_TEST_INPUTS,
   selfTestEnv,
 } from './check-clean-identities.mjs';
@@ -176,27 +177,18 @@ function reportPublish(problems) {
   return 1;
 }
 
-function main() {
-  const denylistPath = argValue('--denylist');
-  if (!denylistPath) usage('falta --denylist <ruta>.');
-  if (!existsSync(denylistPath)) usage(`no existe la lista ${denylistPath}.`);
-  const rules = loadRules(denylistPath);
-  const findings = [];
-  const scan = (text, where) => {
-    for (const rule of rules) {
-      if (rule.re.test(text))
-        findings.push(`${where} · regla ${rule.n} (línea ${rule.line} de la lista)`);
-    }
-  };
-  // --file <ruta>: revisa solo ese fichero (lo usa el hook commit-msg con el mensaje del commit).
-  if (process.argv.includes('--file')) {
-    const single = argValue('--file');
-    if (!single || !existsSync(single)) usage('falta el fichero de --file <ruta>.');
-    readFileSync(single, 'utf8')
-      .split(/\r?\n/)
-      .forEach((line, i) => scan(line, `${single}:${i + 1}`));
-    return report(findings, rules, single);
-  }
+/** --file <ruta>: revisa solo ese fichero (lo usa el hook commit-msg con el mensaje del commit). */
+function runFile(rules, scan, findings) {
+  const single = argValue('--file');
+  if (!single || !existsSync(single)) usage('falta el fichero de --file <ruta>.');
+  readFileSync(single, 'utf8')
+    .split(/\r?\n/)
+    .forEach((line, i) => scan(line, `${single}:${i + 1}`));
+  return report(findings, rules, single);
+}
+
+/** Árbol, historial, refs e identidades; con --publish, además la puerta de publicación. */
+function runScan(rules, scan, findings) {
   const mailmap = argValue('--mailmap');
   const mailmapPath = mailmap && !mailmap.startsWith('--') ? resolve(mailmap) : undefined;
   process.chdir(git('rev-parse', '--show-toplevel').trim());
@@ -213,33 +205,25 @@ function main() {
   return Math.max(code, reportPublish(publishProblems(mailmapPath, withCommits)));
 }
 
-// ---------- autoprueba: repo git temporal con identidades inventadas (fixture en check-clean-identities.mjs) ----------
-// Casos: [qué se prueba, argumentos, código esperado, patrones de la salida]. D y C son la denylist sucia y la limpia
-// (sin --denylist se usa C), M y F el .mailmap parcial y el completo, y X uno que no existe. Antes del último caso se
-// deja un marcador en el árbol del repo temporal.
-const SELF_CASES = [
-  [
-    'modo normal',
-    ['--denylist', 'D'],
-    1,
-    [
-      /autor \(email\) · regla 1 /,
-      /committer \(nombre\) · regla 2 /,
-      /v1 · tagger \(nombre\) · regla 3 /,
-    ],
-  ],
-  [
-    '--publish con una identidad fuera del .mailmap',
-    ['--publish', '--mailmap', 'M'],
-    1,
-    [/1 commit\(s\) y 1 etiqueta\(s\)/, /2 identidad\(es\) distinta\(s\)/],
-  ],
-  ['--publish con todas mapeadas o de Claude', ['--publish', '--mailmap', 'F'], 0, [/listos/]],
-  ['--publish sin --mailmap', ['--publish'], 1, [/falta --mailmap/, /titular/]],
-  ['--publish con un --mailmap que no existe', ['--publish', '--mailmap', 'X'], 1, [/no existe/]],
-  ['--publish con un marcador', ['--publish', '--mailmap', 'F'], 1, [/TITULAR · marca\.md:2/]],
-];
+/** Lee los argumentos y despacha al modo: --self-test, --file o el escaneo completo (con o sin --publish). */
+function main() {
+  if (process.argv.includes('--self-test')) return runSelfTest();
+  const denylistPath = argValue('--denylist');
+  if (!denylistPath) usage('falta --denylist <ruta>.');
+  if (!existsSync(denylistPath)) usage(`no existe la lista ${denylistPath}.`);
+  const rules = loadRules(denylistPath);
+  const findings = [];
+  const scan = (text, where) => {
+    for (const rule of rules) {
+      if (rule.re.test(text))
+        findings.push(`${where} · regla ${rule.n} (línea ${rule.line} de la lista)`);
+    }
+  };
+  const run = process.argv.includes('--file') ? runFile : runScan;
+  return run(rules, scan, findings);
+}
 
+// ---------- autoprueba: repo git temporal con identidades inventadas (fixture y casos en check-clean-identities.mjs)
 function runSelfCases(tmp, repo, env) {
   const file = (name, text) => (writeFileSync(join(tmp, name), text), join(tmp, name));
   const { dirty, clean, partialMailmap, fullMailmap, leaks } = SELF_TEST_INPUTS;
@@ -284,17 +268,18 @@ function selfTest() {
   }
 }
 
-// `import.meta.main` (Node ≥ 24.2) y no comparar process.argv[1]: bajo enlaces simbólicos esa comparación falla.
-if (import.meta.main === true && process.argv.includes('--self-test')) {
+function runSelfTest() {
   const failures = selfTest();
   if (failures.length > 0) {
     for (const f of failures) console.error(`  ✘ [check-clean] autoprueba: ${f}`);
     console.error(`check-clean --self-test: ${failures.length} fallo(s).`);
-    process.exit(1);
+    return 1;
   }
   console.log(
     '  ✔ check-clean: autoprueba en un repo temporal (identidades en bruto contra la denylist, --publish con .mailmap, sin --mailmap y con marcadores; ninguna salida imprime identidades ni términos)',
   );
-} else if (import.meta.main === true) {
-  process.exit(main());
+  return 0;
 }
+
+// `import.meta.main` (Node ≥ 24.2) y no comparar process.argv[1]: bajo enlaces simbólicos esa comparación falla.
+if (import.meta.main === true) process.exit(main());
