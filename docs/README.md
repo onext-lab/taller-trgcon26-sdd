@@ -10,7 +10,7 @@ Todo lo que el flujo SDD escribe o consulta vive aquí. Empieza por [WORKFLOW.md
 | [WORKFLOW.md](WORKFLOW.md) | El flujo canónico: pasos, skills, gates, IDs, etiquetas por fase |
 | [IMPLEMENTATION-RULE.md](IMPLEMENTATION-RULE.md) | Cómo se encarga e integra el código (R1-R4, techo de 2 ciclos) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Backbone del ATS: piezas, módulos y convenciones |
-| [SETUP.md](SETUP.md) | Requisitos del portátil, Node 24 LTS y `npm run check:env` |
+| [SETUP.md](SETUP.md) | Requisitos del portátil, Node 24 LTS, `npm run check:env` y cómo recorrer las etiquetas |
 | [MVP-STATUS.md](MVP-STATUS.md) | Estado por módulo |
 | [RGPD.md](RGPD.md) | Ejemplo didáctico de tratamiento de datos de candidatos (base de la feature A) |
 | [_modules.md](_modules.md) | Mapa módulo docs ↔ código que usan skills y agentes |
