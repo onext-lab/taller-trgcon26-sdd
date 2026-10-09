@@ -4,6 +4,7 @@ data/*.db
 data/*.db-*
 test-results/
 playwright-report/
+logs/
 .env*
 .claude/worktrees/
 .claude/settings.local.json

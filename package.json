@@ -21,8 +21,9 @@
     "e2e": "playwright test",
     "db:reset": "npm run db:reset -w apps/api",
     "check:env": "node scripts/check-env.mjs",
-    "check:harness": "node scripts/check-harness.mjs && node scripts/check-passive-effects.mjs",
-    "check:clean": "node scripts/check-clean.mjs"
+    "check:harness": "node scripts/check-harness.mjs && node scripts/check-passive-effects.mjs && node scripts/integrate.mjs --self-test",
+    "check:clean": "node scripts/check-clean.mjs",
+    "integrate": "node scripts/integrate.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

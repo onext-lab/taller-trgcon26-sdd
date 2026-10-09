@@ -3,7 +3,7 @@ sprint: 02
 objetivo: "Punto de partida del taller (paso-3): deuda de demo, umbral de función, convenciones y lo necesario para publicar, sin features nuevas."
 inicio: 2026-10-09
 fin: 2026-10-10            # por defecto, inicio + 1 (2 días)
-estado: planificado        # planificado | en curso | completado | cerrado
+estado: en curso           # planificado | en curso | completado | cerrado
 base: 8328116              # sha de main al abrir el sprint; /audit-sprint audita base..main
 cerrado_en: null
 audit-override: null       # solo con razón ≥ 20 caracteres
@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 0 / 6 (T-08 a T-13)
+- HU: 0 · tareas sin HU: hechas 1 / 6 (T-08 a T-13)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -26,7 +26,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
 
 ## Tareas sin HU
 
-### T-08 · Deuda de demo: integración en serie, medida y con logs · estado: pendiente
+### T-08 · Deuda de demo: integración en serie, medida y con logs · estado: hecha
 - **Tipo:** infraestructura de tests (auditoría del sprint-01, A-02)
 - (a) Un script de integración que ejecute typecheck, lint, unitarios y e2e **en serie**, nunca unitarios y e2e a la
   vez, con los e2e en *workers* acotados. (b) Un *timeout* por test web fijado y justificado, sin subirlo a ciegas.
@@ -84,4 +84,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   (`055673b`).
 - El sprint se trabaja en la rama de integración `worktree-paso-3-punto-de-partida`, como el sprint-01. El avance de
   `main` y la etiqueta los decide el responsable técnico tras revisar.
+- 2026-10-09 · **Briefs de las tareas sin HU:** R1 de `docs/IMPLEMENTATION-RULE.md` guarda el brief en la carpeta de la
+  HU, y estas tareas no tienen. Van en `docs/01_roadmap/sprints/sprint-02/T-NN-BRIEF.md`, con la plantilla entera y su
+  §7 (integración) rellena por la sesión (decisión de la sesión).
 - Tareas de un día cada una como mucho; si alguna pasa de su techo de 2 ciclos de arreglo, se para y se escala.

@@ -19,6 +19,7 @@ de una idea al código integrado, con especificaciones, gates comprobables y ver
 | `npm run dev` | API en :3001 y web en :5173 (proxy `/api`) |
 | `npm test` · `npm run typecheck` · `npm run lint` · `npm run e2e` | Verificaciones |
 | `npm test -w apps/api -- <patrón>` · `npx eslint <ficheros>` | Verificaciones acotadas |
+| `npm run integrate` | Integración completa en serie (`scripts/integrate.mjs`), con logs en `logs/integrate/` |
 | `npm run check:env` · `npm run check:harness` | Portátil listo · kit SDD completo |
 | `node scripts/next-id.mjs <idea\|feat\|spike\|sprint\|hu\|task\|uc>` | Siguiente ID libre (nunca a mano) |
 

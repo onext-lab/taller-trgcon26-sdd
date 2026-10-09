@@ -28,8 +28,10 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
 - **Contexto.** API, web y e2e comparten versiones de TypeScript, ESLint y Prettier, y el asistente tiene que
   arrancarlo todo con un comando.
 - **Decisión.** Un único repo con **npm workspaces** (`apps/api`, `apps/web`) y `e2e/` en la raíz. Scripts raíz:
-  `dev`, `build`, `test`, `typecheck`, `lint`, `format`, `e2e`, `db:reset`, `check:env`, `check:harness` y
-  `check:clean` (busca términos prohibidos con una lista que vive fuera del repo: `--denylist <ruta>`).
+  `dev`, `build`, `test`, `typecheck`, `lint`, `format`, `e2e`, `db:reset`, `check:env`, `check:harness`,
+  `check:clean` (busca términos prohibidos con una lista que vive fuera del repo: `--denylist <ruta>`) e `integrate`.
+  - *Aclaración 2026-10-09 (T-08 del sprint-02):* se añade a la lista `integrate` (`scripts/integrate.mjs`, Node sin
+    dependencias y sin red), que ejecuta en serie typecheck, lint, unitarios, e2e y `check:harness`. La decisión no cambia.
 - **Alternativas.** pnpm o Turborepo (otra herramienta que instalar); dos repos (rompe la HU vertical).
 - **Consecuencias.** Un solo `package-lock.json`; los comandos acotados usan `-w apps/<app>`.
 - **Estado.** Aceptada (2026-10-06).

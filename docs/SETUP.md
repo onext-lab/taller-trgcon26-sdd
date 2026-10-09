@@ -96,6 +96,20 @@ Todo listo para el taller.
 
 Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/` y `docs/`) está completo.
 
+## Integración completa en serie
+
+`npm run integrate` (`scripts/integrate.mjs`) ejecuta toda la verificación **uno detrás de otro**, en este orden:
+`npm run typecheck`, `npm run lint`, `npm test -w apps/api`, `npm test -w apps/web`, `npm run e2e` y
+`npm run check:harness`. Se para en el primer paso en rojo, te dice cuál falló y dónde está su log, y sale con un código
+distinto de 0; si todo pasa, sale con 0.
+
+- **Logs:** la salida completa de cada paso ejecutado va a `logs/integrate/<paso>.log` y la tabla de pasos, resultado y
+  segundos, a `logs/integrate/summary.txt`. Se sobrescriben en cada pasada y `logs/` está en `.gitignore`.
+- **Cuánto tarda:** 48,2 s en un portátil de 11 núcleos (2026-10-09): typecheck 3,7 · lint 2,9 · unitarios 15,3 · e2e
+  25,1 · `check:harness` 1,2. En una máquina más modesta, cuenta con el doble o el triple.
+- **Nunca la suite unitaria y los e2e a la vez:** con la CPU saturada, los tests web pueden pasar de su *timeout*
+  (10 s, en `apps/web/vite.config.ts`). En serie, cada suite tiene la máquina para ella sola.
+
 ## Recorrer el taller por etiquetas
 
 El taller se sigue saltando entre etiquetas git locales, una por fase (`docs/WORKFLOW.md` §10). Lista las que tienes
@@ -147,7 +161,7 @@ npm ci && npm run db:reset
 | `npm run db:reset` falla con «No such built-in module: node:sqlite» aunque `node -v` dé v24 | `npm` está lanzando otro Node (el de otra terminal o el que `nvm` tiene por defecto). Abre una terminal nueva en la raíz del repo, `nvm use` y repite. |
 | Tras saltar de etiqueta, la API falla al arrancar o la web enseña datos raros | Te falta `npm ci && npm run db:reset` después del salto. |
 | En macOS, `git` pide aceptar la licencia de Xcode y `npm run check:harness` falla en `git ls-files` | Acepta la licencia (`sudo xcodebuild -license`) o usa un `git` instalado con Homebrew. |
-| Con la suite unitaria y los e2e a la vez, tests web fallan por *timeout* de 5 s | Es la CPU saturada, no un fallo: ejecútalos uno detrás de otro (`npm test` y después `npm run e2e`). |
+| Con la suite unitaria y los e2e a la vez, tests web fallan por *timeout* | Es la CPU saturada, no un fallo: ejecútalos uno detrás de otro con `npm run integrate` (o `npm test` y después `npm run e2e`). |
 
 ## Cómo se preparan los e2e
 
