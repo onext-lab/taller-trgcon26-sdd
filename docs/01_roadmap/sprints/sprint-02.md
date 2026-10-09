@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 4 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 5 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -69,7 +69,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
 - 2026-10-09 · **Desbloqueada y cerrada:** la persona responsable ejecutó el saneado (59 ficheros, 60 líneas); la regla
   ya va en `check:harness`, con 0 coincidencias.
 
-### T-12 · Autoría para publicar: `check-clean` de identidades y puerta `--publish` · estado: pendiente
+### T-12 · Autoría para publicar: `check-clean` de identidades y puerta `--publish` · estado: hecha
 - **Tipo:** publicación (P6, decisión del responsable técnico del 2026-10-07)
 - `.mailmap` con el titular onext, manteniendo los `Co-Authored-By`. `scripts/check-clean.mjs` revisa también autor,
   committer y etiquetas, con su test.

@@ -32,6 +32,10 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   `check:clean` (busca términos prohibidos con una lista que vive fuera del repo: `--denylist <ruta>`) e `integrate`.
   - *Aclaración 2026-10-09 (T-08 del sprint-02):* se añade a la lista `integrate` (`scripts/integrate.mjs`, Node sin
     dependencias y sin red), que ejecuta en serie typecheck, lint, unitarios, e2e y `check:harness`. La decisión no cambia.
+  - *Aclaración 2026-10-09 (T-12 del sprint-02):* `check:clean` revisa también las identidades en bruto (autor,
+    committer y tagger de todas las refs) y admite `--publish --mailmap <ruta>`, la puerta de publicación: falla si
+    falta el `.mailmap` (vive fuera del repo, como la denylist), si alguna identidad no es canónica del `.mailmap` ni de
+    Claude o si queda algún marcador de publicación en el árbol. La lista de scripts raíz no cambia.
 - **Alternativas.** pnpm o Turborepo (otra herramienta que instalar); dos repos (rompe la HU vertical).
 - **Consecuencias.** Un solo `package-lock.json`; los comandos acotados usan `-w apps/<app>`.
 - **Estado.** Aceptada (2026-10-06).

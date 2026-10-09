@@ -172,3 +172,15 @@ lanzar con `npm run dev` abierto y nunca toca `data/ats.db`. La base se regenera
 (`npm run db:reset -w apps/api && npm run start -w apps/api`). No va en un `globalSetup` porque en Playwright 1.63 el
 `webServer` arranca **antes** que `globalSetup`: borrar la base entonces dejaría a la API escribiendo en ficheros ya
 borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones seguidas dan el mismo resultado.
+
+## Antes de publicar
+
+Lo hace el responsable técnico, en este orden:
+
+1. **Rellena los marcadores de publicación**: TITULAR, RAZON_SOCIAL y URL_MARKETPLACE (entre ángulos en los
+   ficheros; la lista está en `scripts/publish-markers.mjs`). `npm run check:harness` avisa de cuántos quedan.
+2. **Crea el `.mailmap` fuera del repo**, con el nombre y el email canónicos (el titular) de cada autor, committer y
+   tagger. No se versiona: publicaría los emails que mapea.
+3. **`node scripts/check-clean.mjs --denylist <ruta> --publish --mailmap <ruta>` en verde**: términos, identidades y
+   marcadores. Si fallan las identidades, se reescriben en la copia de publicación, nunca en este repo.
+4. **Después, el bundle** (`git bundle create`), desde la copia que ha pasado el paso 3.
