@@ -1,0 +1,50 @@
+Taller SDD · ATS de ejemplo
+Copyright (c) 2026 onext technology
+
+Repo de ejemplo del taller de Spec-Driven Development (TRGCON 2026). Es un ejemplo
+didáctico, archivado y sin soporte: se archiva el 2026-12-31 y no recibe cambios,
+incidencias ni pull requests.
+
+Este kit es un ejemplo didáctico derivado del flujo SDD de onext.
+
+Todos los datos del repo (ofertas, candidatos, inscripciones, nombres, emails y
+teléfonos) son inventados. No hay datos de personas reales.
+
+
+LICENCIAS POR RUTA
+==================
+
+Hay dos licencias. Si una ruta no aparece abajo, aplica la de su carpeta más
+cercana; si no hay ninguna, MIT.
+
+MIT (texto completo en LICENSE)
+-------------------------------
+- apps/                       la API, la web y sus tests
+- e2e/                        los tests end-to-end
+- scripts/                    los scripts de verificación y utilidades
+- .claude/                    skills, agentes, hooks y configuración de Claude Code
+- AGENTS.md, CLAUDE.md        instrucciones de arranque del kit para los agentes
+- docs/_templates/            las plantillas de los artefactos del flujo
+- bloques de código           cualquier bloque de código copiable dentro de docs/
+- ficheros de configuración   package.json, package-lock.json, tsconfig*.json,
+                              eslint.config.js, playwright.config.ts, .nvmrc,
+                              .npmrc, .prettierrc*, .gitignore y similares en la raíz
+
+CC BY 4.0 (Creative Commons Atribución 4.0 Internacional)
+---------------------------------------------------------
+- docs/                       la prosa de la documentación, salvo docs/_templates/
+                              y los bloques de código copiables
+- README.md                   la presentación del repo
+
+Texto legal de CC BY 4.0: https://creativecommons.org/licenses/by/4.0/legalcode.es
+
+Atribución sugerida al reutilizar la prosa:
+  «Taller SDD · ATS de ejemplo», onext technology, CC BY 4.0.
+
+
+DEPENDENCIAS DE TERCEROS
+========================
+
+Las dependencias que instala `npm ci` (Fastify, React, Vite, Playwright, Vitest,
+TypeScript, ESLint, Prettier y las suyas) no se distribuyen con este repo y
+conservan sus propias licencias. El navegador que instala Playwright, también.

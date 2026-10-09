@@ -4,6 +4,9 @@ Repo de ejemplo del taller de **Spec-Driven Development** (TRGCON 2026): un ATS 
 candidatos e inscripciones) construido con un flujo de agentes en Claude Code, de la idea al código integrado, con
 especificaciones, gates comprobables y verificación ejecutada. Todos los datos son inventados.
 
+> **Ejemplo archivado, sin soporte.** Este repo es material del taller: se archiva el **2026-12-31** y no recibe cambios,
+> incidencias ni pull requests. Este kit es un ejemplo didáctico derivado del flujo SDD de onext.
+
 ## Qué hay dentro
 
 - **El ATS:** API en Fastify 5 con el SQLite de Node (`node:sqlite`), web en React 19 + Vite y e2e con Playwright.
@@ -55,3 +58,9 @@ Cómo volver, qué cambia entre etiquetas y los problemas típicos: [docs/SETUP.
 - [AGENTS.md](AGENTS.md): el repo en una página (comandos, flujo y reglas de oro).
 - [docs/WORKFLOW.md](docs/WORKFLOW.md): el flujo completo.
 - [docs/README.md](docs/README.md): el mapa de la documentación.
+
+## Licencias
+
+El código, los tests, los scripts, el kit de Claude Code (`.claude/`, `AGENTS.md`, `CLAUDE.md`) y las plantillas de
+`docs/_templates/` van bajo [MIT](LICENSE). La prosa de `docs/` y este README, bajo CC BY 4.0. El mapa ruta a ruta y la
+atribución están en [NOTICE](NOTICE). Titular: onext technology.

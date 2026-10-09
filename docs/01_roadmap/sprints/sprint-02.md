@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 6 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 7 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -80,7 +80,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   que el `.mailmap` es la entrada de esa reescritura y vive fuera del repo, como la denylist (un `.mailmap` versionado
   publicaría los emails que mapea).
 
-### T-13 · Licencias y aviso de archivo · estado: pendiente
+### T-13 · Licencias y aviso de archivo · estado: hecha
 - **Tipo:** publicación (P6, decisión del responsable técnico del 2026-10-07)
 - `LICENSE` (MIT para el código y `.claude/`) y `NOTICE` (titular onext; CC BY 4.0 solo para la prosa de `docs/`; mapa
   de rutas). En el README: «ejemplo archivado, sin soporte», archivo el 2026-12-31 y una frase sobre la relación con el
@@ -89,6 +89,12 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   copiables, bajo MIT; el resto de la prosa de `docs/`, bajo CC BY 4.0. El titular y la razón social, con marcadores
   hasta que el responsable técnico los dé. La frase del README: «Este kit es un ejemplo didáctico derivado del flujo SDD de onext; el
   plugin SDD de onext para uso general está en su propio repositorio», con la URL como marcador.
+- 2026-10-09 · **Hecha** por la sesión (documentación, sin builder): `LICENSE` (MIT, «Copyright (c) 2026 onext
+  technology», razón social dada por el responsable técnico), `NOTICE` (titular, aviso de archivo, la frase del marketplace, el mapa de
+  rutas MIT / CC BY 4.0 con la atribución, y las dependencias de terceros) y, en el README, el aviso «ejemplo
+  archivado, sin soporte» y la sección «Licencias». **Queda un marcador a propósito:** URL_MARKETPLACE, en `NOTICE` y en
+  `README.md`, que confirma el responsable técnico antes de publicar. Lo avisa `check:harness` y lo bloquea
+  `check-clean --publish`.
 
 ## Orden de ejecución
 1. T-08 (sin dependencias)
