@@ -83,3 +83,61 @@ transacción (`withTransaction`), que se une a la que ya esté abierta.
   inscribir viven en memoria. Las features siguen la misma dirección que la API (`jobs → applications → candidates`) y
   `App.tsx` es su punto de composición.
 - **Datos personales:** se tratan según [RGPD.md](RGPD.md): minimización, retención y supresión.
+
+### Convenciones del repo
+
+Patrones que se repiten en todo el código y que un cambio nuevo sigue. Cada uno lleva un ejemplo. Decididos por el
+responsable técnico el 2026-10-09 (T-10 del sprint-02, a partir de la auditoría del sprint-01 y del module-sync de
+HU-04).
+
+**API**
+
+- **Factorías cortas.** Un repositorio o un servicio se compone de piezas pequeñas: los casos de uso son funciones del
+  módulo que reciben sus dependencias, y los grupos de métodos afines son funciones `createXOperations` /
+  `createXQueries` que la factoría exportada compone con *spread*. La frontera transaccional queda a la vista en el
+  objeto que devuelve la factoría. Ejemplos: `apps/api/src/modules/applications/service.ts:232` (servicio) y
+  `apps/api/src/modules/jobs/repository.ts:97` y `:183` (repositorio). Lo vigila `npm run lint`
+  (`max-lines-per-function`, 50 líneas; [QUALITY-GATES.md](07_architecture_principles/QUALITY-GATES.md) §2).
+- **Mensajes en constantes `*_MESSAGE`.** Cada texto de error del servicio se declara una vez, como constante, y se
+  reutiliza en cada `throw`. Ejemplo: `apps/api/src/modules/applications/service.ts:72-74`.
+- **`requireX` para «existe o 404».** Un helper por entidad que lee la fila o lanza `notFound` con su mensaje, en lugar
+  de repetir la comprobación en cada caso de uso. Ejemplos: `apps/api/src/modules/jobs/service.ts:67` y
+  `apps/api/src/modules/candidates/service.ts:84`.
+
+**Datos y consistencia**
+
+- **Una sola `withTransaction` por operación que cruza módulos.** La guarda del puerto, las escrituras, el
+  `StageChange` y el recálculo de la retención van juntos: si falla uno, no queda nada. Ejemplo: inscribir,
+  `apps/api/src/modules/applications/service.ts:234` (`deps.transaction(() => enroll(deps, input))`, con
+  `withTransaction` de `apps/api/src/db/transaction.ts:8`).
+- **El índice único decide el duplicado**, sin `SELECT` previo: se inserta y se traduce el choque del índice en 409
+  `DUPLICATE` con el ID existente. Así dos peticiones a la vez no pueden colarse entre la comprobación y el `INSERT`.
+  Ejemplo: `apps/api/src/db/migrations/003-create-applications.sql:12` (índice) y
+  `apps/api/src/modules/applications/service.ts:99-120` (traducción).
+- **Los puertos leen con columnas explícitas.** Lo que un módulo lee de otro pasa por un puerto con las columnas que
+  necesita, nunca `SELECT *` ni SQL sobre tablas ajenas. Ejemplo: `findNamesByIds`,
+  `apps/api/src/modules/candidates/repository.ts:97` (`SELECT id, full_name`).
+- **Lo que decide el servidor no llega del cliente.** La etapa con la que nace una inscripción, las fechas
+  (`createdAt`, `changedAt`, `lastChangeAt`) y el `StageChange` inicial los pone el servidor; el esquema de la petición
+  ni siquiera los admite. Ejemplo: el cuerpo de inscribir solo acepta `jobId` y `candidateId`, con
+  `additionalProperties: false` (`apps/api/src/modules/applications/schemas.ts:28-30`), y la fecha sale de `deps.now()`
+  (`apps/api/src/modules/applications/service.ts:124`).
+- **La guarda de estado va en el `WHERE`, y 0 filas es un 409.** El `UPDATE` solo toca la fila si sigue en el estado
+  esperado; si no actualiza ninguna, alguien llegó antes y se responde 409, sin leer y escribir por separado. Ejemplo:
+  `apps/api/src/modules/applications/repository.ts:101-102` (`WHERE id = ? AND stage = ?`) y
+  `apps/api/src/modules/applications/service.ts:163` (`undefined` → `STAGE_MISMATCH`).
+
+**Web**
+
+- **Guardas `isX(value): value is X` en cada `api.ts`.** La web no se fía de la forma de la respuesta: cada cliente
+  comprueba lo que recibe antes de usarlo. Ejemplo: `apps/web/src/features/applications/api.ts:48` (`isPipeline`).
+- **Un hook `use-*-actions.ts` por pantalla con escrituras.** Las acciones (publicar, cerrar, borrar…) con su estado de
+  envío, sus errores y el foco viven en un hook, y la pantalla solo los pinta. Ejemplo:
+  `apps/web/src/features/jobs/use-job-actions.ts:77`.
+
+**Tests**
+
+- **Ficheros hermanos antes de pasar de 300 líneas.** Cuando un fichero de test crece, se parte por intención: los casos
+  hostiles en `*.adversarial.test.*` y los datos y montajes comunes en `*-fixtures.ts`. Ejemplo:
+  `apps/web/test/features/applications/PipelineScreen.adversarial.test.tsx` y
+  `apps/web/test/features/applications/reject-fixtures.ts`.

@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 2 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 3 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -39,7 +39,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   `applications`, y los plugins de rutas en funciones de registro por grupo. Después, `max-lines-per-function` (50) en
   `npm run lint` sobre `apps/api/src` y `apps/web/src`, sin excepciones.
 
-### T-10 · Convenciones del repo · estado: pendiente
+### T-10 · Convenciones del repo · estado: hecha
 - **Tipo:** documentación (auditoría del sprint-01, A-07)
 - Decidir cuáles de las 8 candidatas de la auditoría (§2, info) pasan a «Convenciones del repo», cada una con un ejemplo
   de código. Las decide el responsable técnico sobre una propuesta.
