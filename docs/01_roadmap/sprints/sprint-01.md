@@ -181,6 +181,9 @@ consentimiento y su fin de retención calculado; y los inscribe en ofertas publi
   - Regla nueva: quien implementa no rebaja la severidad de un hallazgo de su revisor; la propone y decide el
     responsable técnico (review de HU-06, DD-01).
   - Etiqueta `paso-2-sprint-01`: la pone el responsable técnico tras revisar el cierre.
+- 2026-10-09 · **Aclaración del responsable técnico:** «no hay sprint-02 antes del taller» se refería a sprints de
+  features. La deuda de paso-3 (A-02, A-03, A-07 y A-10, junto con la publicación) va en un sprint técnico sin HU,
+  `sprint-02.md`, que se cierra con `/audit-sprint`.
 
 ## Traspaso (2026-10-07, 17:20)
 - **Dónde se quedó:** sprint-01 cerrado en la rama de integración `worktree-paso-2-sprint-01`, commit

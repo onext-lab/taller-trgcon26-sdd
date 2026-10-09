@@ -188,6 +188,8 @@ Por prioridad. Las de código van por el flujo de una tarea del sprint o de una 
 - A-01 y A-04, A-05, A-06 y A-08 se hacen antes de cerrar, como T-06 y T-07.
 - A-02, A-03, A-07 y A-10 van a **paso-3**, antes del ensayo del 15/10, junto con los puntos de publicación. No hay
   sprint-02 antes del taller: las features en vivo son A y C.
+  _Nota del 2026-10-09 (responsable técnico): se refería a sprints de features; esa deuda va en el sprint técnico
+  `docs/01_roadmap/sprints/sprint-02.md`, sin HU._
 - A-09 va al backlog y es opcional.
 
 - [x] **A-01 · prioridad alta (C-01)** → T-06 (`0897979`, `a413140`): regla de tests «nada de aserciones síncronas sobre lo que pone un efecto pasivo»
