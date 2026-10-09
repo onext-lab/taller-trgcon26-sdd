@@ -3,8 +3,8 @@
 ## Resumen
 - **Fecha:** 2026-10-09 · **HU auditadas:** ninguna. Es un sprint técnico sin HU (decisión del responsable técnico,
   2026-10-09); el incremento son las tareas T-08 a T-14.
-- **Rango auditado:** `8328116..9215a8a` (`base` del frontmatter → cabeza de la rama de integración
-  `worktree-paso-3-punto-de-partida`) · **Commit auditado:** `9215a8a`
+- **Rango auditado:** `8328116..9215a8a`, re-auditado hasta `baffda9` (§7) (`base` del frontmatter → cabeza de la rama de integración
+  `worktree-paso-3-punto-de-partida`) · **Commit auditado:** `baffda9` (re-auditoría; la auditoría completa fue sobre `9215a8a`)
 - **Commits:** 15 · **Ficheros tocados:** 106 (23 de `apps/`, `scripts/`, `.claude/` y configuración; el resto, docs)
 - **Hallazgos confirmados:** críticos 0 · altos 1 · medios 4 · bajos 8 · info 15
 
@@ -161,14 +161,45 @@ Ninguna. Los tres informes llegaron completos (con `<<FIN-INFORME>>`).
 No aplica.
 
 ## 6. Acciones
-- [ ] **A-01 (DD-01, alto) · bloquea:** corregir `UC-09-alta-candidato.md:73` (`:132` → `:102`) y releer a mano las 9
-      citas que el barrido de `055673b` dio por «plausibles».
-- [ ] **A-02 (DD-03, medio):** actualizar la fila «Scripts» de `docs/ARCHITECTURE.md`.
-- [ ] **A-03 (C-01, medio):** bajar la complejidad de `main` en `scripts/check-clean.mjs` a 10 o menos.
+- [x] **A-01 (DD-01, alto) · bloquea** → T-16 (`cd9ea96`): `UC-09-alta-candidato.md:73` apunta a `:102`. Al releer a
+      mano las 9 citas «plausibles», salió otra: `UC-08-consultar-oferta.md:61` (A1, CA-22) pasa de `:82` a `:92`.
+- [x] **A-02 (DD-03, medio)** → T-16: fila «Scripts» de `docs/ARCHITECTURE.md` al día.
+- [x] **A-03 (C-01, medio)** → T-17 (`baffda9`): `main` de `scripts/check-clean.mjs` dentro del umbral.
 - [ ] **A-04 (C-03, decisión de esta auditoría):** extender `max-lines`, `max-lines-per-function` y `complexity` a
       `scripts/**/*.mjs`, con una excepción fechada para `scripts/check-harness.mjs` hasta partirlo (backlog).
-- [ ] **A-05 (DP-01, medio):** en `sprint-02.md`, rol en lugar de nombre. La decisión sobre el resto de docs y sobre la
-      denylist, a la persona responsable.
-- [ ] **A-06 (bajos, opcional antes de publicar):** SEC-01/DP-03, SEC-02, DP-02, DP-04, C-02, DD-04 y DD-05.
+- [ ] **A-05 (DP-01, medio):** hecho en `sprint-02.md` (T-16: rol en lugar de nombre, 0 menciones). **Abierto:** la
+      decisión sobre los docs anteriores al sprint y sobre la regla de la denylist, escalada a la persona responsable
+      el 2026-10-09 (recomendación: sanearlos en la copia de publicación, T-15).
+- [ ] **A-06 (bajos, opcional antes de publicar):** SEC-01/DP-03, SEC-02, DP-02, DP-04, C-02 y DD-04. DD-05 y DD-07,
+      hechos en T-16.
 
-VERDICT: Bloqueado
+## 7. Re-auditoría corta tras T-16 y T-17
+Desde `c5fc6e2` hasta `baffda9` hay 3 commits y 8 ficheros: 2 UC, `docs/ARCHITECTURE.md`, el GUION, el sprint, el brief
+de T-17 y dos scripts (`scripts/check-clean.mjs` y `scripts/check-clean-identities.mjs`). **Ninguno de `apps/` ni de
+`e2e/`**, así que la dimensión de seguridad y datos personales sobre el producto no cambia. En lugar de relanzar los
+auditores, la sesión verificó lo tocado:
+
+- **DD-01 y la cita extra de UC-08:** el comprobador de citas de los tres catálogos (165 citas) da `UC-09:73` E2 →
+  `CandidateFormScreen.adversarial.test.tsx:102` («CA-05 / EC-07: un 409…») y `UC-08:61` A1 →
+  `JobDetailScreen.states.test.tsx:92` («CA-22, EC-42…»). Las 7 «plausibles» restantes se sostienen leídas a mano
+  contra su criterio.
+- **DD-03:** la fila «Scripts» nombra los 9 scripts y cuáles se prueban a sí mismos.
+- **C-01:** `npx eslint --rule 'complexity: [error, 10]' --rule 'max-lines: [error, {max: 300}]' scripts/check-clean.mjs scripts/check-clean-identities.mjs`
+  da `exit=0`; el builder comparó 12 casos de salida y código de salida antes y después (idénticos), y la autoprueba
+  (con su comprobación de que nada imprime identidades ni términos) sigue en verde.
+- **DP-01:** 0 menciones del nombre en `docs/01_roadmap/sprints/sprint-02.md`.
+
+Suite sobre `baffda9`:
+
+```
+$ npm run integrate
+typecheck verde 3,6 · lint verde 3,0 · test-api verde 6,8 (1097) · test-web verde 8,6 (762) · e2e verde 27,0 (47) · check-harness verde 2,4
+Total 51,3 · ✔ Integración en verde.
+$ node scripts/check-clean.mjs --denylist <denylist real>
+check-clean: 0 coincidencias (56 reglas · 638 ficheros del árbol · historial, refs e identidades).
+```
+
+`SUITE_VERDICT: VERDE`. Queda abierto un **medio** (DP-01, la parte que depende de la decisión de la persona
+responsable) y ningún alto ni crítico.
+
+VERDICT: Aprobado con observaciones
