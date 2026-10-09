@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 7 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 8 / 9 (T-08 a T-14, y T-16 y T-17 de la auditoría)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -70,31 +70,44 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   ya va en `check:harness`, con 0 coincidencias.
 
 ### T-12 · Autoría para publicar: `check-clean` de identidades y puerta `--publish` · estado: hecha
-- **Tipo:** publicación (P6, decisión del responsable técnico del 2026-10-07)
+- **Tipo:** publicación (P6, decisión de la persona responsable del 2026-10-07)
 - `.mailmap` con el titular onext, manteniendo los `Co-Authored-By`. `scripts/check-clean.mjs` revisa también autor,
   committer y etiquetas, con su test.
 - 2026-10-09 · **Alcance decidido por el responsable técnico:** `check-clean` revisa identidades en bruto contra la
   denylist; `check-clean --publish --mailmap <ruta>` es la puerta de publicación (identidades fuera de la lista
   permitida y marcadores de publicación pendientes), y `check:harness` solo avisa de los marcadores. **El `.mailmap` no
-  se versiona:** el responsable técnico decidió reescribir las identidades del historial de publicación («Reescribir identidades»), así
+  se versiona:** la persona responsable decidió reescribir las identidades del historial de publicación («Reescribir identidades»), así
   que el `.mailmap` es la entrada de esa reescritura y vive fuera del repo, como la denylist (un `.mailmap` versionado
   publicaría los emails que mapea).
 
 ### T-13 · Licencias y aviso de archivo · estado: hecha
-- **Tipo:** publicación (P6, decisión del responsable técnico del 2026-10-07)
+- **Tipo:** publicación (P6, decisión de la persona responsable del 2026-10-07)
 - `LICENSE` (MIT para el código y `.claude/`) y `NOTICE` (titular onext; CC BY 4.0 solo para la prosa de `docs/`; mapa
   de rutas). En el README: «ejemplo archivado, sin soporte», archivo el 2026-12-31 y una frase sobre la relación con el
   otro SDD público de onext. El `git bundle` final se genera más tarde, del 19 al 21/10.
 - 2026-10-09 · **Decidido por el responsable técnico:** las plantillas de `docs/_templates/` y los bloques de código
   copiables, bajo MIT; el resto de la prosa de `docs/`, bajo CC BY 4.0. El titular y la razón social, con marcadores
-  hasta que el responsable técnico los dé. La frase del README: «Este kit es un ejemplo didáctico derivado del flujo SDD de onext; el
+  hasta que la persona responsable los dé. La frase del README: «Este kit es un ejemplo didáctico derivado del flujo SDD de onext; el
   plugin SDD de onext para uso general está en su propio repositorio», con la URL como marcador.
 - 2026-10-09 · **Hecha** por la sesión (documentación, sin builder): `LICENSE` (MIT, «Copyright (c) 2026 onext
-  technology», razón social dada por el responsable técnico), `NOTICE` (titular, aviso de archivo, la frase del marketplace, el mapa de
+  technology», razón social dada por la persona responsable), `NOTICE` (titular, aviso de archivo, la frase del marketplace, el mapa de
   rutas MIT / CC BY 4.0 con la atribución, y las dependencias de terceros) y, en el README, el aviso «ejemplo
   archivado, sin soporte» y la sección «Licencias». **Queda un marcador a propósito:** URL_MARKETPLACE, en `NOTICE` y en
   `README.md`, que confirma el responsable técnico antes de publicar. Lo avisa `check:harness` y lo bloquea
   `check-clean --publish`.
+
+### T-16 · Arreglos de la auditoría (docs) · estado: hecha
+- **Tipo:** documentación (auditoría del sprint-02, A-01, A-02 y A-05, más DD-05 y DD-07)
+- A-01 (DD-01, alto): `UC-09-alta-candidato.md` E2 apunta al test de CA-05 (`:102`). Al releer a mano las 9 citas que
+  el barrido de `055673b` dio por «plausibles», salió otra: `UC-08-consultar-oferta.md` A1 apunta ahora al test de
+  CA-22 (`apps/web/test/features/jobs/JobDetailScreen.states.test.tsx:92`). Las otras 7 se sostienen. A-02 (DD-03): la
+  fila «Scripts» de `docs/ARCHITECTURE.md`, al día. A-05 (DP-01): en este sprint, el rol en lugar del nombre; la
+  decisión sobre el resto de docs y la denylist, escalada a la persona responsable.
+
+### T-17 · Complejidad de `main` en `check-clean` · estado: pendiente
+- **Tipo:** refactor de script (auditoría del sprint-02, A-03 y C-01)
+- `main` de `scripts/check-clean.mjs` tiene complejidad 11 (umbral: 10). Sacar el despacho de modos a funciones
+  pequeñas, sin cambio de comportamiento, con la autoprueba en verde.
 
 ## Orden de ejecución
 1. T-08 (sin dependencias)
@@ -104,11 +117,12 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
 5. T-12 (sin dependencias)
 6. T-13 (después de T-12: el README del aviso nombra al titular)
 7. T-14 (después de T-10)
+8. T-16 y T-17 (arreglos de la auditoría; después, re-auditoría corta)
 
 ## Backlog (pendiente, fuera de paso-3)
 
 ### T-15 · Copia de publicación con el historial reescrito y la trazabilidad intacta · estado: pendiente (ventana del 19 al 21/10)
-- **Tipo:** publicación (decisión del responsable técnico del 2026-10-09, «Reescribir identidades»). **No entra en paso-3** ni en su
+- **Tipo:** publicación (decisión de la persona responsable del 2026-10-09, «Reescribir identidades»). **No entra en paso-3** ni en su
   auditoría; se diseña aquí para que la ventana no empiece de cero.
 - **Dónde:** siempre sobre una **copia de publicación** (`git clone --no-local` del repo de trabajo en una carpeta
   fuera de él), nunca en el repo de trabajo. Herramienta: `git filter-repo`, ya instalado en el portátil del
@@ -153,5 +167,6 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   `main` y la etiqueta los decide el responsable técnico tras revisar.
 - 2026-10-09 · **Briefs de las tareas sin HU:** R1 de `docs/IMPLEMENTATION-RULE.md` guarda el brief en la carpeta de la
   HU, y estas tareas no tienen. Van en `docs/01_roadmap/sprints/sprint-02/T-NN-BRIEF.md`, con la plantilla entera y su
-  §7 (integración) rellena por la sesión (decisión de la sesión).
+  §7 (integración) rellena por la sesión (decisión de la sesión). T-10 y T-13 no tienen brief: son solo documentación,
+  sin código, y R1 exige brief cuando hay un builder que escribe código.
 - Tareas de un día cada una como mucho; si alguna pasa de su techo de 2 ciclos de arreglo, se para y se escala.

@@ -70,7 +70,7 @@ jurídica: medidas precontractuales y, si se marca, consentimiento (RGPD §2); c
 | P | HU-03 | CA-01, CA-02 | `apps/api/test/candidates/create.test.ts:37`, `e2e/candidates.spec.ts:108` |
 | A1 | HU-03 | CA-03 | `apps/api/test/candidates/create.test.ts:60`, `apps/web/test/features/candidates/CandidateFormScreen.test.tsx:118` |
 | E1 | HU-03 | CA-04, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:113`, `apps/web/test/features/candidates/CandidateFormScreen.test.tsx:156` |
-| E2 | HU-03 | CA-05, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:173`, `apps/web/test/features/candidates/CandidateFormScreen.adversarial.test.tsx:132`, `e2e/candidates.spec.ts:163` |
+| E2 | HU-03 | CA-05, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:173`, `apps/web/test/features/candidates/CandidateFormScreen.adversarial.test.tsx:102`, `e2e/candidates.spec.ts:163` |
 | E3 | HU-03 | CA-06, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:196`, `apps/web/test/features/candidates/CandidateFormScreen.test.tsx:187` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
