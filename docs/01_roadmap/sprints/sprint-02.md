@@ -3,9 +3,9 @@ sprint: 02
 objetivo: "Punto de partida del taller (paso-3): deuda de demo, umbral de función, convenciones y lo necesario para publicar, sin features nuevas."
 inicio: 2026-10-09
 fin: 2026-10-10            # por defecto, inicio + 1 (2 días)
-estado: en curso           # planificado | en curso | completado | cerrado
+estado: completado         # planificado | en curso | completado | cerrado
 base: 8328116              # sha de main al abrir el sprint; /audit-sprint audita base..main
-cerrado_en: null
+cerrado_en: 2026-10-09
 audit-override: null       # solo con razón ≥ 20 caracteres
 ---
 
@@ -19,7 +19,7 @@ técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
 - HU: 0 · tareas sin HU: hechas 9 / 9 (T-08 a T-14, y T-16 y T-17 de la auditoría)
-- Última actualización: 2026-10-09
+- **Cerrado el 2026-10-09.** Las 9 tareas, hechas e integradas (`npm run integrate` en verde: API 1 097, web 762, e2e 47). Auditoría «Aprobado con observaciones» (`docs/10_audits/sprints/sprint-02-AUDIT.md`, re-auditada tras T-16 y T-17). Sin ideas, features ni HU que archivar.
 
 ## Historias de usuario
 _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
@@ -170,3 +170,32 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   §7 (integración) rellena por la sesión (decisión de la sesión). T-10 y T-13 no tienen brief: son solo documentación,
   sin código, y R1 exige brief cuando hay un builder que escribe código.
 - Tareas de un día cada una como mucho; si alguna pasa de su techo de 2 ciclos de arreglo, se para y se escala.
+- 2026-10-09 · **Cierre del sprint** (deuda heredada de la auditoría, «Aprobado con observaciones»):
+  - **A-05 (DP-01, medio, abierto):** el nombre de pila de la persona responsable en docs anteriores al sprint
+    (sprint-01, `technical.md` de inscripciones y PRD, `hu.md` y REVIEW de HU-04 a HU-06). Decisión escalada:
+    sanearlo en la copia de publicación (T-15) o en el repo, y si se añade una regla a la denylist.
+  - **A-04 (backlog):** `max-lines`, `max-lines-per-function` y `complexity` también en `scripts/**/*.mjs`, con una
+    excepción fechada para `scripts/check-harness.mjs` (405 líneas) hasta partirlo.
+  - **A-06 (bajos, antes de publicar):** `check-clean` imprime el término si coincide con un nombre de fichero o de ref
+    (SEC-01/DP-03); `integrate` en win32 (SEC-02); `.mailmap` fuera de `.gitignore` y sin comprobar en `--publish`
+    (DP-02); trailers sin revisar en `--publish` (DP-04); listado del árbol repetido en 4 scripts (C-02); excepción de
+    `requireX` en `applications` (DD-04).
+  - **Del kit:** al cargar una skill, Claude Code sustituye `$0` por el argumento. El `awk` del self-check (a) de
+    `.claude/skills/cerrar-sprint/SKILL.md:97-98` se muestra como `h=02` con `/cerrar-sprint 02`; en disco está bien.
+    Moverlo a un script (`node scripts/…`) lo evita.
+  - **T-15** (copia de publicación) sigue en el backlog, para la ventana del 19 al 21/10.
+
+## Traspaso (2026-10-09)
+- **Dónde se quedó:** sprint-02 cerrado en la rama de integración `worktree-paso-3-punto-de-partida`, con el árbol
+  limpio. `main` sigue en `8328116`.
+- **Siguiente paso exacto:**
+  1. El responsable técnico revisa y, si da el visto bueno, avanza `main` por *fast-forward* hasta el commit de cierre y
+     pone la etiqueta local `paso-3-punto-de-partida`.
+  2. Las features en vivo (`vivo-A-*` y `vivo-C-*`) solo con su OK, empezando por una estimación de tokens.
+  3. T-15, del 19 al 21/10.
+- **Avisos:**
+  - Node 24 en el `PATH` (`nvm use`). En este portátil el `git` del sistema pide la licencia de Xcode: con el de
+    Homebrew delante en el `PATH`, `check:harness` y `check-clean` funcionan.
+  - `check-clean --publish --mailmap <ruta>` falla **a propósito** hasta la reescritura de identidades (T-15) y hasta
+    que se rellene URL_MARKETPLACE en `NOTICE` y `README.md`.
+  - Medir `npm run integrate` en una máquina modesta en el ensayo del 15/10 y guardar `logs/integrate/summary.txt`.
