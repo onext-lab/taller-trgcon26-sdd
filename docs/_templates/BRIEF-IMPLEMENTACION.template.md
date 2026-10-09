@@ -11,7 +11,7 @@
   deducida de «Archivos afectados» y dicho aquí).
 - **Diseño:** `docs/03_delivery/hu/HU-NN-slug/plans/TECHNICAL_DOC.md`, secciones <anclas> (no el documento entero).
 - **Criterios que cubre:** RF-NN, EC-NN del `specs/PRD.md`.
-- **Dónde se trabaja:** repo `<ruta absoluta>`, rama `hu/HU-NN-slug` (ya creada; no cambies de rama).
+- **Dónde se trabaja:** la raíz del repo, rama `hu/HU-NN-slug` (ya creada; no cambies de rama).
 - **Lo que ya está en la rama:** <commits y ficheros de tasks anteriores que esta reutiliza>.
 - **Lee solo lo que la task nombra.**
 
