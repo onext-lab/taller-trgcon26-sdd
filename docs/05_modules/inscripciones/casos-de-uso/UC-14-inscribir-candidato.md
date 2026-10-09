@@ -74,9 +74,9 @@ más datos de los necesarios (RGPD §6).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | HU-04 | CA-01, CA-02, CA-03 | `apps/api/test/applications/enroll.test.ts:58`, `apps/web/test/features/applications/PipelineScreen.enroll.test.tsx:90`, `e2e/applications.spec.ts:76` |
+| P | HU-04 | CA-01, CA-02, CA-03 | `apps/api/test/applications/enroll.test.ts:58`, `apps/web/test/features/applications/PipelineScreen.enroll.test.tsx:90`, `e2e/applications.spec.ts:63` |
 | E1 | HU-04 | CA-04, CA-05 | `apps/api/test/applications/enroll.test.ts:90`, `apps/api/test/applications/enroll-adversarial.test.ts:245`, `apps/web/test/features/applications/PipelineScreen.enroll.test.tsx:157` |
-| E2 | HU-04 | CA-06, CA-07, CA-08 | `apps/api/test/applications/enroll.test.ts:126`, `apps/api/test/applications/enroll-adversarial.test.ts:220`, `apps/web/test/features/applications/PipelineScreen.enroll.test.tsx:126`, `e2e/applications.spec.ts:126` |
+| E2 | HU-04 | CA-06, CA-07, CA-08 | `apps/api/test/applications/enroll.test.ts:126`, `apps/api/test/applications/enroll-adversarial.test.ts:220`, `apps/web/test/features/applications/PipelineScreen.enroll.test.tsx:126`, `e2e/applications.spec.ts:81` |
 | E3 | HU-04 | CA-09 | `apps/api/test/applications/enroll.test.ts:174` |
 | E4 | HU-04 | CA-10 | `apps/api/test/applications/enroll-adversarial.test.ts:90` |
 | E5 | HU-04 | CA-11 | `apps/api/test/applications/enroll-failures-adversarial.test.ts:86` |

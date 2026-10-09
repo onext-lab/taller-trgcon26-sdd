@@ -71,6 +71,6 @@ Ninguno.
 | E3 | HU-01 | CA-05 | `apps/api/test/jobs/create.test.ts:193` |
 | E4 | HU-01 | CA-06 | `apps/api/test/jobs/create.test.ts:169` |
 | E5 | HU-01 | CA-07 | `apps/api/test/jobs/create.test.ts:220` |
-| E6 | HU-01 | CA-08 | `apps/api/test/jobs/create-adversarial.test.ts:79` |
+| E6 | HU-01 | CA-08 | `apps/api/test/jobs/create-adversarial.test.ts:92` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
