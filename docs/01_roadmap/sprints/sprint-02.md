@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 1 / 6 (T-08 a T-13)
+- HU: 0 · tareas sin HU: hechas 1 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -43,6 +43,19 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
 - **Tipo:** documentación (auditoría del sprint-01, A-07)
 - Decidir cuáles de las 8 candidatas de la auditoría (§2, info) pasan a «Convenciones del repo», cada una con un ejemplo
   de código. Las decide el responsable técnico sobre una propuesta.
+- 2026-10-09 · **Decidido por el responsable técnico:** pasan la 1 y la 2 juntas («factorías cortas», vigiladas por el
+  lint tras T-09), la 3, la 4, la 5, la 7 y la 8; la 6 (`isNotFound` copiada en 5 pantallas) no es convención, sino
+  deuda, y va a T-14. Se añade un subapartado «Datos y consistencia» con 5 más del module-sync de HU-04: una sola
+  `withTransaction` por operación cruzada; el índice único decide el duplicado, sin `SELECT` previo; los puertos leen con
+  columnas explícitas; etapa, fechas y motivo nunca vienen del cliente, y la guarda de estado va en el `WHERE`, con 0
+  filas → 409. Todo en `docs/ARCHITECTURE.md` §Convenciones, por capa, con un ejemplo `fichero:línea` en cada una.
+
+### T-14 · Un solo `isNotFound` en la web · estado: pendiente
+- **Tipo:** refactor interno de capa web (auditoría del sprint-01, §2 info; decisión del responsable técnico del
+  2026-10-09)
+- `isNotFound(error)` está copiada en 5 pantallas (`JobDetailScreen`, `CandidateFormScreen`, `CandidateDetailScreen`,
+  `ApplicationDetailScreen` y `PipelineScreen`). Se extrae a un único helper común, sin cambio de comportamiento. El
+  repo se va a enseñar y a publicar, y 5 copias de lo mismo en las pantallas se ven.
 
 ### T-11 · Ninguna ruta de máquina y citas de módulo al día · estado: pendiente
 - **Tipo:** publicación (auditoría del sprint-01, A-10; publicación P6)
@@ -68,6 +81,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
 4. T-11 (sin dependencias)
 5. T-12 (sin dependencias)
 6. T-13 (después de T-12: el README del aviso nombra al titular)
+7. T-14 (después de T-10)
 
 ## Recordatorio de reglas de oro
 - Cero asunciones; ninguna etapa SDD se salta; brief obligatorio; integración ejecutada.
