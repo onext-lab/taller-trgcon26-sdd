@@ -149,6 +149,18 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   6. `git bundle create` desde la copia, con todas las etiquetas.
 - **Riesgos:** colisión de hashes cortos en el historial nuevo (se usa la longitud mínima sin ambigüedad); citas de
   hashes en formatos no previstos (se buscan con una regex amplia antes de reescribir y se revisa la lista).
+- 2026-10-09 · **Nombres de personas en la prosa (DP-01 de la auditoría):** la persona responsable decidió sustituirlos
+  por un rol. En la copia, el paso 3 aplica además un `--replace-text` con la **lista de publicación** (fuera del repo,
+  como la denylist; no va a la denylist normal porque pondría en rojo el pre-commit y el historial de trabajo), y la
+  verificación del paso 5 pasa `check-clean --publish --publish-denylist <ruta>` en verde. Depende de T-18.
+
+### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: pendiente (antes del 19/10)
+- **Tipo:** publicación (DP-01 de la auditoría del sprint-02; decisión de la persona responsable del 2026-10-09,
+  «Sí, sustituir por un rol»). Fuera de paso-3: solo la necesita la publicación, así que no reabre este sprint.
+- `check-clean --publish` acepta `--publish-denylist <ruta>` (mismo formato que la denylist; la lista vive fuera del
+  repo) y falla si alguna de sus reglas coincide en el árbol, el historial, las refs o las identidades, **sin imprimir
+  el término**. Un caso más en la autoprueba. `check-clean.mjs` está en 285 líneas: los modos pasan a
+  `scripts/check-clean-modes.mjs` si no cabe. Brief, builder e integración como el resto de tareas.
 
 ## Recordatorio de reglas de oro
 - Cero asunciones; ninguna etapa SDD se salta; brief obligatorio; integración ejecutada.
