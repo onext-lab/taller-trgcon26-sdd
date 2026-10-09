@@ -29,6 +29,10 @@ Los e2e las fijan solos en `playwright.config.ts` (`data/e2e.db`, 3101 y 5174); 
 No hace falta Docker, ni Python, ni base de datos instalada, ni ninguna clave: la base de datos es un fichero SQLite que
 crea el propio Node.
 
+**Tampoco hace falta ninguna clave de IA.** El ATS no llama a ningún modelo: arrancarlo, pasar los tests y recorrer
+las etiquetas funciona sin cuenta en ningún servicio. Claude Code (con tu cuenta) solo hace falta para **repetir el
+flujo** tú mismo: lanzar las skills, los agentes y los hooks del repo.
+
 ## Por qué Node 24 LTS (≥ 24.15)
 
 - **Es la LTS activa** de Node.
@@ -92,6 +96,36 @@ Todo listo para el taller.
 
 Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/` y `docs/`) está completo.
 
+## Recorrer el taller por etiquetas
+
+El taller se sigue saltando entre etiquetas git locales, una por fase (`docs/WORKFLOW.md` §10). Lista las que tienes
+con `git tag -l`.
+
+| Etiqueta | Qué ves | La app |
+|---|---|---|
+| `paso-0-kit` | El kit SDD (`.claude/`, `docs/`, `AGENTS.md`, `CLAUDE.md`) y el esqueleto del monorepo | Solo el esqueleto: «Estado de la API: ok» |
+| `paso-1-discovery` | Reglas validadas, ideas, features con sus casos de uso y HU, con las preguntas y respuestas | Igual que en `paso-0-kit`: el discovery no toca código |
+| `paso-2-sprint-01` | El sprint 01 entregado: 6 HU de PRD a código, reviews, auditoría y cierre | El ATS completo, con el estilo anterior al de `main` |
+| `paso-3-punto-de-partida` | README, guion y este `SETUP.md`: el punto de partida del taller | El ATS completo |
+| `vivo-{A,C}-{1-feature,2-prd,3-tareas,4-hecho}` | Las features en vivo fase a fase (A: supresión y retención RGPD; C: importación CSV) | Con la feature solo en `vivo-*-4-hecho` |
+
+Para saltar a una etiqueta y volver:
+
+```bash
+git status                                            # el árbol tiene que estar limpio antes de saltar
+git switch --detach paso-2-sprint-01                   # «detached HEAD»: es normal, solo vas a mirar
+npm ci && npm run db:reset                             # dependencias y base de esa etiqueta
+git switch main                                        # volver
+npm ci && npm run db:reset
+```
+
+- **Después de cada salto, `npm ci && npm run db:reset`.** El esquema, las migraciones y el seed cambian entre
+  etiquetas: con la base de otra etiqueta, la API falla o enseña datos que no tocan.
+- Si has cambiado algo y quieres saltar, guárdalo en una rama tuya (`git switch -c mis-pruebas` y un commit) o
+  descártalo con `git restore .`. El repo no usa `git stash`.
+- Los e2e de cada etiqueta usan su propia base (`data/e2e.db`); no hace falta nada más.
+- Las ramas `hu/HU-NN-slug` siguen en el repo: cada una es la historia de una HU, commit a commit (`[HU-NN TASK-NN]`).
+
 ## Versiones fijadas que conviene conocer
 
 - **TypeScript 6.0.3, no 7.x.** `typescript-eslint` 8.71 exige `typescript < 6.1`; con la 7.x el lint deja de
@@ -110,6 +144,10 @@ Después, `npm run check:harness` comprueba que el kit de Claude Code (`.claude/
 | Los e2e no encuentran el navegador | `npx playwright install chromium`. |
 | La base de datos tiene datos raros | `npm run db:reset` la regenera desde el esquema, las migraciones y el seed. |
 | `npm run e2e` falla porque el puerto 3101 o 5174 está ocupado | Cierra el proceso que lo usa. Los e2e no reutilizan servidores (`reuseExistingServer: false`) para no probar contra otra base. |
+| `npm run db:reset` falla con «No such built-in module: node:sqlite» aunque `node -v` dé v24 | `npm` está lanzando otro Node (el de otra terminal o el que `nvm` tiene por defecto). Abre una terminal nueva en la raíz del repo, `nvm use` y repite. |
+| Tras saltar de etiqueta, la API falla al arrancar o la web enseña datos raros | Te falta `npm ci && npm run db:reset` después del salto. |
+| En macOS, `git` pide aceptar la licencia de Xcode y `npm run check:harness` falla en `git ls-files` | Acepta la licencia (`sudo xcodebuild -license`) o usa un `git` instalado con Homebrew. |
+| Con la suite unitaria y los e2e a la vez, tests web fallan por *timeout* de 5 s | Es la CPU saturada, no un fallo: ejecútalos uno detrás de otro (`npm test` y después `npm run e2e`). |
 
 ## Cómo se preparan los e2e
 
