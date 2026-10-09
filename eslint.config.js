@@ -34,4 +34,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // QUALITY-GATES §2: ≤ 50 líneas por función, sin blancos ni comentarios; solo producción, sin excepciones.
+    files: ['apps/api/src/**/*.ts', 'apps/web/src/**/*.{ts,tsx}'],
+    rules: {
+      'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
+    },
+  },
 );

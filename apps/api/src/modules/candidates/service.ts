@@ -87,76 +87,85 @@ function requireCandidate(repository: CandidatesRepository, id: number): Candida
   return candidate;
 }
 
-export function createCandidatesService({
-  repository,
-  now,
-  transaction,
-  processes,
-}: CandidatesServiceDeps): CandidatesService {
-  function recalculateRetention(id: number): Candidate {
-    return transaction(() => {
-      const candidate = requireCandidate(repository, id);
-      const retentionEndsAt = computeRetentionEndsAt({
-        createdAt: candidate.createdAt,
-        consentGivenAt: candidate.consentGivenAt,
-        consentWithdrawnAt: candidate.consentWithdrawnAt,
-        processes: processes.getProcesses(id),
-      });
-      repository.setRetention(id, retentionEndsAt);
-      return requireCandidate(repository, id);
-    });
-  }
-
-  /** Ejecuta una escritura y traduce el choque con el `UNIQUE` del email en `DUPLICATE` (DD-04). */
-  function writeUniqueEmail<T>(email: string, write: () => T): T {
-    try {
-      return write();
-    } catch (error) {
-      if (!repository.isDuplicateEmailError(error)) throw error;
-      // La transacción sigue abierta tras el fallo (DD-04): el ID del existente es coherente.
-      const existingId = repository.findIdByEmail(email);
-      if (existingId === undefined) throw error;
-      throw duplicate({ field: 'email', message: DUPLICATE_MESSAGE, existingId });
-    }
-  }
-
-  function insertCandidate(input: CandidateInput): number {
-    const createdAt = now().toISOString();
-    const consent = input.consent ? { givenAt: createdAt, version: CONSENT_TEXT_VERSION } : null;
-    return writeUniqueEmail(input.email, () =>
-      repository.insert(toFields(input), createdAt, consent),
-    );
-  }
-
-  function updateCandidate(id: number, patch: CandidatePatch): Candidate {
-    const fields = mergeFields(requireCandidate(repository, id), patch);
-    writeUniqueEmail(fields.email, () => repository.updateFields(id, fields));
-    return requireCandidate(repository, id);
-  }
-
-  function giveConsent(id: number): Candidate {
-    requireCandidate(repository, id);
-    repository.setConsent(id, {
-      givenAt: now().toISOString(),
-      version: CONSENT_TEXT_VERSION,
-      withdrawnAt: null,
-    });
-    return recalculateRetention(id);
-  }
-
-  function withdrawConsent(id: number): Candidate {
+/** Único escritor de `retention_ends_at` (DD-05): lee los hechos y el puerto de procesos, aplica la fórmula y guarda. */
+function recalculateRetention(
+  { repository, transaction, processes }: CandidatesServiceDeps,
+  id: number,
+): Candidate {
+  return transaction(() => {
     const candidate = requireCandidate(repository, id);
-    const hasActiveConsent =
-      candidate.consentGivenAt !== null && candidate.consentWithdrawnAt === null;
-    if (!hasActiveConsent) return candidate;
-    repository.setConsent(id, {
-      givenAt: candidate.consentGivenAt,
-      version: candidate.consentVersion,
-      withdrawnAt: now().toISOString(),
+    const retentionEndsAt = computeRetentionEndsAt({
+      createdAt: candidate.createdAt,
+      consentGivenAt: candidate.consentGivenAt,
+      consentWithdrawnAt: candidate.consentWithdrawnAt,
+      processes: processes.getProcesses(id),
     });
-    return recalculateRetention(id);
-  }
+    repository.setRetention(id, retentionEndsAt);
+    return requireCandidate(repository, id);
+  });
+}
 
+/** Ejecuta una escritura y traduce el choque con el `UNIQUE` del email en `DUPLICATE` (DD-04). */
+function writeUniqueEmail<T>(repository: CandidatesRepository, email: string, write: () => T): T {
+  try {
+    return write();
+  } catch (error) {
+    if (!repository.isDuplicateEmailError(error)) throw error;
+    // La transacción sigue abierta tras el fallo (DD-04): el ID del existente es coherente.
+    const existingId = repository.findIdByEmail(email);
+    if (existingId === undefined) throw error;
+    throw duplicate({ field: 'email', message: DUPLICATE_MESSAGE, existingId });
+  }
+}
+
+function insertCandidate(
+  { repository, now }: CandidatesServiceDeps,
+  input: CandidateInput,
+): number {
+  const createdAt = now().toISOString();
+  const consent = input.consent ? { givenAt: createdAt, version: CONSENT_TEXT_VERSION } : null;
+  return writeUniqueEmail(repository, input.email, () =>
+    repository.insert(toFields(input), createdAt, consent),
+  );
+}
+
+function updateCandidate(
+  { repository }: CandidatesServiceDeps,
+  id: number,
+  patch: CandidatePatch,
+): Candidate {
+  const fields = mergeFields(requireCandidate(repository, id), patch);
+  writeUniqueEmail(repository, fields.email, () => repository.updateFields(id, fields));
+  return requireCandidate(repository, id);
+}
+
+function giveConsent(deps: CandidatesServiceDeps, id: number): Candidate {
+  const { repository, now } = deps;
+  requireCandidate(repository, id);
+  repository.setConsent(id, {
+    givenAt: now().toISOString(),
+    version: CONSENT_TEXT_VERSION,
+    withdrawnAt: null,
+  });
+  return recalculateRetention(deps, id);
+}
+
+function withdrawConsent(deps: CandidatesServiceDeps, id: number): Candidate {
+  const { repository, now } = deps;
+  const candidate = requireCandidate(repository, id);
+  const hasActiveConsent =
+    candidate.consentGivenAt !== null && candidate.consentWithdrawnAt === null;
+  if (!hasActiveConsent) return candidate;
+  repository.setConsent(id, {
+    givenAt: candidate.consentGivenAt,
+    version: candidate.consentVersion,
+    withdrawnAt: now().toISOString(),
+  });
+  return recalculateRetention(deps, id);
+}
+
+export function createCandidatesService(deps: CandidatesServiceDeps): CandidatesService {
+  const { repository, transaction } = deps;
   return {
     list({ q, skill, page, pageSize }) {
       const filter = { q: q ? foldSearchText(q) : null, skill: skill ? skill.toLowerCase() : null };
@@ -165,15 +174,15 @@ export function createCandidatesService({
     },
     create(input) {
       // Insert con retención `NULL` + recálculo (DD-05): un fallo del puerto deshace también el alta.
-      return transaction(() => recalculateRetention(insertCandidate(input)));
+      return transaction(() => recalculateRetention(deps, insertCandidate(deps, input)));
     },
     get(id) {
       return requireCandidate(repository, id);
     },
-    update: (id, patch) => transaction(() => updateCandidate(id, patch)),
-    giveConsent: (id) => transaction(() => giveConsent(id)),
-    withdrawConsent: (id) => transaction(() => withdrawConsent(id)),
-    recalculateRetention,
+    update: (id, patch) => transaction(() => updateCandidate(deps, id, patch)),
+    giveConsent: (id) => transaction(() => giveConsent(deps, id)),
+    withdrawConsent: (id) => transaction(() => withdrawConsent(deps, id)),
+    recalculateRetention: (id) => recalculateRetention(deps, id),
     exists: (id) => repository.existsById(id),
     findNames: (ids) => (ids.length === 0 ? new Map() : repository.findNamesByIds(ids)),
   };

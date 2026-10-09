@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync, preValidationHookHandler } from 'fastify';
 import {
   idParamsSchema,
   rejectBody,
@@ -46,11 +46,8 @@ function toListQuery({ q, skill, page, pageSize }: CandidateListQuerystring): Ca
   };
 }
 
-/** Plugin del módulo candidates: recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
-export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }> = async (
-  app,
-  { service },
-) => {
+/** Listado, alta, lectura y edición de una ficha; parte de `candidatesRoutes`. */
+function registerCrudRoutes(app: FastifyInstance, service: CandidatesService): void {
   app.get<{ Querystring: CandidateListQuerystring }>(
     '/',
     {
@@ -89,7 +86,10 @@ export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }
     },
     (request) => service.update(Number(request.params.id), request.body),
   );
+}
 
+/** Registro y retirada del consentimiento; parte de `candidatesRoutes`. */
+function registerConsentRoutes(app: FastifyInstance, service: CandidatesService): void {
   // Acciones sin cuerpo (DD-01): `rejectBody` → `params` (400) → existencia (404).
   app.post<{ Params: IdParams }>(
     '/:id/consent',
@@ -108,4 +108,13 @@ export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }
     },
     (request) => service.withdrawConsent(Number(request.params.id)),
   );
+}
+
+/** Plugin del módulo candidates: recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
+export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }> = async (
+  app,
+  { service },
+) => {
+  registerCrudRoutes(app, service);
+  registerConsentRoutes(app, service);
 };

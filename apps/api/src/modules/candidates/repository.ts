@@ -98,10 +98,8 @@ const FIND_NAMES_SQL = `SELECT id, full_name FROM candidates WHERE id IN (SELECT
 
 const SQLITE_CONSTRAINT_UNIQUE = 2067;
 
-/** Acceso a `candidates` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
-export function createCandidatesRepository(db: DatabaseSync) {
-  // DD-02: la búsqueda (TASK-05) necesita `fold_search` en esta conexión (registrarla dos veces no falla).
-  registerTextSearch(db);
+/** Lecturas de una ficha, de los puertos y del listado paginado; parte de `createCandidatesRepository`. */
+function createCandidateQueries(db: DatabaseSync) {
   return {
     findById(id: number): Candidate | undefined {
       const row = db.prepare('SELECT * FROM candidates WHERE id = ?').get(id);
@@ -137,6 +135,12 @@ export function createCandidatesRepository(db: DatabaseSync) {
       const row = db.prepare(COUNT_SQL).get({ q: filter.q, skill: filter.skill });
       return Number(row?.total ?? 0);
     },
+  };
+}
+
+/** Alta, edición, consentimiento y retención de una ficha; parte de `createCandidatesRepository`. */
+function createCandidateWriteOperations(db: DatabaseSync) {
+  return {
     /** Inserta con retención `NULL` y devuelve el ID. El choque con `candidates_email_uq` lo lanza SQLite. */
     insert(fields: CandidateFields, createdAt: string, consent: InitialConsent | null): number {
       const result = db
@@ -179,6 +183,13 @@ export function createCandidatesRepository(db: DatabaseSync) {
       return errcode === SQLITE_CONSTRAINT_UNIQUE && error.message.includes('candidates.email');
     },
   };
+}
+
+/** Acceso a `candidates` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
+export function createCandidatesRepository(db: DatabaseSync) {
+  // DD-02: la búsqueda (TASK-05) necesita `fold_search` en esta conexión (registrarla dos veces no falla).
+  registerTextSearch(db);
+  return { ...createCandidateQueries(db), ...createCandidateWriteOperations(db) };
 }
 
 export type CandidatesRepository = ReturnType<typeof createCandidatesRepository>;

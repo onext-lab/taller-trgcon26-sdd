@@ -70,12 +70,59 @@ function requireJob(repository: JobsRepository, id: number): Job {
   return job;
 }
 
-export function createJobsService({
-  repository,
-  now,
-  transaction,
-  applications,
-}: JobsServiceDeps): JobsService {
+/**
+ * Lectura-fusión-escritura (DD-05), ya dentro de la transacción. Orden DT-04: 404 → estado (409) → reglas de campos
+ * (400) (DEC-08).
+ */
+function updateJob({ repository }: JobsServiceDeps, id: number, patch: JobPatch): Job {
+  const current = requireJob(repository, id);
+  checkAction('update', current.status);
+  // Gana la última escritura, campo a campo (DEC-08); las reglas se aplican a lo fusionado (DD-04).
+  const merged: JobEditableFields = { ...editableFields(current), ...patch };
+  const missing =
+    current.status === 'published'
+      ? missingRequiredDetails(merged, 'Obligatorio en una oferta publicada.')
+      : [];
+  // Un único 400 con los obligatorios y, detrás, la banda (DD-07).
+  assertNoDetails([...missing, ...salaryRangeDetails(merged.salaryMin, merged.salaryMax)]);
+  const updated = repository.update(id, merged);
+  // DD-09: tras `requireJob` y `checkAction`, bajo BEGIN IMMEDIATE, sin fila solo puede ser un estado no permitido.
+  if (!updated) throw invalidTransition(STATE_CHANGED_MESSAGE);
+  return updated;
+}
+
+/** Borrado de un `draft`, ya dentro de la transacción. */
+function removeJob({ repository }: JobsServiceDeps, id: number): void {
+  const current = requireJob(repository, id);
+  checkAction('remove', current.status);
+  if (repository.deleteById(id) === 0) throw invalidTransition(STATE_CHANGED_MESSAGE);
+}
+
+/** `draft` → `published`, ya dentro de la transacción. Orden DT-04: 404 → estado (409) → reglas de campos (400). */
+function publishJob({ repository, now }: JobsServiceDeps, id: number): Job {
+  const job = requireJob(repository, id);
+  if (checkAction('publish', job.status) === 'noop') return job;
+  assertNoDetails(missingRequiredDetails(editableFields(job), 'Obligatorio para publicar.'));
+  const published = repository.markPublished(id, now().toISOString());
+  // Imposible bajo BEGIN IMMEDIATE (DD-08): si ocurre, es un 500.
+  if (!published) throw new Error('markPublished no devolvió la fila');
+  return published;
+}
+
+/** `published` → `closed` y rechazo de inscripciones, ya dentro de la transacción (DT-02). */
+function closeJob({ repository, now, applications }: JobsServiceDeps, id: number): Job {
+  const job = requireJob(repository, id);
+  if (checkAction('close', job.status) === 'noop') return job; // sin now() ni puerto (S-01)
+  const closedAt = now().toISOString();
+  const closed = repository.markClosed(id, closedAt);
+  if (!closed) throw new Error('markClosed no devolvió la fila');
+  // Después del UPDATE y en la misma transacción: si lanza, ROLLBACK.
+  applications.rejectActiveApplications({ jobId: id, closedAt });
+  return closed;
+}
+
+export function createJobsService(deps: JobsServiceDeps): JobsService {
+  const { repository, now, transaction, applications } = deps;
   return {
     create(input) {
       assertNoDetails(salaryRangeDetails(input.salaryMin, input.salaryMax));
@@ -86,56 +133,10 @@ export function createJobsService({
     get(id) {
       return requireJob(repository, id);
     },
-    update(id, patch) {
-      // Orden DT-04: 404 → estado (409) → reglas de campos (400), todo dentro de la transacción (DEC-08).
-      return transaction(() => {
-        const current = requireJob(repository, id);
-        checkAction('update', current.status);
-        // Gana la última escritura, campo a campo (DEC-08); las reglas se aplican a lo fusionado (DD-04).
-        const merged: JobEditableFields = { ...editableFields(current), ...patch };
-        const missing =
-          current.status === 'published'
-            ? missingRequiredDetails(merged, 'Obligatorio en una oferta publicada.')
-            : [];
-        // Un único 400 con los obligatorios y, detrás, la banda (DD-07).
-        assertNoDetails([...missing, ...salaryRangeDetails(merged.salaryMin, merged.salaryMax)]);
-        const updated = repository.update(id, merged);
-        // DD-09: tras `requireJob` y `checkAction`, bajo BEGIN IMMEDIATE, sin fila solo puede ser un estado no permitido.
-        if (!updated) throw invalidTransition(STATE_CHANGED_MESSAGE);
-        return updated;
-      });
-    },
-    remove(id) {
-      return transaction(() => {
-        const current = requireJob(repository, id);
-        checkAction('remove', current.status);
-        if (repository.deleteById(id) === 0) throw invalidTransition(STATE_CHANGED_MESSAGE);
-      });
-    },
-    publish(id) {
-      // Orden DT-04: 404 → estado (409) → reglas de campos (400).
-      return transaction(() => {
-        const job = requireJob(repository, id);
-        if (checkAction('publish', job.status) === 'noop') return job;
-        assertNoDetails(missingRequiredDetails(editableFields(job), 'Obligatorio para publicar.'));
-        const published = repository.markPublished(id, now().toISOString());
-        // Imposible bajo BEGIN IMMEDIATE (DD-08): si ocurre, es un 500.
-        if (!published) throw new Error('markPublished no devolvió la fila');
-        return published;
-      });
-    },
-    close(id) {
-      return transaction(() => {
-        const job = requireJob(repository, id);
-        if (checkAction('close', job.status) === 'noop') return job; // sin now() ni puerto (S-01)
-        const closedAt = now().toISOString();
-        const closed = repository.markClosed(id, closedAt);
-        if (!closed) throw new Error('markClosed no devolvió la fila');
-        // Después del UPDATE y en la misma transacción: si lanza, ROLLBACK.
-        applications.rejectActiveApplications({ jobId: id, closedAt });
-        return closed;
-      });
-    },
+    update: (id, patch) => transaction(() => updateJob(deps, id, patch)),
+    remove: (id) => transaction(() => removeJob(deps, id)),
+    publish: (id) => transaction(() => publishJob(deps, id)),
+    close: (id) => transaction(() => closeJob(deps, id)),
     closePreview(id) {
       requireJob(repository, id);
       return { activeApplications: applications.countActiveApplications(id) };

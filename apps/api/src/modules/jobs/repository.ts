@@ -93,10 +93,8 @@ const LIST_PAGE_SQL = `SELECT id, title, status, COALESCE(published_at, created_
 
 const COUNT_SQL = `SELECT COUNT(*) AS total FROM job_openings ${FILTER_SQL}`;
 
-/** Acceso a `job_openings` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
-export function createJobsRepository(db: DatabaseSync) {
-  // DD-04: la búsqueda necesita `fold_search` en esta conexión (registrarla dos veces no falla).
-  registerTextSearch(db);
+/** Lecturas de una oferta y del listado paginado; parte de `createJobsRepository`. */
+function createJobQueries(db: DatabaseSync) {
   return {
     findById(id: number): Job | undefined {
       const row = db.prepare('SELECT * FROM job_openings WHERE id = ?').get(id);
@@ -128,6 +126,12 @@ export function createJobsRepository(db: DatabaseSync) {
       const row = db.prepare(COUNT_SQL).get({ status: filter.status, q: filter.q });
       return Number(row?.total ?? 0);
     },
+  };
+}
+
+/** Alta, edición, cambios de estado y borrado de una oferta (guardas en el `WHERE`); parte de `createJobsRepository`. */
+function createJobWriteOperations(db: DatabaseSync) {
+  return {
     insert(input: JobInput, createdAt: string): Job {
       const row = db
         .prepare(INSERT_SQL)
@@ -173,6 +177,13 @@ export function createJobsRepository(db: DatabaseSync) {
       return Number(db.prepare(DELETE_DRAFT_SQL).run(id).changes);
     },
   };
+}
+
+/** Acceso a `job_openings` solo con sentencias preparadas: la entrada nunca se concatena al SQL. */
+export function createJobsRepository(db: DatabaseSync) {
+  // DD-04: la búsqueda necesita `fold_search` en esta conexión (registrarla dos veces no falla).
+  registerTextSearch(db);
+  return { ...createJobQueries(db), ...createJobWriteOperations(db) };
 }
 
 export type JobsRepository = ReturnType<typeof createJobsRepository>;

@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync, preValidationHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync, preValidationHookHandler } from 'fastify';
 import {
   idParamsSchema,
   rejectBody,
@@ -50,11 +50,8 @@ function toListQuery({ status, q, page, pageSize }: JobListQuerystring): JobList
   };
 }
 
-/** Plugin del módulo jobs (DD-09): recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
-export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
-  app,
-  { service },
-) => {
+/** Alta, listado, lectura, edición y borrado de una oferta; parte de `jobsRoutes`. */
+function registerCrudRoutes(app: FastifyInstance, service: JobsService): void {
   app.post<{ Body: JobInput }>(
     '/',
     {
@@ -99,7 +96,10 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
       return reply.code(204).send();
     },
   );
+}
 
+/** Lectura previa al cierre y acciones de estado y copia; parte de `jobsRoutes`. */
+function registerActionRoutes(app: FastifyInstance, service: JobsService): void {
   // Lectura previa al cierre (DD-11): no cambia nada, en cualquier estado.
   app.get<{ Params: IdParams }>(
     '/:id/close-preview',
@@ -125,4 +125,13 @@ export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
     { preValidation: rejectBody, schema: { params: idParamsSchema, response: { 201: jobSchema } } },
     (request, reply) => reply.code(201).send(service.duplicate(Number(request.params.id))),
   );
+}
+
+/** Plugin del módulo jobs (DD-09): recibe el servicio ya compuesto en `buildApp`. Sin try/catch: errores al manejador. */
+export const jobsRoutes: FastifyPluginAsync<{ service: JobsService }> = async (
+  app,
+  { service },
+) => {
+  registerCrudRoutes(app, service);
+  registerActionRoutes(app, service);
 };

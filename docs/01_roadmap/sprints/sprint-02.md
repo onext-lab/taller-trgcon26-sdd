@@ -18,7 +18,7 @@ están decididas y el repo cumple lo que pide la publicación (licencias, autor�
 técnico: **sin HU**, solo tareas. Las features en vivo (A y C) no entran.
 
 ## Resumen de estado
-- HU: 0 · tareas sin HU: hechas 1 / 7 (T-08 a T-14)
+- HU: 0 · tareas sin HU: hechas 2 / 7 (T-08 a T-14)
 - Última actualización: 2026-10-09
 
 ## Historias de usuario
@@ -33,7 +33,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   (c) La pasada completa medida limitando *workers*, para saber cuánto dura en directo; la medida en una máquina
   modesta de verdad queda para el ensayo del 15/10. (d) Los logs de cada fallo guardados en un fichero ignorado por git.
 
-### T-09 · Umbral de 50 líneas por función medido con lint · estado: pendiente
+### T-09 · Umbral de 50 líneas por función medido con lint · estado: hecha
 - **Tipo:** refactor interno sin cambio de contrato (auditoría del sprint-01, A-03 y C-02)
 - Partir `createJobsRepository` y las otras factorías de objetos de métodos con el patrón `createXOperations` de
   `applications`, y los plugins de rutas en funciones de registro por grupo. Después, `max-lines-per-function` (50) en

@@ -31,7 +31,7 @@ paso de integración de `/implementar-hu` y la review **son** el gate.
 | Umbral | Valor | Notas |
 |---|---|---|
 | Líneas por fichero nuevo o modificado | ≤ 300 | Sobre el diff, con `archivo:línea`. |
-| Líneas por función | ≤ 50 | Ídem. |
+| Líneas por función | ≤ 50 | Lo mide `npm run lint`: `max-lines-per-function` sin líneas en blanco ni comentarios, sobre `apps/*/src` (no los tests), sin excepciones. |
 | Complejidad por función | ≤ 10 ramas | Estimación razonada en la review. |
 | Tests | 1 test por RF, por flujo de UC cubierto y por edge case Must | El repo no mide cobertura: se exige el mapeo criterio → test. |
 | Latencia local (`fastify.inject` o e2e) | lectura < 200 ms; acción < 500 ms | Solo si el PRD define RNF de rendimiento. |
