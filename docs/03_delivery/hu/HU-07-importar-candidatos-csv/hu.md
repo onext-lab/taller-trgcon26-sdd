@@ -60,7 +60,7 @@ Cubre UC-20 entero. UC-09 no se modifica.
 - Datos personales: la revisa el agente `datos-personales-auditor` en `/reviewer`.
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
 - [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
 - [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [ ] Implementación + integración — `/implementar-hu`
