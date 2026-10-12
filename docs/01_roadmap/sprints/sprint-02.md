@@ -153,6 +153,28 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   por un rol. En la copia, el paso 3 aplica además un `--replace-text` con la **lista de publicación** (fuera del repo,
   como la denylist; no va a la denylist normal porque pondría en rojo el pre-commit y el historial de trabajo), y la
   verificación del paso 5 pasa `check-clean --publish --publish-denylist <ruta>` en verde. Depende de T-18.
+- 2026-10-12 · **Canal de publicación: GitHub primero, el bundle como plan B** (decisión de la persona responsable). El
+  repo se publica en una organización de onext en GitHub **antes del taller**, para que los asistentes lo clonen; el
+  bundle queda para quien no tenga red. La organización la crea la persona responsable (13/10). Cambia T-15 así:
+  - **«Hecho» es «lista para subir», no «subida»:** la copia, reescrita y verificada, tiene que estar lista **antes del
+    21/10**. La subida (remoto nuevo y `git push`) la hace la persona responsable desde su terminal, o se hace con su
+    aprobación explícita. El agente sigue sin remoto ni push: el hook `no-externo` lo bloquea también en la copia.
+  - **Paso 5, la puerta con las dos listas:** en la raíz de la copia (el escaneo es del repo en el que se ejecuta,
+    no del de trabajo), `node scripts/check-clean.mjs --denylist <denylist> --publish --mailmap <ruta>
+    --publish-denylist <lista de publicación>` en verde: la denylist y la lista de publicación contra el árbol, el
+    historial, las refs y las identidades de la copia.
+  - **Paso nuevo, el README «Cómo descargarlo»**, en el `main` de la copia (es lo primero que enseña GitHub):
+    `git clone https://github.com/onext-lab/taller-trgcon26-sdd taller-sdd-ats` (trae todas las etiquetas), `git tag -l` para comprobarlas y
+    `git switch --detach <etiqueta>`; el aviso de que el «Download ZIP» de GitHub no sirve, porque sin `.git` no hay
+    etiquetas; y el plan B sin red, `git clone <fichero>.bundle taller-sdd-ats`. `URL_REPO` entra en
+    `scripts/publish-markers.mjs` como marcador, para que `--publish` falle mientras no se sepa la URL. En
+    `docs/SETUP.md`, el paso 4 de la publicación pasa a «subida a GitHub y, con las mismas refs, el bundle».
+  - **Paso 6:** el bundle se sigue creando, desde la misma copia verificada y con las mismas refs que se suben.
+  - **Refs que se suben, lista cerrada:** `main` y las etiquetas `paso-*` y `vivo-*`; nunca las `worktree-*`. Las
+    etiquetas `vivo-*` tienen que existir antes de empezar (esperan la ratificación de A-1 a A-4 y C-1 a C-5). Está
+    por decidir si se suben también las ramas `hu/*` y `vivo/{A,C}`.
+  - **Traspaso a la persona responsable:** el comando de subida exacto con esa lista de refs, y los ajustes del repo en
+    GitHub (Issues, Wiki y Discussions desactivados, como dice el README; archivarlo el 2026-12-31).
 
 ### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: hecha (2026-10-12)
 - **Tipo:** publicación (DP-01 de la auditoría del sprint-02; decisión de la persona responsable del 2026-10-09,
