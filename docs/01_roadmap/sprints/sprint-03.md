@@ -18,12 +18,12 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 `vivo-C-2-prd`, `vivo-C-3-tareas` y `vivo-C-4-hecho`.
 
 ## Resumen de estado
-- HU: hechas 0 / 1 · en curso 1 · bloqueadas 0
+- HU: hechas 1 / 1 · en curso 0 · bloqueadas 0
 - Última actualización: 2026-10-12
 
 ## Historias de usuario
 
-### HU-07 · Importar candidatos desde un CSV · estado: en curso
+### HU-07 · Importar candidatos desde un CSV · estado: hecha
 - **Origen:** FEAT-04 · **Depende de:** nada · **Rama:** `hu/HU-07-importar-candidatos-csv`
 - [x] prd-writer (Ready, con las 5 PA pendientes de ratificar)
 - [x] tech-design
