@@ -3,9 +3,9 @@ sprint: 03
 objetivo: "Importación CSV de candidatos (feature en vivo C): de la feature al código integrado, con su solución de referencia por etiquetas."
 inicio: 2026-10-12
 fin: 2026-10-14            # calendario aprobado por el responsable técnico (12-14/10), en lugar de los 2 días por defecto
-estado: en curso           # planificado | en curso | completado | cerrado
+estado: completado         # planificado | en curso | completado | cerrado
 base: 790836c              # sha de main al abrir el sprint (paso-3-punto-de-partida); /audit-sprint audita base..cabeza
-cerrado_en: null
+cerrado_en: 2026-10-12
 audit-override: null       # solo con razón ≥ 20 caracteres
 ---
 
@@ -19,7 +19,9 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 
 ## Resumen de estado
 - HU: hechas 1 / 1 · en curso 0 · bloqueadas 0
-- Última actualización: 2026-10-12
+- Última actualización: 2026-10-12 · **Cerrado el 2026-10-12** con 1/1 HU (HU-07) y la auditoría «Aprobado con
+  observaciones» (`docs/10_audits/sprints/sprint-03-AUDIT.md`). Sin impedimentos. IDEA-004, FEAT-04 y HU-07 archivadas
+  en sus `completadas/`.
 
 ## Historias de usuario
 
@@ -54,3 +56,14 @@ _Ninguna._
 - Presupuesto de la variante mínima (A hasta el PRD + C completa): ~6,6 M tokens; a los 8 M se para y se avisa.
 - Modelos: builders, drift y tabla con sonnet; `security-auditor` y `datos-personales-auditor` con el modelo de la
   sesión (decisión del responsable técnico del 2026-10-09).
+- 2026-10-12 · **Cierre y deuda que pasa al siguiente sprint** (auditoría «Aprobado con observaciones»):
+  - Ratificación de PA-01 a PA-05 por la persona responsable; si cambia alguna, se ajusta lo afectado en `vivo/C`.
+  - «Sin decidir en `docs/RGPD.md`» (auditoría §3): base jurídica del importado sin inscripción ni consentimiento,
+    art. 14 y origen, reimportar a un anonimizado con la feature A y el `existingId` del duplicado y del 409.
+  - Deuda técnica SEC-01 (`parseCsv` sin salida anticipada) y DP-02 (el 500 registra el error entero), en
+    `docs/05_modules/candidatos/technical.md`.
+  - DP-S3-01: la importación multiplica los candidatos vencidos sin marca hasta la feature A (cuestión abierta en
+    `docs/05_modules/candidatos/functional.md`).
+  - Los hallazgos de documentación de la auditoría (DD-01 a DD-09, DP-S3-01 a DP-S3-04) se curaron en `fb44412`, sin
+    tocar `apps/` ni `e2e/`.
+  - Etiquetas `vivo-C-1-feature` a `vivo-C-4-hecho`: se ponen cuando la persona responsable ratifique.

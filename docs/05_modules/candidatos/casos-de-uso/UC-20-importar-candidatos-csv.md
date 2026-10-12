@@ -15,7 +15,7 @@ hus: [HU-07]
 > Cada flujo tiene un identificador estable (**P**, **A1…**, **E1…**): el PRD convierte cada uno en, al menos, un
 > criterio de aceptación, y la revisión exige un test por flujo.
 
-Las reglas `RN-NN` son las de FEAT-04 (`docs/02_discovery/features/FEAT-04-importacion-csv-candidatos/feature.md`),
+Las reglas `RN-NN` son las de FEAT-04 (`docs/02_discovery/features/completadas/FEAT-04-importacion-csv-candidatos/feature.md`),
 RN-01 a RN-16; RN-16 (los valores se guardan tal cual) no cambia ningún paso y la cubre el test EC-26
 (`apps/api/test/candidates/import-adversarial.test.ts`).
 Las marcadas con † están **pendientes de ratificar** por la persona responsable, con la recomendación ya aplicada.

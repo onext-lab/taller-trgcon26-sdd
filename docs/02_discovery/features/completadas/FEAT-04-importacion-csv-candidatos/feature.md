@@ -1,7 +1,7 @@
 ---
 id: FEAT-04
 titulo: "Importación CSV de candidatos"
-estado: priorizada       # shaping | priorizada | en delivery | entregada
+estado: entregada        # shaping | priorizada | en delivery | entregada
 prioridad: null          # alta | media | baja (la fija la persona)
 idea_origen: IDEA-004
 modulos_afectados: [candidatos]
@@ -26,7 +26,7 @@ duplicados sin tocar a nadie y le enseña un informe con qué filas entraron, cu
 ## Por qué
 Un reclutador que vuelve de una feria de empleo, o que trae una lista de otra herramienta, hoy tiene que teclear los
 candidatos uno a uno con el formulario (UC-09). La importación lo ahorra, pero solo sirve si deja claro el resultado de
-cada fila (`docs/02_discovery/ideas/004-importacion-csv-candidatos.md`). Es además la feature en vivo C del taller:
+cada fila (`docs/02_discovery/ideas/completadas/004-importacion-csv-candidatos.md`). Es además la feature en vivo C del taller:
 enseña los casos límite y los tests guiados por casos (`docs/07_architecture_principles/QUALITY-GATES.md` §3).
 
 ## Alcance
@@ -242,3 +242,9 @@ Estimación orientativa para `/task-planner`: **unas 11 tasks** (máximo de QUAL
 
 Lo que la sacaría de 15 tasks (por eso está fuera): el separador `;`, la previsualización, skills o resumen en el CSV,
 el informe persistido o descargable y el campo de origen con migración.
+
+## Cierre
+Entregada en sprint-03 el 2026-10-12, en la rama `vivo/C` (solución de referencia de la feature en vivo C): HU-07
+(merge `0bd38ac`, module-sync `ef730fc`). Review «Aprobado con observaciones» y auditoría del sprint «Aprobado con
+observaciones» (`docs/10_audits/sprints/sprint-03-AUDIT.md`). PA-01 a PA-05, pendientes de ratificar por la persona
+responsable.

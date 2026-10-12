@@ -2,7 +2,7 @@
 id: HU-07
 feature: FEAT-04
 titulo: "Importar candidatos desde un CSV"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: hecha            # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [candidatos]
 sprint: sprint-03        # sprint-NN
@@ -17,7 +17,7 @@ por qué**, para **dar de alta de golpe a los candidatos de una feria de empleo 
 a uno**.
 
 ## Contexto
-Única HU de FEAT-04 (`docs/02_discovery/features/FEAT-04-importacion-csv-candidatos/feature.md`), por decisión de la
+Única HU de FEAT-04 (`docs/02_discovery/features/completadas/FEAT-04-importacion-csv-candidatos/feature.md`), por decisión de la
 persona responsable del 2026-10-09 (feature en vivo C del taller, completa con 1 HU). Es vertical: API (lectura y
 validación del fichero, deduplicación y alta en una transacción) y web (pantalla de importación e informe), con un e2e.
 Reutiliza la validación, la normalización del email y el cálculo de la retención del alta (UC-09). El shaping estima
@@ -67,4 +67,4 @@ Cubre UC-20 entero. UC-09 no se modifica.
 - [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [x] Implementación + integración — `/implementar-hu`
 - [x] Review (`review/REVIEW.md`) — `/reviewer`
-- [ ] Sync de módulos + merge local a `main` — `/module-sync`
+- [x] Sync de módulos + merge local a `main` — `/module-sync` (merge a `vivo/C` `0bd38ac`, sync `ef730fc`)
