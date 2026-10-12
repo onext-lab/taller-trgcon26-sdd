@@ -120,7 +120,7 @@ con `git tag -l`.
 | `paso-0-kit` | El kit SDD (`.claude/`, `docs/`, `AGENTS.md`, `CLAUDE.md`) y el esqueleto del monorepo | Solo el esqueleto: «Estado de la API: ok» |
 | `paso-1-discovery` | Reglas validadas, ideas, features con sus casos de uso y HU, con las preguntas y respuestas | Igual que en `paso-0-kit`: el discovery no toca código |
 | `paso-2-sprint-01` | El sprint 01 entregado: 6 HU de PRD a código, reviews, auditoría y cierre | El ATS completo, con el estilo anterior al de `main` |
-| `paso-3-punto-de-partida` | README, guion y este `SETUP.md`: el punto de partida del taller | El ATS completo |
+| `paso-3-punto-de-partida` | README y este `SETUP.md`: el punto de partida del taller | El ATS completo |
 | `vivo-{A,C}-{1-feature,2-prd,3-tareas,4-hecho}` | Las features en vivo fase a fase (A: supresión y retención RGPD; C: importación CSV) | Con la feature solo en `vivo-*-4-hecho` |
 
 Para saltar a una etiqueta y volver:

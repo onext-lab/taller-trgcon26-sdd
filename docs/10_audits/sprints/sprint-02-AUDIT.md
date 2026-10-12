@@ -15,6 +15,9 @@
   revisión del responsable técnico.
 - *Fuera de las tareas, pero dentro de `base..`:* el borrador del guion (`6d8073e`), el README y `SETUP.md`
   (`85cc2b6`) y la corrección de trazabilidad de los UC (`055673b`), anotados en las notas del sprint. Se auditan igual.
+- *Nota del 2026-10-12:* el guion del taller (`docs/taller/`) salió del repo por decisión de la persona responsable:
+  el material de la charla va aparte y el repo es solo la app de ejemplo con su kit. Las citas al guion de esta
+  auditoría (DD-02, DD-07, DD-11) son históricas y ya no tienen fichero en el árbol.
 
 ## 1. Suite completa
 
@@ -90,7 +93,7 @@ Hallazgos **confirmados** (verificados en el repo):
   `scripts/**/*.mjs`, con una excepción fechada y explícita para `check-harness.mjs` hasta partirlo (acción A-04).
 - **[DD-06]** `docs/ARCHITECTURE.md`: la cita `candidates/repository.ts:97` es la constante `FIND_NAMES_SQL` (con
   `SELECT id, full_name`); el método `findNamesByIds` está en `:113`. El texto cuadra con lo citado.
-- **[DD-07]** `docs/taller/GUION.md:40` dice «47-51 s»; las pasadas registradas van de 45,7 s a 50,8 s.
+- **[DD-07]** El guion del taller (línea 40) dice «47-51 s»; las pasadas registradas van de 45,7 s a 50,8 s.
 - **[DD-08]** Los briefs cerrados de T-09 y T-14 citan coordenadas anteriores al cambio, como es normal en un brief.
 - **[DD-09]** `docs/SETUP.md` «Antes de publicar» nombra los tres marcadores; ya solo queda URL_MARKETPLACE.
 - **[DD-10]** `scripts/check-clean.mjs:191` menciona un hook `commit-msg` que no está en `.claude/`: es un hook local de
@@ -102,7 +105,7 @@ Hallazgos **confirmados** (verificados en el repo):
   docs, el mapa de rutas de `NOTICE` y las 6 citas de `technical.md`.
 
 ### Refutados
-- **[DD-02]** `docs/taller/GUION.md:101` cita `docs/03_delivery/hu/HU-04-inscribir-candidato/hu.md`, sin
+- **[DD-02]** El guion del taller (línea 101) cita `docs/03_delivery/hu/HU-04-inscribir-candidato/hu.md`, sin
   `completadas/`. **Refutado:** la fila es de la etiqueta `paso-1-discovery`, y en esa etiqueta la ruta existe
   (`git show paso-1-discovery:docs/03_delivery/hu/HU-04-inscribir-candidato/hu.md` la muestra). Se puede aclarar en la
   celda, sin que sea un defecto.

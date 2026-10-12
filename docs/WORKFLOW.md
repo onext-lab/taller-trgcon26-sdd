@@ -234,7 +234,7 @@ El repo se recorre en el taller saltando entre etiquetas git **locales**. Cada u
 | `paso-0-kit` | El kit SDD (`.claude/`, `docs/`, `AGENTS.md`, `CLAUDE.md`) y el esqueleto del monorepo |
 | `paso-1-discovery` | Ideas, features y HU del núcleo del ATS, con sus preguntas y respuestas visibles |
 | `paso-2-sprint-01` | El sprint 01 entregado: PRD → diseño → tareas → código → review → sync, auditoría y cierre |
-| `paso-3-punto-de-partida` | README, guion y `SETUP.md` revisados: lo que recibe cada asistente |
+| `paso-3-punto-de-partida` | README y `SETUP.md` revisados: lo que recibe cada asistente |
 | `vivo-{A,C}-1-feature` | Feature en vivo (A: supresión y retención RGPD; C: importación CSV) tras el shaping |
 | `vivo-{A,C}-2-prd` | La misma feature con su HU y su PRD `Ready` |
 | `vivo-{A,C}-3-tareas` | Con diseño técnico y tareas |
