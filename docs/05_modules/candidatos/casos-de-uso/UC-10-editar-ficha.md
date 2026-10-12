@@ -4,7 +4,7 @@ titulo: "Editar la ficha de un candidato"
 modulo: candidatos
 actor: reclutador
 estado: implementado
-feature: FEAT-02
+feature: FEAT-04
 hus: [HU-03]
 ---
 
@@ -47,6 +47,10 @@ El reclutador corrige o completa los datos de un candidato (derecho de rectifica
 - **E3 — Candidato inexistente** (en el paso 1 o 4): el ID no existe → 404 sin datos (QUALITY-GATES §3).
 - **E4 — Fallo al guardar** (en el paso 4): la base de datos falla → error en el envelope sin datos personales; la
   ficha no cambia y el formulario conserva lo escrito (DEC-01).
+- **E5 — Candidato anonimizado** (en el paso 1 o 4): el candidato está anonimizado → 409 y la ficha no cambia; la web
+  no ofrece «Editar» en la ficha de un anonimizado (FEAT-04 RN-11, DEC-07).
+- **E6 — Email del dominio reservado a los anonimizados** (en el paso 3): → 400 junto al campo; la ficha no cambia
+  (FEAT-04 RN-03).
 
 ## Reglas de negocio
 - RN-01 campos y límites; RN-02 normalización y esquema estricto; RN-03 email único y cambiable; RN-04 skills; RN-06
@@ -72,5 +76,7 @@ Lee y escribe nombre y apellidos, email, teléfono, resumen y skills (RGPD §1).
 | E2 | HU-03 | CA-12 | `apps/api/test/candidates/update.test.ts:161`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:175` |
 | E3 | HU-03 | CA-13 | `apps/api/test/candidates/update.test.ts:176`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:226` |
 | E4 | HU-03 | CA-14 | `apps/api/test/candidates/update-adversarial.test.ts:107`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:244` |
+| E5 | — (FEAT-04) | | |
+| E6 | — (FEAT-04) | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

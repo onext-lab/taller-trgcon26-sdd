@@ -4,7 +4,7 @@ titulo: "Rechazar una inscripción"
 modulo: inscripciones
 actor: reclutador
 estado: implementado
-feature: FEAT-03
+feature: FEAT-04
 hus: [HU-05]
 ---
 
@@ -42,6 +42,9 @@ El reclutador saca a un candidato del proceso de una oferta, dejando constancia 
 ## Flujos alternativos
 - **A1 — Reintento de un rechazo ya aplicado** (desde el paso 3): la inscripción ya está en `rejected` → 200 sin
   cambios: no se crea `StageChange` y no cambian ni el motivo ni la nota originales. Termina (RV-23, S-01, RV-21).
+- **A2 — Inscripción de un candidato anonimizado** (desde el paso 3): al anonimizar, sus inscripciones activas pasaron
+  a `rejected` (FEAT-04 RN-08) → si está en `rejected`, se aplica A1 (200 sin cambios); si está en `hired`, E4 (409).
+  La retención del candidato nunca se recalcula (FEAT-04 RN-07, RGPD §5).
 
 ## Excepciones
 - **E1 — Motivo ausente o no permitido** (en el paso 3): falta el motivo, no está en la lista o es «oferta cerrada»,
@@ -69,15 +72,16 @@ El reclutador saca a un candidato del proceso de una oferta, dejando constancia 
 
 ## Datos personales
 La nota es texto libre y puede acabar identificando a la persona: por eso es opcional, limitada a 500 caracteres y con
-aviso en la interfaz (RV-20). Nunca se escribe en logs ni en mensajes de error (RGPD §6.1). Al anonimizar, se elimina
-como el resto de texto libre (RGPD §5; lo implementa la feature A, S-05). El cierre del proceso recalcula la fecha de
-fin de retención (RGPD §3).
+aviso en la interfaz (RV-20). Nunca se escribe en logs ni en mensajes de error (RGPD §6.1). Al anonimizar, a petición
+o por vencimiento, se vacía como el resto de texto libre (RGPD §5, FEAT-04 RN-04). El cierre del proceso recalcula la
+fecha de fin de retención (RGPD §3).
 
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
 | P | HU-05 | CA-12, CA-13, CA-21 | `apps/api/test/applications/reject.test.ts:95`, `apps/web/test/features/applications/PipelineScreen.reject.test.tsx:60`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | A1 | HU-05 | CA-14 | `apps/api/test/applications/reject.test.ts:124` |
+| A2 | — (FEAT-04) | | |
 | E1 | HU-05 | CA-15 | `apps/api/test/applications/reject.test.ts:195` |
 | E2 | HU-05 | CA-16, CA-21 | `apps/api/test/applications/reject-note.test.ts:57`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | E3 | HU-05 | CA-17 | `apps/api/test/applications/reject.test.ts:207` |

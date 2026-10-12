@@ -4,7 +4,7 @@ titulo: "Buscar candidatos"
 modulo: candidatos
 actor: reclutador
 estado: implementado
-feature: FEAT-02
+feature: FEAT-04
 hus: [HU-03]
 ---
 
@@ -40,6 +40,10 @@ El reclutador encuentra candidatos por nombre, email o skill.
 - **A3 — Sin resultados** (en el paso 2): ninguna coincidencia → estado vacío con mensaje (06_design_principles §3).
 - **A4 — Otra página o tamaño** (en el paso 3): el reclutador pide otra página o un tamaño de página de hasta 100 →
   se devuelve esa página; una página más allá de la última devuelve una lista vacía (RV-08, S-04).
+- **A5 — Candidatos anonimizados** (en el paso 2): un candidato anonimizado nunca aparece, con o sin filtros, ni cuenta
+  en el total, ni sale en el buscador del pipeline ([UC-14](../../inscripciones/casos-de-uso/UC-14-inscribir-candidato.md)
+  · P1); no hay filtro para verlos (RV-14, FEAT-04 RN-12). Los candidatos con la retención vencida y aún no
+  anonimizados sí aparecen, sin marca en el listado (FEAT-04 RN-19).
 
 ## Excepciones
 - **E1 — Parámetros inválidos** (en el paso 2): `q` de más de 100 caracteres o con caracteres de control, o más de
@@ -66,6 +70,7 @@ se registra en los logs (RGPD §6).
 | A2 | HU-03 | CA-17 | `apps/api/test/candidates/list.test.ts:62`, `e2e/candidates-list.spec.ts:48` |
 | A3 | HU-03 | CA-18 | `apps/api/test/candidates/list.test.ts:79`, `apps/web/test/features/candidates/CandidateListScreen.test.tsx:111` |
 | A4 | HU-03 | CA-19 | `apps/api/test/candidates/list.test.ts:112`, `e2e/candidates-list.spec.ts:67` |
+| A5 | — (FEAT-04) | | |
 | E1 | HU-03 | CA-20, CA-32 | `apps/api/test/candidates/list-adversarial.test.ts:52`, `apps/web/test/features/candidates/CandidateListScreen.adversarial.test.tsx:49` |
 | E2 | HU-03 | CA-21 | `apps/web/test/features/candidates/CandidateListScreen.test.tsx:126`, `e2e/candidates-list.spec.ts:113` |
 

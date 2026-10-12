@@ -1,12 +1,12 @@
 ---
 id: IDEA-004
 titulo: "Supresión y retención de los datos de candidatos"
-estado: idea            # idea | aceptada | descartada | completada
+estado: aceptada        # idea | aceptada | descartada | completada
 fecha: 2026-10-09
 autor: "responsable técnico (feature en vivo A del taller)"
 modulos_afectados: [candidatos, inscripciones]
 prioridad: null         # alta | media | baja (la fija la persona)
-feature: null           # FEAT-NN cuando se acepte
+feature: FEAT-04        # FEAT-NN cuando se acepte
 completada_en: null
 ---
 
@@ -38,4 +38,4 @@ nota del rechazo).
   shaping.
 
 ## Decisión
-<Se rellena al aceptar (con su FEAT-NN) o al descartar (con el motivo).>
+Promovida a FEAT-04 el 2026-10-12.

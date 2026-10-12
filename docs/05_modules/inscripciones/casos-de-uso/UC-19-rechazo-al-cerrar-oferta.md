@@ -4,7 +4,7 @@ titulo: "Rechazar las inscripciones activas al cerrar una oferta"
 modulo: inscripciones
 actor: reclutador
 estado: implementado
-feature: FEAT-03
+feature: FEAT-04
 hus: [HU-06]
 ---
 
@@ -45,6 +45,9 @@ motivo «oferta cerrada» y queda rastro de cada una.
   `rejected` → no se rechaza ni se recalcula nada; la operación devuelve 0 y el cierre sigue (RV-05).
 - **A2 — Candidato con otras inscripciones abiertas** (desde el paso 4): el candidato sigue en algún proceso no final
   de otra oferta → su retención no cambia (S-06, RV-24).
+- **A3 — Candidato anonimizado en la oferta** (desde el paso 2): al anonimizar, sus inscripciones activas pasaron a
+  `rejected` (FEAT-04 RN-08) → no está entre las no finales, no se toca y su retención no se recalcula (FEAT-04 RN-07,
+  RGPD §5).
 
 ## Excepciones
 - **E1 — Falla una escritura** (en los pasos 3-4): la transacción de cierre se deshace entera: la oferta sigue
@@ -73,6 +76,7 @@ No escribe texto libre. Cierra procesos de candidatos, lo que recalcula su fecha
 | P | HU-06 | CA-01, CA-02, CA-12, CA-16 | `apps/api/test/applications/close-reject.test.ts:105`, `apps/api/test/applications/close-reject.test.ts:129`, `e2e/jobs-close-applications.spec.ts:43`, `apps/api/test/applications/close-invariants.test.ts:74` |
 | A1 | HU-06 | CA-04 | `apps/api/test/applications/close-reject.test.ts:162` |
 | A2 | HU-06 | CA-05 | `apps/api/test/applications/close-reject.test.ts:187` |
+| A3 | — (FEAT-04) | | |
 | E1 | HU-06 | CA-06, CA-11 | `apps/api/test/applications/close-reject-adversarial.test.ts:144`, `apps/api/test/applications/close-reject-privacy.test.ts:92` |
 | E2 | HU-06 | CA-07 | `apps/api/test/applications/stage-change-after-close.test.ts:74` |
 

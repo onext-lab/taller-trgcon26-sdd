@@ -4,7 +4,7 @@ titulo: "Dar de alta un candidato"
 modulo: candidatos
 actor: reclutador
 estado: implementado
-feature: FEAT-02
+feature: FEAT-04
 hus: [HU-03]
 ---
 
@@ -50,6 +50,8 @@ ofertas, y el sistema le asigna su fecha de fin de retención.
   con el ID del candidato existente, sin repetir el email en el mensaje; no se guarda nada (RV-10, RGPD §6).
 - **E3 — Fallo al guardar** (en el paso 5): la base de datos no responde o está ocupada → error en el envelope sin
   datos personales; no queda nada a medias y el formulario conserva lo escrito (DEC-01, QUALITY-GATES §3).
+- **E4 — Email del dominio reservado a los anonimizados** (en el paso 3): el email pertenece al dominio reservado para
+  los emails anonimizados → 400 junto al campo; no se guarda nada (FEAT-04 RN-03).
 
 ## Reglas de negocio
 - RN-01 campos y límites; RN-02 normalización de texto y esquema estricto; RN-03 email único; RN-04 skills; RN-05
@@ -72,5 +74,6 @@ jurídica: medidas precontractuales y, si se marca, consentimiento (RGPD §2); c
 | E1 | HU-03 | CA-04, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:113`, `apps/web/test/features/candidates/CandidateFormScreen.test.tsx:156` |
 | E2 | HU-03 | CA-05, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:173`, `apps/web/test/features/candidates/CandidateFormScreen.adversarial.test.tsx:102`, `e2e/candidates.spec.ts:163` |
 | E3 | HU-03 | CA-06, CA-32 | `apps/api/test/candidates/create-adversarial.test.ts:196`, `apps/web/test/features/candidates/CandidateFormScreen.test.tsx:187` |
+| E4 | — (FEAT-04) | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

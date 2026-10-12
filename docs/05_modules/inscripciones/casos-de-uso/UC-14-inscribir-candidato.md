@@ -4,7 +4,7 @@ titulo: "Inscribir un candidato en una oferta"
 modulo: inscripciones
 actor: reclutador
 estado: implementado
-feature: FEAT-03
+feature: FEAT-04
 hus: [HU-04]
 ---
 
@@ -54,6 +54,13 @@ _Ninguno._
   400 en el envelope de error; no se crea nada (S-03, DEC-01).
 - **E5 — Falla una escritura** (en los pasos 3-4): la transacción se deshace entera: no queda inscripción, ni
   `StageChange`, ni retención recalculada (S-06).
+- **E6 — Candidato anonimizado** (en el paso 2): el candidato está anonimizado → 409 con un mensaje que lo explica, sin
+  datos personales; no se crea nada (RV-17, FEAT-04 RN-11, DEC-07). El buscador del paso 1 no lo ofrece
+  ([UC-11](../../candidatos/casos-de-uso/UC-11-buscar-candidatos.md) · A5).
+- **E7 — Retención vencida sin anonimizar** (en el paso 2): el candidato no está anonimizado y su fecha de fin es igual
+  o anterior a hoy en Europe/Madrid → 409 con un mensaje que lo explica; no se crea nada ni se recalcula la retención.
+  Se podrá inscribir tras registrar un consentimiento nuevo (FEAT-04 RN-18 y RN-19; **pendiente de ratificar**,
+  FEAT-04 PA-03).
 
 ## Reglas de negocio
 - RN-01: solo se inscribe en ofertas `published`.
@@ -80,5 +87,7 @@ más datos de los necesarios (RGPD §6).
 | E3 | HU-04 | CA-09 | `apps/api/test/applications/enroll.test.ts:174` |
 | E4 | HU-04 | CA-10 | `apps/api/test/applications/enroll-adversarial.test.ts:90` |
 | E5 | HU-04 | CA-11 | `apps/api/test/applications/enroll-failures-adversarial.test.ts:86` |
+| E6 | — (FEAT-04) | | |
+| E7 | — (FEAT-04) | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

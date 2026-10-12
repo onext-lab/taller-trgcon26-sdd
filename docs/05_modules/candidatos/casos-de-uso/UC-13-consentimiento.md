@@ -4,7 +4,7 @@ titulo: "Registrar, retirar o renovar el consentimiento para futuros procesos"
 modulo: candidatos
 actor: reclutador
 estado: implementado
-feature: FEAT-02
+feature: FEAT-04
 hus: [HU-03]
 ---
 
@@ -47,11 +47,16 @@ futuros procesos, y el sistema ajusta su fecha de fin de retención.
   Continúa en el paso 4.
 - **A3 — Retirar sin consentimiento vigente** (desde el paso 1): se pide retirar un consentimiento que no existe o
   ya está retirado → 200 sin cambios; no se tocan fechas (S-01).
+- **A4 — Candidato con la retención vencida** (desde el paso 1): el candidato aún no está anonimizado y su fecha de fin
+  ya pasó → registrar un consentimiento nuevo sigue el flujo principal: es una base jurídica nueva (art. 6.1.a) y la
+  retención recalculada deja de estar vencida (FEAT-04 RN-19, S-06, S-07, RGPD §2).
 
 ## Excepciones
 - **E1 — Candidato inexistente** (en el paso 1): el ID no existe → 404 sin datos (QUALITY-GATES §3).
 - **E2 — Fallo al guardar** (en el paso 2 o 3): la base de datos falla → error en el envelope; ni el consentimiento
   ni la retención cambian, porque van en la misma transacción (S-06, DEC-01).
+- **E3 — Candidato anonimizado** (en el paso 1): el candidato está anonimizado → 409 al registrar, renovar o retirar,
+  también cuando no hay consentimiento vigente (prevalece sobre A3); no cambia nada (FEAT-04 RN-11, DEC-07).
 
 ## Reglas de negocio
 - RN-05 consentimiento; RN-06 retención solo del sistema; RN-07 fórmula de retención; RN-12 puerto de procesos.
@@ -73,7 +78,9 @@ retirada es el ejercicio del art. 7.3 (RGPD §4).
 | A1 | HU-03 | CA-26, CA-31 | `apps/api/test/candidates/consent.test.ts:125`, `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx:176` |
 | A2 | HU-03 | CA-27 | `apps/api/test/candidates/consent.test.ts:65`, `apps/web/test/features/candidates/CandidateDetailScreen.consent.test.tsx:219` |
 | A3 | HU-03 | CA-28 | `apps/api/test/candidates/consent.test.ts:144` |
+| A4 | — (FEAT-04) | | |
 | E1 | HU-03 | CA-29 | `apps/api/test/candidates/consent-adversarial.test.ts:135` |
 | E2 | HU-03 | CA-30 | `apps/api/test/candidates/consent-adversarial.test.ts:149`, `apps/web/test/features/candidates/CandidateDetailScreen.adversarial.test.tsx:162` |
+| E3 | — (FEAT-04) | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
