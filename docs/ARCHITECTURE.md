@@ -102,7 +102,7 @@ HU-04).
   reutiliza en cada `throw`. Ejemplo: `apps/api/src/modules/applications/service.ts:72-74`.
 - **`requireX` para «existe o 404».** Un helper por entidad que lee la fila o lanza `notFound` con su mensaje, en lugar
   de repetir la comprobación en cada caso de uso. Ejemplos: `apps/api/src/modules/jobs/service.ts:67` y
-  `apps/api/src/modules/candidates/service.ts:84`.
+  `apps/api/src/modules/candidates/service.ts:92`.
 
 **Datos y consistencia**
 

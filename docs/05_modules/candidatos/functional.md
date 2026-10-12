@@ -74,10 +74,11 @@ Las de FEAT-02, con su estado real en `main`.
   defecto en `buildApp`) y llama al recálculo al inscribir, al pasar una inscripción a una etapa final y al rechazarla
   por el cierre de su oferta. El stub `noCandidateProcesses` solo queda para tests y el seed.
 - **RN-13** — no existe el borrado: `DELETE /api/candidates/:id` da 404.
-- **Importación (FEAT-04, RN-01 a RN-15 de [UC-20](casos-de-uso/UC-20-importar-candidatos-csv.md))** — cada fila se valida
+- **Importación (FEAT-04, RN-01 a RN-16 de [UC-20](casos-de-uso/UC-20-importar-candidatos-csv.md))** — cada fila se valida
   como el alta y entran solo las válidas (importación parcial; 0 creados no es un error); un email que ya existe (sin
   distinguir mayúsculas) es «duplicado» y no modifica al existente, y uno repetido en el fichero entra la primera vez; los
-  importados no llevan consentimiento y su retención es alta + 6 meses; el fichero y el informe solo viven en pantalla.
+  importados no llevan consentimiento y su retención es alta + 6 meses; los valores se guardan tal cual, también los que
+  empiezan por `=`, `+`, `-` o `@` (RN-16); el fichero y el informe solo viven en pantalla.
   Las marcadas † en UC-20 (formato, cabecera, límites, parcial, sin consentimiento y sin origen) están aplicadas con la
   recomendación y pendientes de ratificar (PA-01 a PA-05).
 
@@ -110,6 +111,9 @@ INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en
   lo afectado) y, sin decidir en `docs/RGPD.md`, la base jurídica del candidato importado sin inscripción ni consentimiento
   y el art. 14; qué hacer al reimportar a alguien anonimizado cuando exista la feature A; y el `existingId` del duplicado,
   mismo supuesto que el 409 del alta. Deuda técnica SEC-01 y DP-02 en [technical.md](technical.md).
+- Importación y retención (auditoría del sprint-03, DP-S3-01): cada fichero puede dar de alta hasta 500 candidatos sin
+  consentimiento ni inscripción, con la retención a alta + 6 meses; hasta la feature A nada los anonimiza al vencer, así
+  que la importación multiplica el hueco de los vencidos sin marca. Su dueño es el backlog de la feature A.
 - El texto de cada versión del consentimiento se conserva en el repositorio (`apps/web/src/features/candidates/consent.ts` y
   su historial de git); cambiar el texto obliga a subir la versión (RGPD §2).
 

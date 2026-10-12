@@ -30,7 +30,7 @@ fecha más tardía de la fórmula). No queda nada latente.
 | Migración · seed | `apps/api/src/db/migrations/002-create-candidates.sql` · `apps/api/src/db/seed-candidates.ts` | Tabla `candidates` · 30 candidatos inventados; `seedCandidates(db, now)` devuelve sus IDs y `seed` los carga en la misma transacción que las ofertas, antes de `seedApplications` |
 | Web | `apps/web/src/features/candidates/` | `api.ts`, `types.ts`, `paths.ts`, `consent.ts`, `list-state.ts`, `candidate-form-model.ts`, `candidate-form-errors.ts`, `use-consent-actions.ts`, `use-consent-focus.ts` y las pantallas y componentes; la importación (HU-07): `CandidateImportScreen.tsx` (contenedor), `CandidateImportForm.tsx` y `CandidateImportReport.tsx` (presentacionales), `use-import-actions.ts` (estado de la pantalla) e `import-model.ts` (funciones puras y textos) |
 | Tests API | `apps/api/test/candidates/` · `apps/api/test/helpers/candidates.ts` | `create`, `create-adversarial`, `get`, `update`, `update-adversarial`, `list`, `list-adversarial`, `consent`, `consent-adversarial`, `consent-version` (ata `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API), `retention`, `normalize`, `migration`, `seed`, `privacy-logs`, `performance`; de la importación: `csv`, `import-file`, `import-rows`, `import`, `import-contract`, `import-adversarial`, `import-failures-adversarial`, `import-privacy`, `import-privacy-disk` · `createProcessesStub`, `createCandidate` y, en `apps/api/test/helpers/csv.ts`, `csvBytes` e `importCsv` |
-| Tests web · e2e | `apps/web/test/features/candidates/` · `apps/web/test/components/` · `e2e/candidates.spec.ts`, `e2e/candidates-list.spec.ts`, `e2e/candidates-import.spec.ts` | Testing Library con `fetch` simulado (`apps/web/test/helpers/fetch.ts`, `dialog.ts`, `focus.ts`; la importación añade `import-fixtures.ts` y `apps/web/test/components/http.bytes.test.ts`) · Playwright sobre `data/e2e.db` (10 recorridos de candidatos y 2 de la importación, con CSV generados en memoria) |
+| Tests web · e2e | `apps/web/test/features/candidates/` · `apps/web/test/components/` · `e2e/candidates.spec.ts`, `e2e/candidates-list.spec.ts`, `e2e/candidates-import.spec.ts` | Testing Library con `fetch` simulado (`apps/web/test/helpers/fetch.ts`, `dialog.ts`, `focus.ts`; la importación añade `apps/web/test/features/candidates/import-fixtures.ts` y `apps/web/test/components/http.bytes.test.ts`) · Playwright sobre `data/e2e.db` (10 recorridos de candidatos y 2 de la importación, con CSV generados en memoria) |
 
 Piezas transversales que usa: `apps/api/src/http/` (`error-handler.ts`, `validation.ts`, `cross-site.ts`),
 `apps/api/src/errors.ts`, `apps/api/src/clock.ts`, `apps/api/src/db/transaction.ts`, `apps/api/src/db/text-search.ts` y,
@@ -104,7 +104,9 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
   (`existingId`) o `repeated` (`firstRow`); `duplicates` cuenta `duplicate` y `repeated`; nunca lista los creados ni repite
   valores del fichero (`errors[]` = `{ field, message }`, `field` ∈ `nombre`, `email`, `telefono`, `fila`).
   Importación parcial: entran las filas válidas y las demás van al informe; 0 creados es 200. Cada fila se valida con las
-  propiedades de `candidateFieldsSchema` (mismos mensajes que el alta); un email repetido dentro del fichero entra la
+  propiedades de `candidateFieldsSchema` (mismos mensajes que el alta, salvo el nombre vacío: la celda vacía es campo
+  ausente y da «Es obligatorio.»); una ficha importada solo llena `fullName`, `email` y `phone` (`summary` `null`,
+  `skills` `[]`, `apps/api/src/modules/candidates/import.ts`); un email repetido dentro del fichero entra la
   primera vez (mapa en memoria) y uno ya existente lo decide el índice único (`existingIdOnDuplicate`, sin `SELECT`
   previo). Nada del fichero se guarda ni se registra.
 
@@ -185,8 +187,9 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
   `computeRetentionEndsAt` lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:69-77`); con
   otro plazo vigente, un puerto incoherente no se detecta.
 - **`recalculateRetention(id)`** (en el servicio, se une a la transacción en curso) es el único escritor de
-  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent` y
-  `applications` (por una función que le pasa `app.ts`, no por un `import`): al inscribir (HU-04), en `applyStageChange`
+  `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent`,
+  `importCsv` (por cada fila creada, dentro de la transacción de la importación) y `applications` (por una función que
+  le pasa `app.ts`, no por un `import`): al inscribir (HU-04), en `applyStageChange`
   al pasar a `hired` o `rejected` (HU-05) y en `rejectActiveApplications` al cerrar una oferta, una vez por inscripción
   rechazada (HU-06, `apps/api/src/modules/applications/job-closing.ts`). El alta inserta con
   retención `NULL` y recalcula en la misma transacción, así que un fallo del puerto deshace también el alta. Editar
@@ -234,7 +237,8 @@ columnas del elemento (sin `SELECT *`).
 - **Una sola fuente de reglas para alta e importación:** las reglas de fila de la importación son las propiedades del
   alta por referencia (`importRowSchema` toma las de `candidateFieldsSchema`) y se compilan con el Ajv de la app
   (`request.compileValidationSchema`); un test de contrato compara los mensajes
-  (`apps/api/test/candidates/import-contract.test.ts`).
+  (`apps/api/test/candidates/import-contract.test.ts`). Única diferencia: el nombre vacío da «Es obligatorio.» en el
+  fichero, porque la celda vacía es un campo ausente.
 - **Importación sin valores del fichero:** ni el informe ni los errores repiten valores del fichero (solo fila, campo y
   motivo), y de un candidato existente solo sale su ID (`apps/api/test/candidates/import-privacy.test.ts`).
 
@@ -282,10 +286,10 @@ Observaciones aceptadas de las reviews de HU-03 (§9), HU-04 (§9) y HU-07 (§9)
 | `apps/web/src/features/candidates/CandidateFormScreen.tsx` tiene una copia local de `CandidateNotFound` además de la de `CandidateDetailScreen.tsx` | Abierta (trivial): HU-04 no tocó esa pantalla; se quita cuando se toque | `/module-sync` de HU-03 |
 | `CONSENT_VERSION` (web) y `CONSENT_TEXT_VERSION` (API) eran dos constantes sin test que las ate | **Cerrada** (tarea T-04; `apps/api/test/candidates/consent-version.test.ts`) | Review HU-03 §9, avisos |
 | `CandidateProcessesPort` sin implementación real | **Cerrada** en HU-04 (lector de `applications` por defecto en `buildApp`; recálculo al inscribir) | Review HU-03 §9, avisos |
-| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga). Desde HU-06, dos lecturas por candidato en cada cierre de oferta (400 con 200 activas; el cierre tarda 12-24 ms) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 · DP-01 de HU-05 y HU-06 |
+| `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga). Desde HU-06, dos lecturas por candidato en cada cierre de oferta (400 con 200 activas; el cierre tarda 12-24 ms); desde HU-07, también dos por fila creada en la importación (hasta 1 000 con 500 filas; 55 ms medidos) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 · DP-01 de HU-05 y HU-06 |
 | Sin decidir en `docs/RGPD.md`, para la feature A: si un candidato con la retención vencida puede inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames` | Abierta | HU-04 §9.7 |
 | Sin salida anticipada en `parseCsv` al pasar de `maxKept`: sigue contando registros hasta el final del fichero; coste lineal acotado por el límite de 1 MiB (`apps/api/src/modules/candidates/csv.ts:38-46`) | Abierta (observación) | SEC-01 · HU-07 §9.1 |
-| El 500 registra el objeto de error entero (`apps/api/src/http/error-handler.ts:21`): hoy sin datos personales (lo comprueba `import-privacy.test.ts`), riesgo latente; registrar solo `code`, `message` y `errcode`, o un test con un error no SQLite en la importación | Abierta (observación) | DP-02 · HU-07 §9.2 |
+| El 500 registra el objeto de error entero (`apps/api/src/http/error-handler.ts:23`): hoy sin datos personales (lo comprueba `import-privacy.test.ts`), riesgo latente; registrar solo `code`, `message` y `errcode`, o un test con un error no SQLite en la importación | Abierta (observación) | DP-02 · HU-07 §9.2 |
 
 ## Requisitos no funcionales
 
