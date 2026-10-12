@@ -4,7 +4,7 @@
 - **HU:** HU-07 · **Feature:** FEAT-04
 - **Scope:** test
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-04, RF-05, RF-06; RNF-02, RNF-03, RNF-04, RNF-06)
 - **Complejidad:** M (1–2 h; estimada 2 h)
 

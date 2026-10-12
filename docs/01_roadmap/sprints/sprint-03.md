@@ -28,7 +28,7 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 - [x] prd-writer (Ready, con las 5 PA pendientes de ratificar)
 - [x] tech-design
 - [x] task-planner
-- [ ] implementar-hu
+- [x] implementar-hu
 - [ ] reviewer
 - [ ] merge a main
 - [ ] module-sync
