@@ -113,6 +113,7 @@ transversal (`http/`, `errors.ts`).
 | 400 `VALIDATION_ERROR` · formato | Comillas sin cerrar, texto tras unas comillas de cierre, comilla dentro de un campo sin comillas | El anterior + « Revisa la línea N.» (N: línea donde empieza el campo entrecomillado, o la del carácter inesperado) |
 | 400 `VALIDATION_ERROR` · sin filas | Ninguna línea con contenido (0 bytes, solo BOM, solo líneas en blanco), o solo la cabecera (con o sin líneas en blanco) | «El fichero no tiene candidatos.» |
 | 400 `VALIDATION_ERROR` · cabecera | La línea 1 no es exactamente `nombre,email,telefono` (o está en blanco y hay contenido después) | «La cabecera no es válida. La primera línea debe ser exactamente: nombre,email,telefono» |
+| 400 `VALIDATION_ERROR` · separador «;» (DT-08) | La cabecera no es válida y, partida por «;», coincide con `nombre`, `email` y `telefono` (misma comparación: recortada y sin distinguir mayúsculas). Se comprueba en `import-file.ts` justo antes de devolver el error de cabecera | «El fichero está separado por «;». Guárdalo separado por comas (CSV UTF-8) y vuelve a importarlo.» |
 | 400 `VALIDATION_ERROR` · filas | Más de 500 filas de datos | «El fichero tiene más de 500 filas de candidatos. Divídelo en ficheros más pequeños.» |
 | 500 `INTERNAL_ERROR` | Fallo de la base o del puerto de procesos; `ROLLBACK`, 0 creados | «Error interno. Inténtalo de nuevo.» |
 
@@ -210,7 +211,7 @@ sequenceDiagram
 | EC-05 | Web (`isImportReport`) | No pinta un informe a medias | Error genérico | TD-frontend; la API lo evita con `importReportSchema` |
 | EC-06 | API: hook `cross-site.ts` | 403 antes de leer el cuerpo; `text/csv` exige *preflight* | 403 `CROSS_SITE_REQUEST`; el nombre del fichero nunca llega a la API | `import-adversarial.test.ts`; título/URL: TD-frontend |
 | EC-07 | `import.ts` (índice) | Reimportar = filas «duplicate» | 200, `created: 0` | `import.test.ts` (CA-05) |
-| EC-08 | `import-file.ts` (cabecera) | Una sola columna `nombre;email;telefono` ≠ esperada | 400 cabecera | `import-adversarial.test.ts` (CA-11) |
+| EC-08 | `import-file.ts` (cabecera) | `nombre;email;telefono` es una sola columna ≠ esperada; como partida por «;» coincide, da el mensaje de DT-08 (EC-50) | 400 separador «;» | `import-adversarial.test.ts` (CA-11) |
 | EC-09 | `decodeUtf8` · `parseCsv` | `TextDecoder` `fatal`; comillas sin cerrar con su línea | 400 formato (sin línea; sin línea; «Revisa la línea 4.») | `csv.test.ts`, `import-adversarial.test.ts` (CA-12) |
 | EC-10 | `import-file.ts` | Exactamente 3 campos, recortados y en minúsculas | ` Nombre , EMAIL,Telefono` → 200; los otros 5 → 400 cabecera | `import-file.test.ts` |
 | EC-11 | Parser de la ruta (`bodyLimit`) · `import-file.ts` | Bytes = fichero; filas contadas sin líneas en blanco | 500 y 500 + 30 blancos → 200; 501 → 400 filas; 1 048 576 → 200; 1 048 577 → 413 | `import-adversarial.test.ts` (CA-14), `import-file.test.ts` |
@@ -252,6 +253,7 @@ sequenceDiagram
 | EC-47 | `importReportSchema` · web | 0 valores y 0 creadas en el informe | Informe sin «Lucía Ferrer Prat»; navegador: TD-frontend | `import-privacy.test.ts` |
 | EC-48 | Web | Sin reenvío al volver atrás | — | TD-frontend |
 | EC-49 | `parseCsv` (DD-07 b, DT-07) | Una línea solo con espacios o tabuladores es una línea en blanco: se ignora; `,,` sigue siendo fila | Línea 4 con `   \t ` entre filas → no sale en el informe, `dataRows` no la cuenta y la fila de la línea 5 sale como `row: 5`; un fichero de cabecera + líneas de espacios → «El fichero no tiene candidatos.»; `,,` → fila con `nombre` y `email` «Es obligatorio.» | `csv.test.ts`, `import.test.ts` |
+| EC-50 | `import-file.ts` (cabecera, DT-08) | El CSV de Excel en español («;», BOM, CRLF): la cabecera no es válida y, partida por «;», coincide con las columnas esperadas | 400 `VALIDATION_ERROR`, `details: [{ field: 'file' }]`, con el mensaje de DT-08 y 0 creados; `email;nombre;telefono` (partida por «;» no coincide en orden) da el mensaje de cabecera de DT-03 | `import-file.test.ts`, `import-adversarial.test.ts` (CA-11) y el e2e (CA-19), con el fixture de Excel |
 
 ## Threat modeling
 
@@ -491,3 +493,5 @@ No hay decisiones abiertas. DEC-13 y las aclaraciones de DEC-07, DEC-08 y DEC-11
 - Caché de sentencias preparadas en el repositorio y lectura de columnas explícitas en `recalculateRetention` (deuda
   abierta del módulo).
 - Lista de `Host` en `cross-site.ts` (deuda SEC-06).
+
+_Cambio de la sesión (2026-10-12), sin vuelta del arquitecto: DT-08 del PRD v1.3 (mensaje específico para «;»), fila del contrato, EC-08 y EC-50 en Error paths. Lo decidió el responsable técnico tras aprobar el diseño._

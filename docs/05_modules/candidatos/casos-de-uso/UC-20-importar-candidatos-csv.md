@@ -104,7 +104,7 @@ didáctico (RN-14†). Ni el fichero ni el informe se persisten, y su contenido 
 | A1 | HU-07 | CA-04, CA-05, CA-06, CA-18 | |
 | A2 | HU-07 | CA-07 | |
 | A3 | HU-07 | CA-08, CA-09, CA-10 | |
-| E1 | HU-07 | CA-11, CA-12, CA-17 | |
+| E1 | HU-07 | CA-11, CA-12, CA-17, CA-19 | |
 | E2 | HU-07 | CA-13, CA-17 | |
 | E3 | HU-07 | CA-14, CA-17 | |
 | E4 | HU-07 | CA-15, CA-16, CA-17 | |
