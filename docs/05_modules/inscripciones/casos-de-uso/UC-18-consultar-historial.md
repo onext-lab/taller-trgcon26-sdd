@@ -36,7 +36,7 @@ El reclutador ve cada decisión tomada sobre una inscripción: qué etapa, cuán
   muestra la fecha de inscripción (S-13).
 - **A2 — Rechazo por cierre de oferta** (desde el paso 3): el motivo es «oferta cerrada» y no hay nota
   ([UC-19](UC-19-rechazo-al-cerrar-oferta.md), RV-05).
-- **A3 — Candidato anonimizado** (desde el paso 2): el candidato está anonimizado → 200 con «Candidato anonimizado» en
+- **A3 — Candidato anonimizado** (FEAT-04 · pendiente) (desde el paso 2): el candidato está anonimizado → 200 con «Candidato anonimizado» en
   lugar del nombre, la etapa actual y el historial con sus motivos, sin ninguna nota (se vaciaron al anonimizar); nunca
   un error interno. El enlace al candidato abre su ficha anonimizada
   ([UC-12](../../candidatos/casos-de-uso/UC-12-ver-ficha.md) · A2) (FEAT-04 RN-13 y RN-04, RGPD §5).
@@ -65,7 +65,7 @@ pipeline ni en listados (RGPD §6.2).
 | P | HU-05 | CA-24 | `apps/api/test/applications/detail.test.ts:67`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:45` |
 | A1 | HU-05 | CA-25 | `apps/api/test/applications/detail.test.ts:103`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:78` |
 | A2 | HU-05 | CA-26 | `apps/api/test/applications/detail.test.ts:114`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:90` |
-| A3 | — (FEAT-04) | | |
+| A3 | — (FEAT-04 · pendiente) | | pendiente |
 | E1 | HU-05 | CA-27 | `apps/api/test/applications/detail.test.ts:192`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:123` |
 | E2 | HU-05 | CA-28 | `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:139` |
 

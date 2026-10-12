@@ -42,7 +42,7 @@ El reclutador saca a un candidato del proceso de una oferta, dejando constancia 
 ## Flujos alternativos
 - **A1 — Reintento de un rechazo ya aplicado** (desde el paso 3): la inscripción ya está en `rejected` → 200 sin
   cambios: no se crea `StageChange` y no cambian ni el motivo ni la nota originales. Termina (RV-23, S-01, RV-21).
-- **A2 — Inscripción de un candidato anonimizado** (desde el paso 3): al anonimizar, sus inscripciones activas pasaron
+- **A2 — Inscripción de un candidato anonimizado** (FEAT-04 · pendiente) (desde el paso 3): al anonimizar, sus inscripciones activas pasaron
   a `rejected` (FEAT-04 RN-08) → si está en `rejected`, se aplica A1 (200 sin cambios); si está en `hired`, E4 (409).
   La retención del candidato nunca se recalcula (FEAT-04 RN-07, RGPD §5).
 
@@ -81,7 +81,7 @@ fecha de fin de retención (RGPD §3).
 |---|---|---|---|
 | P | HU-05 | CA-12, CA-13, CA-21 | `apps/api/test/applications/reject.test.ts:95`, `apps/web/test/features/applications/PipelineScreen.reject.test.tsx:60`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | A1 | HU-05 | CA-14 | `apps/api/test/applications/reject.test.ts:124` |
-| A2 | — (FEAT-04) | | |
+| A2 | — (FEAT-04 · pendiente) | | pendiente |
 | E1 | HU-05 | CA-15 | `apps/api/test/applications/reject.test.ts:195` |
 | E2 | HU-05 | CA-16, CA-21 | `apps/api/test/applications/reject-note.test.ts:57`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | E3 | HU-05 | CA-17 | `apps/api/test/applications/reject.test.ts:207` |

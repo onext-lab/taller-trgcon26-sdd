@@ -41,7 +41,7 @@ El reclutador ve de un vistazo en qué etapa está cada candidato inscrito en un
   sin «Avanzar», «Rechazar» ni «Inscribir candidato»; el historial sí se puede consultar (S-18, RV-04).
 - **A2 — Sin inscripciones** (desde el paso 2): la oferta no tiene inscripciones → estado vacío con un mensaje que lo
   explica y, si está `published`, la acción «Inscribir candidato» (principio de diseño 3).
-- **A3 — Candidato anonimizado** (desde el paso 3): la tarjeta muestra «Candidato anonimizado» en lugar del nombre
+- **A3 — Candidato anonimizado** (FEAT-04 · pendiente) (desde el paso 3): la tarjeta muestra «Candidato anonimizado» en lugar del nombre
   (RGPD §5, S-05). Entra en alcance con FEAT-04 (RN-13): la tarjeta sigue en su columna, con su fecha y su motivo, y
   abre el historial ([UC-18](UC-18-consultar-historial.md) · A3).
 
@@ -68,7 +68,7 @@ un valor de lista cerrada, no texto libre.
 | P | HU-04, HU-05 | CA-12, CA-13 (HU-04); CA-22 (HU-05) | `apps/api/test/applications/pipeline.test.ts:60`, `apps/web/test/features/applications/PipelineScreen.test.tsx:40`; CA-22: `apps/web/test/features/applications/PipelineScreen.links.test.tsx:60`, `apps/web/test/features/applications/PipelineScreen.advance.test.tsx:64` |
 | A1 | HU-05 | CA-23 | `apps/web/test/features/applications/PipelineScreen.links.test.tsx:99`, `e2e/pipeline-closed.spec.ts:31` |
 | A2 | HU-04 | CA-14 | `apps/api/test/applications/pipeline.test.ts:137`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:41` |
-| A3 | — (FEAT-04) | | |
+| A3 | — (FEAT-04 · pendiente) | | pendiente |
 | E1 | HU-04 | CA-15 | `apps/api/test/applications/pipeline.test.ts:146`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:87` |
 | E2 | HU-04 | CA-16 | `apps/web/test/features/applications/PipelineScreen.states.test.tsx:105` |
 

@@ -37,14 +37,14 @@ El reclutador consulta todos los datos de un candidato, su consentimiento y cuá
 ## Flujos alternativos
 - **A1 — Proceso en curso** (en el paso 4): el candidato tiene alguna inscripción no final y su fin de retención está
   vacío → se muestra «Mientras dure el proceso» (S-06, RGPD §3).
-- **A2 — Candidato anonimizado** (desde el paso 2): el candidato está anonimizado → 200 con «Candidato anonimizado», la
+- **A2 — Candidato anonimizado** (FEAT-04 · pendiente) (desde el paso 2): el candidato está anonimizado → 200 con «Candidato anonimizado», la
   fecha de la anonimización y su motivo («petición» o «vencimiento»), sin fin de retención (no se muestra «Mientras
   dure el proceso») y sin acciones de edición, consentimiento ni anonimización. Se llega también desde el detalle de
   una inscripción (FEAT-04 RN-13, RN-07; RGPD §5).
-- **A3 — Retención vencida pendiente de anonimizar** (en el paso 4): el candidato no está anonimizado y su fecha de fin
+- **A3 — Retención vencida pendiente de anonimizar** (FEAT-04 · pendiente) (en el paso 4): el candidato no está anonimizado y su fecha de fin
   es igual o anterior a hoy en Europe/Madrid → se muestra «Vencida el dd/mm/aaaa · pendiente de anonimizar»; se puede
   editar y registrar un consentimiento nuevo (FEAT-04 RN-19, RN-14).
-- **A4 — Anonimizar** (desde el paso 4): en la ficha de un candidato no anonimizado, el reclutador pulsa «Anonimizar»
+- **A4 — Anonimizar** (FEAT-04 · pendiente) (desde el paso 4): en la ficha de un candidato no anonimizado, el reclutador pulsa «Anonimizar»
   → continúa en [UC-20](UC-20-anonimizar-a-peticion.md) (FEAT-04 Q06).
 
 ## Excepciones
@@ -69,9 +69,9 @@ Lee todos los datos del candidato (RGPD §1). La ficha completa solo se muestra 
 |---|---|---|---|
 | P | HU-03 | CA-22 | `apps/api/test/candidates/get.test.ts:41`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:101`, `e2e/candidates.spec.ts:213` |
 | A1 | HU-04 | CA-19, CA-20 | `e2e/applications.spec.ts:31`, `apps/api/test/applications/ports.test.ts:92` |
-| A2 | — (FEAT-04) | | |
-| A3 | — (FEAT-04) | | |
-| A4 | — (FEAT-04) | | |
+| A2 | — (FEAT-04 · pendiente) | | pendiente |
+| A3 | — (FEAT-04 · pendiente) | | pendiente |
+| A4 | — (FEAT-04 · pendiente) | | pendiente |
 | E1 | HU-03 | CA-23 | `apps/api/test/candidates/get.test.ts:140`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:195` |
 | E2 | HU-03 | CA-24 | `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:232` |
 

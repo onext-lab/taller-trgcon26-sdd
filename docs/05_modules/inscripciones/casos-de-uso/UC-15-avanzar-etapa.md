@@ -57,7 +57,7 @@ El reclutador mueve una inscripción a la etapa siguiente del proceso, hasta `hi
 - **E5 — Inscripción inexistente** (en el paso 2): → 404; no cambia nada.
 - **E6 — Falla una escritura** (en el paso 3 o en A2): la transacción se deshace entera: ni cambio de etapa, ni
   `StageChange`, ni retención recalculada (S-06).
-- **E7 — Inscripción de un candidato anonimizado** (en el paso 2): al anonimizar, sus inscripciones activas pasaron a
+- **E7 — Inscripción de un candidato anonimizado** (FEAT-04 · pendiente) (en el paso 2): al anonimizar, sus inscripciones activas pasaron a
   `rejected` (FEAT-04 RN-08), así que todas están en etapa final → se aplica E3 (409); ni la etapa, ni el historial,
   ni la retención del candidato cambian (FEAT-04 RN-07, RGPD §5).
 
@@ -90,6 +90,6 @@ de fin de retención del candidato (RGPD §3).
 | E4 | HU-05 | CA-09 | `apps/api/test/applications/stage-change-adversarial.test.ts:108` |
 | E5 | HU-05 | CA-10 | `apps/api/test/applications/advance.test.ts:250` |
 | E6 | HU-05 | CA-11 | `apps/api/test/applications/stage-change-failures-adversarial.test.ts:112` |
-| E7 | — (FEAT-04) | | |
+| E7 | — (FEAT-04 · pendiente) | | pendiente |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
