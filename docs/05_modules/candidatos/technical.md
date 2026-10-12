@@ -228,6 +228,15 @@ columnas del elemento (sin `SELECT *`).
 - Datos personales: nunca en la URL, el título del documento, `history.state`, el almacenamiento del navegador ni los
   logs; formularios y búsqueda con `autoComplete="off"`; seed, fixtures y tests con `@example.com`.
 - Los textos libres (nombre, resumen, skills) se pintan como texto JSX, nunca como HTML.
+- **Ficheros subidos:** llegan como cuerpo crudo con su tipo de medio, en un plugin aislado que es el único con ese
+  parser (`text/csv` sigue en 415 fuera de la ruta); la web fija el `Content-Type` a mano, nunca usa `File.type`
+  (DEC-13, `apps/api/src/modules/candidates/import-routes.ts`, `apps/web/src/features/candidates/api.ts`).
+- **Una sola fuente de reglas para alta e importación:** las reglas de fila de la importación son las propiedades del
+  alta por referencia (`importRowSchema` toma las de `candidateFieldsSchema`) y se compilan con el Ajv de la app
+  (`request.compileValidationSchema`); un test de contrato compara los mensajes
+  (`apps/api/test/candidates/import-contract.test.ts`).
+- **Importación sin valores del fichero:** ni el informe ni los errores repiten valores del fichero (solo fila, campo y
+  motivo), y de un candidato existente solo sale su ID (`apps/api/test/candidates/import-privacy.test.ts`).
 
 ## Gotchas
 
@@ -250,6 +259,12 @@ columnas del elemento (sin `SELECT *`).
   incoherencia pasa sin avisar (DD-01 de la review).
 - **`isDuplicateEmailError` mira el texto de SQLite:** `errcode === 2067` y `candidates.email` en el mensaje; tras el
   fallo, la transacción sigue abierta (comprobado en Node 24) y el ID del existente es coherente. Lo fijan CA-05 y CA-12.
+- **Tras un `UNIQUE`, SQLite deshace solo la sentencia y la transacción sigue abierta:** por eso la importación no hace
+  `ROLLBACK` ante un duplicado (lo convierte en una fila «duplicado») y relanza cualquier otro error, que sí deshace
+  todo con un 500 (`apps/api/src/modules/candidates/import.ts`; EC-30 en
+  `apps/api/test/candidates/import-failures-adversarial.test.ts`).
+- **«Nada a disco» se comprueba en `os.tmpdir()` y en `data/`:** el test lista los dos antes y después de una importación
+  válida y otra rechazada (`apps/api/test/candidates/import-privacy-disk.test.ts`, DP-01 de la review de HU-07).
 
 ## Deuda técnica
 
