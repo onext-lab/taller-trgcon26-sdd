@@ -1,6 +1,15 @@
 import type { FastifyError, FastifyInstance, FastifySchemaValidationError } from 'fastify';
 import { AppError, notFound, type ErrorDetail } from '../errors.ts';
 
+declare module 'fastify' {
+  interface FastifyContextConfig {
+    /** Texto del 413 de la ruta (DD-02 de HU-07, DEC-13); sin él, el genérico. */
+    payloadTooLargeMessage?: string;
+  }
+}
+
+const PAYLOAD_TOO_LARGE_MESSAGE = 'El cuerpo de la petición es demasiado grande.';
+
 /**
  * Único sitio que construye el envelope de error `{ error: { code, message, details? } }` (DEC-01, DEC-07, DEC-11).
  * Ningún mensaje repite el valor recibido ni lleva SQL, rutas de fichero o stack traces, y nunca se registra el cuerpo:
@@ -8,7 +17,7 @@ import { AppError, notFound, type ErrorDetail } from '../errors.ts';
  */
 export function registerErrorHandling(app: FastifyInstance): void {
   app.setErrorHandler((error: FastifyError, request, reply) => {
-    const appError = toAppError(error);
+    const appError = toAppError(error, request.routeOptions?.config?.payloadTooLargeMessage);
     if (appError.statusCode >= 500) request.log.error({ err: error }, 'Error no controlado');
     return reply.code(appError.statusCode).send(toEnvelope(appError));
   });
@@ -26,10 +35,10 @@ const INVALID_JSON_CODES = new Set([
   'FST_ERR_CTP_EMPTY_JSON_BODY',
 ]);
 
-function toAppError(error: FastifyError): AppError {
+function toAppError(error: FastifyError, payloadTooLargeMessage?: string): AppError {
   if (error instanceof AppError) return error;
   if (error.validation) {
-    const details = toDetails(error.validation, error.validationContext ?? 'body');
+    const details = toValidationDetails(error.validation, error.validationContext ?? 'body');
     return new AppError('VALIDATION_ERROR', 400, 'Hay campos con errores.', details);
   }
   if (INVALID_JSON_CODES.has(error.code)) {
@@ -39,7 +48,11 @@ function toAppError(error: FastifyError): AppError {
   }
   const statusCode = error.statusCode ?? 500;
   if (statusCode === 413) {
-    return new AppError('PAYLOAD_TOO_LARGE', 413, 'El cuerpo de la petición es demasiado grande.');
+    return new AppError(
+      'PAYLOAD_TOO_LARGE',
+      413,
+      payloadTooLargeMessage ?? PAYLOAD_TOO_LARGE_MESSAGE,
+    );
   }
   if (statusCode === 415) {
     return new AppError('UNSUPPORTED_MEDIA_TYPE', 415, 'Tipo de contenido no admitido.');
@@ -55,7 +68,10 @@ function toAppError(error: FastifyError): AppError {
  * (`additionalProperties`) no se nombran: `fieldOf` las agrupa todas bajo el contexto (`body`, `querystring` o `params`),
  * así que `details` tiene como mucho «propiedades declaradas + 1» elementos, entren las claves que entren.
  */
-function toDetails(issues: FastifySchemaValidationError[], context: string): ErrorDetail[] {
+export function toValidationDetails(
+  issues: FastifySchemaValidationError[],
+  context: string,
+): ErrorDetail[] {
   const byField = new Map<string, string>();
   for (const issue of issues) {
     const field = fieldOf(issue, context);
