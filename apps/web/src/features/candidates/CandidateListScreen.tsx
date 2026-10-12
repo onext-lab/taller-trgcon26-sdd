@@ -85,7 +85,8 @@ export function CandidateListScreen() {
       </h1>
       {notice ? <Notice>{notice}</Notice> : null}
       <p>
-        <Link to={candidatePaths.create}>Nuevo candidato</Link>
+        <Link to={candidatePaths.create}>Nuevo candidato</Link>{' '}
+        <Link to={candidatePaths.import}>Importar CSV</Link>
       </p>
       <CandidateFilters
         query={query}

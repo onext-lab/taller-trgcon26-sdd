@@ -4,7 +4,7 @@
 - **HU:** HU-07 · **Feature:** FEAT-04
 - **Scope:** frontend
 - **Capa:** web
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-01, RF-02 parte web, RF-06 parte web)
 - **Complejidad:** L (2–4 h; estimada 3,5 h)
 

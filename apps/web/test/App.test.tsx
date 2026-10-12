@@ -114,6 +114,28 @@ describe('App', () => {
     await waitFor(() => expect(document.title).toBe('Candidatos · ATS'));
   });
 
+  it('/candidates/import pinta «Importar candidatos» y su título, no la ficha con ID «import»', async () => {
+    startAt('/candidates');
+    const mock = mockFetch({
+      ...HEALTH_OK,
+      'GET /api/candidates': { status: 200, json: EMPTY_PAGE },
+    });
+
+    render(<App />);
+    fireEvent.click(await screen.findByRole('link', { name: 'Importar CSV' }));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Importar candidatos' }),
+    ).toBeDefined();
+    expect(screen.getByLabelText('Fichero CSV')).toBeDefined();
+    expect(window.location.pathname).toBe('/candidates/import');
+    await waitFor(() => expect(document.title).toBe('Importar candidatos · ATS'));
+    await expectFocusOn(() => screen.getByRole('main'));
+    expect(mock.calls.filter((call) => call.url === '/api/candidates/import')).toHaveLength(0);
+    expect(mock.calls.filter((call) => call.url.startsWith('/api/candidates/'))).toHaveLength(0);
+    expect(screen.queryByRole('heading', { name: 'Página no encontrada' })).toBeNull();
+  });
+
   it('RF-07/EC-39: «Ver pipeline» desde la ficha abre /jobs/7/pipeline con su título y el foco en <main>', async () => {
     startAt('/jobs/7');
     const job = { id: 7, title: 'Técnica/o de selección', status: 'published' };
