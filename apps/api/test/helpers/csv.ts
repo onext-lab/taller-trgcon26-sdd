@@ -1,5 +1,7 @@
 // Ayudas de los tests de la importación por CSV (HU-07). Datos inventados.
 
+import type { FastifyInstance } from 'fastify';
+
 export interface CsvBytesOptions {
   /** Antepone el BOM de UTF-8 (U+FEFF), como hace Excel. */
   bom?: boolean;
@@ -34,4 +36,18 @@ export const CA01_ROWS: string[][] = [
 export function excelSpanishCsv(rows: string[][] = CA01_ROWS): Uint8Array {
   const lines = [['nombre', 'email', 'telefono'], ...rows].map((cells) => cells.join(';'));
   return csvBytes(lines, { bom: true, eol: '\r\n', finalEol: true });
+}
+
+/** `POST /api/candidates/import` con los bytes del fichero como cuerpo y `Content-Type: text/csv` (DEC-13). */
+export function importCsv(
+  app: FastifyInstance,
+  bytes: Uint8Array,
+  headers: Record<string, string> = {},
+) {
+  return app.inject({
+    method: 'POST',
+    url: '/api/candidates/import',
+    headers: { 'content-type': 'text/csv', ...headers },
+    payload: Buffer.from(bytes),
+  });
 }

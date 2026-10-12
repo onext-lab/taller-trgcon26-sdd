@@ -1,6 +1,9 @@
 import type { Clock } from '../../clock.ts';
 import { foldSearchText } from '../../db/text-search.ts';
 import { duplicate, notFound } from '../../errors.ts';
+import { importCandidates } from './import.ts';
+import type { ImportReport } from './import-schemas.ts';
+import type { RowValidator } from './import-rows.ts';
 import type { CandidateProcessesPort } from './processes-port.ts';
 import type { CandidateFields, CandidatesRepository } from './repository.ts';
 import { computeRetentionEndsAt } from './retention.ts';
@@ -41,6 +44,11 @@ export interface CandidatesService {
    * la fórmula y guarda. Se une a la transacción en curso. `NOT_FOUND` si no existe.
    */
   recalculateRetention(id: number): Candidate;
+  /**
+   * Importación por CSV (HU-07): todo o nada en una transacción; el índice único decide los duplicados. Los errores del
+   * fichero entero salen como `AppError` 400/413; las filas no importadas, en el informe (200).
+   */
+  importCsv(bytes: Uint8Array, validateRow: RowValidator): ImportReport;
   /** Lectura para el puerto de `applications`: ¿existe la ficha? Sin transacción ni columnas. */
   exists(id: number): boolean;
   /** Lectura para el puerto de `applications`: solo `id` → `full_name`. `[]` devuelve un `Map` vacío sin consultar. */
@@ -110,9 +118,8 @@ function writeUniqueEmail<T>(repository: CandidatesRepository, email: string, wr
   try {
     return write();
   } catch (error) {
-    if (!repository.isDuplicateEmailError(error)) throw error;
     // La transacción sigue abierta tras el fallo (DD-04): el ID del existente es coherente.
-    const existingId = repository.findIdByEmail(email);
+    const existingId = repository.existingIdOnDuplicate(error, email);
     if (existingId === undefined) throw error;
     throw duplicate({ field: 'email', message: DUPLICATE_MESSAGE, existingId });
   }
@@ -183,6 +190,17 @@ export function createCandidatesService(deps: CandidatesServiceDeps): Candidates
     giveConsent: (id) => transaction(() => giveConsent(deps, id)),
     withdrawConsent: (id) => transaction(() => withdrawConsent(deps, id)),
     recalculateRetention: (id) => recalculateRetention(deps, id),
+    importCsv: (bytes, validateRow) =>
+      importCandidates(
+        {
+          repository,
+          now: deps.now,
+          transaction,
+          recalculate: (id) => void recalculateRetention(deps, id),
+        },
+        bytes,
+        validateRow,
+      ),
     exists: (id) => repository.existsById(id),
     findNames: (ids) => (ids.length === 0 ? new Map() : repository.findNamesByIds(ids)),
   };
