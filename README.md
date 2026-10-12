@@ -25,6 +25,19 @@ especificaciones, gates comprobables y verificación ejecutada. Todos los datos 
 
 Detalle, motivos y cómo instalar Node 24: [docs/SETUP.md](docs/SETUP.md).
 
+## Cómo descargarlo
+
+```bash
+git clone https://github.com/onext-lab/taller-trgcon26-sdd taller-sdd-ats
+cd taller-sdd-ats
+git tag -l          # las etiquetas del taller: paso-*, vivo-* y taller-*
+```
+
+- **Clónalo con git, no con «Download ZIP»:** el ZIP no lleva `.git` y, sin él, no hay etiquetas que recorrer.
+- `git clone` ya trae todas las etiquetas; no hace falta ningún `fetch` más.
+- **Sin red** (plan B del taller): con el bundle que se reparte en mano, `git clone <fichero>.bundle taller-sdd-ats`
+  da el mismo repo, con las mismas etiquetas.
+
 ## Arranque en 3 comandos
 
 ```bash
@@ -45,7 +58,8 @@ El repo se sigue saltando entre etiquetas git, una por fase:
 | `paso-1-discovery` | Ideas, features, casos de uso y HU del núcleo, con sus preguntas y respuestas; aún sin código de negocio |
 | `paso-2-sprint-01` | El sprint 01 entregado: 6 HU de PRD a código, con reviews, auditoría y cierre |
 | `paso-3-punto-de-partida` | Este README, el guion y `SETUP.md`: el punto de partida del taller |
-| `vivo-{A,C}-{1-feature,2-prd,3-tareas,4-hecho}` | Las features en vivo (A: supresión y retención RGPD; C: importación CSV), fase a fase |
+| `vivo-A-1-feature`, `vivo-A-2-prd` | Feature en vivo A (supresión y retención RGPD): el shaping y el PRD de su primera HU; sin código |
+| `vivo-C-{1-feature,2-prd,3-tareas,4-hecho}` | Feature en vivo C (importación CSV), fase a fase y hasta el código integrado |
 
 ```bash
 git switch --detach paso-1-discovery && npm ci && npm run db:reset

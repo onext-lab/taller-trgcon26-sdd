@@ -164,7 +164,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
     --publish-denylist <lista de publicación>` en verde: la denylist y la lista de publicación contra el árbol, el
     historial, las refs y las identidades de la copia.
   - **Paso nuevo, el README «Cómo descargarlo»**, en el `main` de la copia (es lo primero que enseña GitHub):
-    `git clone https://github.com/onext-lab/taller-trgcon26-sdd taller-sdd-ats` (trae todas las etiquetas), `git tag -l` para comprobarlas y
+    `git clone` con la URL del repo (trae todas las etiquetas), `git tag -l` para comprobarlas y
     `git switch --detach <etiqueta>`; el aviso de que el «Download ZIP» de GitHub no sirve, porque sin `.git` no hay
     etiquetas; y el plan B sin red, `git clone <fichero>.bundle taller-sdd-ats`. `URL_REPO` entra en
     `scripts/publish-markers.mjs` como marcador, para que `--publish` falle mientras no se sepa la URL. En

@@ -177,7 +177,7 @@ borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones segui
 
 Lo hace el responsable técnico, en este orden:
 
-1. **Rellena los marcadores de publicación**: TITULAR, RAZON_SOCIAL y URL_MARKETPLACE (entre ángulos en los
+1. **Rellena los marcadores de publicación**: TITULAR, RAZON_SOCIAL, URL_MARKETPLACE y URL_REPO (entre ángulos en los
    ficheros; la lista está en `scripts/publish-markers.mjs`). `npm run check:harness` avisa de cuántos quedan.
 2. **Crea el `.mailmap` fuera del repo**, con el nombre y el email canónicos (el titular) de cada autor, committer y
    tagger. No se versiona: publicaría los emails que mapea.
@@ -185,4 +185,6 @@ Lo hace el responsable técnico, en este orden:
    términos, identidades, marcadores y la **lista de publicación** (mismo formato que la denylist y también fuera del
    repo: lo que solo se quita al publicar, como los nombres de personas que la copia sustituye por un rol). Si fallan
    las identidades o la lista de publicación, se corrige en la copia de publicación, nunca en este repo.
-4. **Después, el bundle** (`git bundle create`), desde la copia que ha pasado el paso 3.
+4. **Después, la subida a GitHub y el bundle**, los dos desde la copia que ha pasado el paso 3 y con las mismas refs:
+   `main` y las etiquetas `paso-*`, `vivo-*` y `taller-*`, nada más. La subida la hace la persona responsable; el bundle
+   (`git bundle create`) es el plan B sin red.

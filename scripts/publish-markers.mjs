@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Marcadores de publicación (T-12 del sprint-02): huecos que se rellenan antes de publicar el repo (el titular, la razón
-// social y la URL del marketplace). Cada marcador es el nombre en mayúsculas entre ángulos; aquí se construyen
+// social, la URL del marketplace y la del repo publicado). Cada marcador es el nombre en mayúsculas entre ángulos; aquí se construyen
 // concatenando para que el literal no aparezca en ningún fichero del repo salvo donde se rellena, y en los docs se
 // nombran sin ángulos («el marcador TITULAR»). Un marcador citado entre comillas invertidas también cuenta.
 //
@@ -9,7 +9,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
-export const PUBLISH_MARKER_NAMES = ['TITULAR', 'RAZON_SOCIAL', 'URL_MARKETPLACE'];
+export const PUBLISH_MARKER_NAMES = ['TITULAR', 'RAZON_SOCIAL', 'URL_MARKETPLACE', 'URL_REPO'];
 export const PUBLISH_MARKERS = PUBLISH_MARKER_NAMES.map((name) => '<' + name + '>');
 
 /** Apariciones de los marcadores en un texto: línea (1-based) y nombre del marcador, sin ángulos. */
