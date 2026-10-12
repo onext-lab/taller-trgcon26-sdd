@@ -179,13 +179,13 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
     GitHub (Issues, Wiki y Discussions desactivados, como dice el README; archivarlo el 2026-12-31).
 - 2026-10-12 · **Fuera el material de la charla** (corrección de la persona responsable): el repo publicado es la app de
   ejemplo con su kit, sin el guion, los CSV de la demo ni la checklist de escenario, que viven fuera del repo. En el repo
-  de trabajo ya se quitó `docs/taller/` de `main` y de `vivo/C`; queda en el historial y en las etiquetas `paso-3-*`
-  y `vivo-*` anteriores. En la copia:
+  de trabajo ya se quitó `docs/taller/` de `main` y de `vivo/C`. Sigue en el historial, en `vivo/A` y en las
+  etiquetas que se pongan antes de quitarlo (`paso-3-punto-de-partida` y las `vivo-A-*`). En la copia:
   - **Paso 2, en la misma pasada que el `.mailmap`:** `git filter-repo --mailmap <ruta> --path docs/taller
-    --invert-paths --prune-empty never`. `--prune-empty never` porque 4 commits solo tocan `docs/taller/` y quedarían
-    vacíos: uno es el commit auditado del sprint-02 (`9215a8a`, citado en su auditoría como fin de rango) y otro el
-    de `vivo-C-4-hecho`. Si se podaran, sus citas no tendrían a dónde traducirse (paso 4) y la etiqueta se movería a
-    otro commit. Se conservan vacíos, con su mensaje.
+    --invert-paths --prune-empty never`. `--prune-empty never` porque 3 commits solo tocan `docs/taller/` y quedarían
+    vacíos; uno es el commit auditado del sprint-02 (`9215a8a`, citado en su auditoría como fin de rango). Si se
+    podaran, sus citas no tendrían a dónde traducirse (paso 4). Se conservan vacíos, con su mensaje. El commit de
+    `vivo-C-4-hecho` no se vacía: también toca el README y los docs.
   - **Paso 5, comprobación nueva:** ninguna ref publicada lleva `docs/taller/`. Para cada ref de la lista cerrada,
     `git ls-tree -r --name-only <ref> -- docs/taller` vacío, y `git log --all --oneline -- docs/taller` también
     vacío en todo el historial de la copia.
