@@ -195,6 +195,10 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   - **Del kit:** al cargar una skill, Claude Code sustituye `$0` por el argumento. El `awk` del self-check (a) de
     `.claude/skills/cerrar-sprint/SKILL.md:97-98` se muestra como `h=02` con `/cerrar-sprint 02`; en disco está bien.
     Moverlo a un script (`node scripts/…`) lo evita.
+  - **Del kit (2026-10-12, shaping de la feature A):** ni `/feature-shaping` ni `/module-sync` definen el estado de un
+    UC `implementado` que una feature nueva amplía con flujos. Mientras tanto, en `vivo/A` cada flujo nuevo lleva
+    «(FEAT-04 · pendiente)» en su título y «pendiente» en la columna de test de su trazabilidad (decisión del
+    responsable técnico). La skill debería definir el estado por flujo.
   - **T-15** (copia de publicación) sigue en el backlog, para la ventana del 19 al 21/10.
 
 ## Traspaso (2026-10-09)
