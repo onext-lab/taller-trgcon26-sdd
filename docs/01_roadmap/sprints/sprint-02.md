@@ -170,9 +170,11 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
     `scripts/publish-markers.mjs` como marcador, para que `--publish` falle mientras no se sepa la URL. En
     `docs/SETUP.md`, el paso 4 de la publicación pasa a «subida a GitHub y, con las mismas refs, el bundle».
   - **Paso 6:** el bundle se sigue creando, desde la misma copia verificada y con las mismas refs que se suben.
-  - **Refs que se suben, lista cerrada:** `main` y las etiquetas `paso-*` y `vivo-*`; nunca las `worktree-*`. Las
-    etiquetas `vivo-*` tienen que existir antes de empezar (esperan la ratificación de A-1 a A-4 y C-1 a C-5). Está
-    por decidir si se suben también las ramas `hu/*` y `vivo/{A,C}`.
+  - **Refs que se suben, lista cerrada:** `main` y las etiquetas `paso-*` y `vivo-*`, nada más: ni `hu/*`, ni
+    `vivo/{A,C}`, ni `worktree-*` (decisión del responsable técnico del 2026-10-12; las etiquetas ya traen sus
+    commits). Las etiquetas `vivo-*` tienen que existir antes de empezar (esperan la ratificación de A-1 a A-4 y C-1 a
+    C-5). En `vivo/C`, la etiqueta `vivo-C-4-hecho` va sobre el commit de los CSV de la demo, posterior al cierre del
+    sprint-03.
   - **Traspaso a la persona responsable:** el comando de subida exacto con esa lista de refs, y los ajustes del repo en
     GitHub (Issues, Wiki y Discussions desactivados, como dice el README; archivarlo el 2026-12-31).
 
