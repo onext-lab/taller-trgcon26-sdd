@@ -27,7 +27,7 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 - **Origen:** FEAT-04 · **Depende de:** nada · **Rama:** `hu/HU-07-importar-candidatos-csv`
 - [x] prd-writer (Ready, con las 5 PA pendientes de ratificar)
 - [x] tech-design
-- [ ] task-planner
+- [x] task-planner
 - [ ] implementar-hu
 - [ ] reviewer
 - [ ] merge a main

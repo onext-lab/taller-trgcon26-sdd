@@ -222,7 +222,7 @@ Los EC solo de backend se citan con «Ver TD-backend»; la web pinta lo que devu
 | EC-05 200 con otra forma | `isImportReport` en `importCandidates` | `badResponseError()` | alert `BAD_RESPONSE_MESSAGE`; sin h2 de informe | `Api`, `Adv` |
 | EC-06 nombre de fichero con datos; otra web | Pantalla; API (DEC-12) | El nombre no se pinta ni va a título, URL, `history.state` ni almacenamiento; 403 → su `message` | Título fijo; 403 en alert | `Adv`; 403: Ver TD-backend |
 | EC-07 «Importar otro fichero» + mismo fichero | `startOver` | Nueva petición, sin caché | Segundo `POST`; informe «0 creados, 3 duplicados…» | `Screen` |
-| EC-08 cabecera con `;` | API | Ver TD-backend. Web: `error.message` (S-04) | alert con `nombre,email,telefono` | `Screen` (CA-11), `e2e` T2 |
+| EC-08 cabecera con `;` | API | Ver TD-backend. Web: `error.message` (S-04) | alert con el mensaje de DT-08 («El fichero está separado por «;»…»), tal cual de `error.message` | `Screen` (CA-11), `e2e` T2 (CA-19) |
 | EC-09 Latin-1, PNG, comillas sin cerrar | API | Ver TD-backend. Web: envía los bytes sin decodificar | alert «Formato CSV inválido… Revisa la línea 4.» | `Screen` (CA-12); bytes intactos en `Api` |
 | EC-10 variantes de cabecera | API | Ver TD-backend | — | API |
 | EC-11 500/501 filas; 1 048 576 / 1 048 577 bytes | Cliente (`isFileTooLarge`) y API | > 1 048 576 → error sin petición; = 1 048 576 → se envía; 413 de la API → su `message` (S-05) | Texto de DT-03 | `Adv` (los dos bordes), `Model`; filas: Ver TD-backend |
@@ -403,7 +403,7 @@ elige con `fireEvent.change` sobre `getByLabelText('Fichero CSV')`. Datos invent
 | Test | Preparación | Pasos y aserciones |
 |---|---|---|
 | T1 «flujo de la demo: 2 creados, 1 duplicado y 1 fila con error» | `createCandidateByApi` (existente); CSV en memoria: cabecera, 2 filas nuevas con *token*, el email del existente en mayúsculas, `,mal@,` | Listado → «Importar CSV» → h1 → `setInputFiles` → «Importar» → «2 creados, 1 duplicado, 1 fila con error.»; fila del duplicado con enlace de nombre «Ver candidato (se abre en una pestaña nueva)», `target="_blank"`, `rel="noopener noreferrer"`, `href` `/candidates/{id}`; al activarlo, la pestaña nueva (`context.waitForEvent('page')`) muestra el h1 del existente y la original sigue con «Resultado de la importación»; RNF-03: URL, título «Importar candidatos · ATS», `history.state`, `localStorage` y `sessionStorage` (`page.evaluate` con `globalThis`, *gotcha* del tsconfig); «Ir al listado» → buscar el *token* → 2 filas |
-| T2 «fichero rechazado, corregido y reimportado» | CSV con `nombre;email;telefono` y el mismo corregido | Alert con `nombre,email,telefono` y 0 informe → elegir el corregido → «1 creado…» → «Importar otro fichero» → el mismo → «0 creados, 1 duplicado, 0 filas con error.» |
+| T2 «fichero rechazado, corregido y reimportado» | CSV con `nombre;email;telefono` y el mismo corregido | Alert con el mensaje de DT-08 (separador «;») y 0 informe → elegir el corregido → «1 creado…» → «Importar otro fichero» → el mismo → «0 creados, 1 duplicado, 0 filas con error.» |
 
 **Criterio → test** (los CA solo de API, en el TD-backend):
 
@@ -475,3 +475,5 @@ opción recomendada; queda como DD-09.
 - Informe descargable, persistido o con historial; plantilla CSV descargable (la cabecera se muestra como texto).
 - Mostrar el nombre del fichero (DD-07) o datos del candidato existente en el informe.
 - `@testing-library/user-event` u otra dependencia de test.
+
+_Cambio de la sesión (2026-10-12), sin vuelta del arquitecto: DT-08 del PRD v1.3. Un CSV con «;» da el mensaje específico del separador (EC-08, EC-50, CA-19), que la web pinta tal cual desde `error.message`; el e2e T2 usa el fixture de Excel en español._
