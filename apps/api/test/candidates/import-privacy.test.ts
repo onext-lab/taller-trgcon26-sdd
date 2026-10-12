@@ -1,9 +1,5 @@
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { Writable } from 'node:stream';
-import { fileURLToPath } from 'node:url';
 import type { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.ts';
@@ -14,9 +10,9 @@ import { createCandidate } from '../helpers/candidates.ts';
 import { CA01_ROWS, csvBytes, excelSpanishCsv, importCsv } from '../helpers/csv.ts';
 import { createTestClock, failWrites } from '../helpers/test-app.ts';
 
-// TASK-05 [adversarial] (CA-17, RNF-02, RNF-03 API, RNF-04, RNF-06, EC-33, EC-40, EC-47): con el logger de la app
-// capturado, ni las líneas de log ni los cuerpos de respuesta (informe, `message`, `details`) llevan valores del
-// fichero ni datos del existente, y nada del fichero va a disco. Datos inventados.
+// TASK-05 [adversarial] (CA-17, RNF-04, RNF-06, EC-33, EC-40, EC-47): con el logger de la app capturado, ni las
+// líneas de log ni los cuerpos de respuesta (informe, `message`, `details`) llevan valores del fichero ni datos del
+// existente. Que nada va a disco (RNF-02, RNF-03) está en `import-privacy-disk.test.ts`. Datos inventados.
 const NOW = '2026-10-12T09:00:00.000Z';
 const HEADER = 'nombre,email,telefono';
 const MARKER = 'marcador-csv-unico-7f3a9c';
@@ -246,44 +242,3 @@ describe('RNF-04 · RNF-06 · EC-33 · EC-47 · el informe y el 500', () => {
     ]);
   });
 });
-
-describe('RNF-02 · RNF-03 · nada del fichero va a disco', () => {
-  it('RNF-03 ningún fichero nuevo de os.tmpdir() contiene el marcador del CSV', async () => {
-    const before = new Set(readdirSync(tmpdir()));
-    const good = csvBytes(lines([[`Persona ${MARKER}`, `${MARKER}@example.com`, '']]));
-    const broken = csvBytes([HEADER, `"${MARKER}`]);
-
-    expect((await importCsv(app, good)).statusCode).toBe(200);
-    expect((await importCsv(app, broken)).statusCode).toBe(400);
-
-    const created = readdirSync(tmpdir()).filter((name) => !before.has(name));
-    for (const name of created) {
-      expect(name).not.toContain(MARKER);
-      expect(filesContaining(join(tmpdir(), name), MARKER)).toEqual([]);
-    }
-  });
-
-  it('ningún fichero de apps/api/src/modules/candidates/ importa node:fs', () => {
-    const dir = fileURLToPath(new URL('../../src/modules/candidates/', import.meta.url));
-    const sources = readdirSync(dir).filter((name) => name.endsWith('.ts'));
-
-    expect(sources.length).toBeGreaterThanOrEqual(10);
-    for (const name of sources) {
-      const source = readFileSync(join(dir, name), 'utf8');
-      expect(source, name).not.toMatch(/['"](node:)?fs(\/promises)?['"]/);
-    }
-  });
-});
-
-/** Rutas de ficheros regulares bajo `path` (o `path` mismo) cuyo contenido incluye `marker`. */
-function filesContaining(path: string, marker: string): string[] {
-  try {
-    const info = statSync(path);
-    if (info.isDirectory()) {
-      return readdirSync(path).flatMap((child) => filesContaining(join(path, child), marker));
-    }
-    return info.isFile() && readFileSync(path).includes(marker) ? [path] : [];
-  } catch {
-    return []; // desaparece o no se puede leer: no es un fichero del CSV
-  }
-}

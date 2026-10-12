@@ -39,7 +39,7 @@ de rendimiento de RNF-01. **Solo tests**: si alguno destapa un fallo en `apps/ap
 - **Bloquea:** nada
 
 ## Criterios de done
-- [ ] `npm test -w apps/api -- candidates/import-adversarial candidates/performance` en verde con **2** ficheros y,
+- [x] `npm test -w apps/api -- candidates/import-adversarial candidates/performance` en verde con **2** ficheros y,
       como mínimo:
   - **`EC-50 CSV de Excel en español (;, BOM y CRLF) → 400 con el mensaje del separador y 0 creados`**: `importCsv(app,
     excelSpanishCsv())` → 400; cuerpo `{ error: { code: 'VALIDATION_ERROR', message: SEMICOLON_SEPARATOR_MESSAGE,
@@ -65,12 +65,12 @@ de rendimiento de RNF-01. **Solo tests**: si alguno destapa un fallo en `apps/ap
   - `EC-26 <script>, =HYPERLINK y +34… guardados tal cual` (sin valores en el informe).
   - `EC-40 columna consentimiento → cabecera`.
   - `performance.test.ts › RNF-01 importar 500 filas nuevas < 500 ms con 1 000 candidatos`.
-- [ ] `npm test -w apps/api` en verde (toda la API).
-- [ ] `import-adversarial.test.ts` ≤ 300 líneas y `performance.test.ts` ≤ 300 tras Prettier.
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/api/test/candidates/import-adversarial.test.ts apps/api/test/candidates/performance.test.ts`
+- [x] `npm test -w apps/api` en verde (toda la API).
+- [x] `import-adversarial.test.ts` ≤ 300 líneas y `performance.test.ts` ≤ 300 tras Prettier.
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/api/test/candidates/import-adversarial.test.ts apps/api/test/candidates/performance.test.ts`
       sin errores.
-- [ ] Commit único `test(api): adversarial import files, media types and limits [HU-07 TASK-04]` con los ficheros.
+- [x] Commit único `test(api): adversarial import files, media types and limits [HU-07 TASK-04]` con los ficheros.
 
 ## Notas de implementación
 - **Mutación M2** (quitar la guarda de 500 filas de `readImportFile`): la tumba `CA-14 …` (aquí, por la ruta) y

@@ -65,7 +65,7 @@ del TD-backend tal cual (S-01 a S-06 del TD-frontend), con `fetch` simulado: no 
 - **Bloquea:** TASK-07
 
 ## Criterios de done
-- [ ] `npm test -w apps/web -- http.bytes import-api import-model` en verde con **3** ficheros y, como mínimo:
+- [x] `npm test -w apps/web -- http.bytes import-api import-model` en verde con **3** ficheros y, como mínimo:
   - `http.bytes.test.ts`: método `POST`, `Content-Type` dado, bytes intactos en `RecordedCall.bytes`, 2xx JSON,
     envelope 400/413/500 → `ApiError` con su `message`, 5xx sin envelope → `CLIENT_NETWORK`, timeout corto →
     `CLIENT_TIMEOUT`, aborto propio relanzado.
@@ -80,12 +80,12 @@ del TD-backend tal cual (S-01 a S-06 del TD-frontend), con `fetch` simulado: no 
   - `import-model.test.ts`: `reportSummary` (0, 1, 3; singular), `columnLabel`, `isFileTooLarge` (1 048 576 →
     `false`, 1 048 577 → `true`), `isFileError` (400 con `file` y 413 → `true`; 400 sin `file`, 403, 500 y red →
     `false`).
-- [ ] `npm test -w apps/web` en verde: `http.test.ts` (256 líneas) sin cambios.
-- [ ] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/web/src/components/http.ts apps/web/test/helpers/fetch.ts apps/web/src/features/candidates/types.ts apps/web/src/features/candidates/api.ts apps/web/src/features/candidates/import-model.ts apps/web/test/components/http.bytes.test.ts apps/web/test/features/candidates/import-api.test.ts apps/web/test/features/candidates/import-model.test.ts`
+- [x] `npm test -w apps/web` en verde: `http.test.ts` (256 líneas) sin cambios.
+- [x] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/web/src/components/http.ts apps/web/test/helpers/fetch.ts apps/web/src/features/candidates/types.ts apps/web/src/features/candidates/api.ts apps/web/src/features/candidates/import-model.ts apps/web/test/components/http.bytes.test.ts apps/web/test/features/candidates/import-api.test.ts apps/web/test/features/candidates/import-model.test.ts`
       sin errores.
-- [ ] Commit único `feat(web): CSV import client, report guard and model [HU-07 TASK-06]` con los 8 ficheros.
+- [x] Commit único `feat(web): CSV import client, report guard and model [HU-07 TASK-06]` con los 8 ficheros.
 
 ## Notas de implementación
 - La web **no valida el CSV** (RN-15): ni extensión, ni tipo MIME, ni cabecera, ni `;`. El mensaje de DT-08 lo da la

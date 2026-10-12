@@ -80,7 +80,7 @@ La ruta nueva con su transporte (DEC-13), la transacción y el informe. **Sin mi
 - **Bloquea:** TASK-04, TASK-05, TASK-09
 
 ## Criterios de done
-- [ ] `npm test -w apps/api -- candidates/import.test` en verde con **1** fichero y estos tests (nombres del TD):
+- [x] `npm test -w apps/api -- candidates/import.test` en verde con **1** fichero y estos tests (nombres del TD):
   - `CA-01 crea 3 sin consentimiento con retención 2027-04-12 y el informe no lista creadas`.
   - `CA-03 BOM + CRLF = mismo resultado`.
   - **`CA-04 duplicado con existingId y Ana sin cambios`** (**tumba M1**): Ana creada por `createCandidate`; CSV con
@@ -103,13 +103,13 @@ La ruta nueva con su transporte (DEC-13), la transacción y el informe. **Sin mi
   - `contrato: los mensajes de fila son los del 400 del alta para los mismos valores` (mismo valor por
     `POST /api/candidates` y por la importación → mismos `message`; documenta la excepción de DD-04 para el nombre
     vacío).
-- [ ] `npm test -w apps/api` en verde (toda la API): `create*.test.ts` siguen dando 409 con `existingId`;
+- [x] `npm test -w apps/api` en verde (toda la API): `create*.test.ts` siguen dando 409 con `existingId`;
       `module-boundaries.test.ts` sin cambios; `text/csv` no se acepta fuera de la ruta (lo afina TASK-04).
-- [ ] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/api/src/modules/candidates/repository.ts apps/api/src/modules/candidates/service.ts apps/api/src/modules/candidates/import.ts apps/api/src/modules/candidates/import-routes.ts apps/api/src/modules/candidates/routes.ts apps/api/test/helpers/csv.ts apps/api/test/candidates/import.test.ts`
+- [x] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/api/src/modules/candidates/repository.ts apps/api/src/modules/candidates/service.ts apps/api/src/modules/candidates/import.ts apps/api/src/modules/candidates/import-routes.ts apps/api/src/modules/candidates/routes.ts apps/api/test/helpers/csv.ts apps/api/test/candidates/import.test.ts`
       sin errores.
-- [ ] Commit único `feat(api): POST /api/candidates/import with all-or-nothing creation and report [HU-07 TASK-03]`
+- [x] Commit único `feat(api): POST /api/candidates/import with all-or-nothing creation and report [HU-07 TASK-03]`
       con los 7 ficheros.
 
 ## Notas de implementación

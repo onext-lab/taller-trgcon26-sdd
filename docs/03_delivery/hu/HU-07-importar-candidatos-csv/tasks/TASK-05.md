@@ -39,7 +39,7 @@ sin mocks de módulo: fallos con `failWrites` (trigger real de SQLite, `apps/api
 - **Bloquea:** nada
 
 ## Criterios de done
-- [ ] `npm test -w apps/api -- candidates/import-failures-adversarial candidates/import-privacy` en verde con **2**
+- [x] `npm test -w apps/api -- candidates/import-failures-adversarial candidates/import-privacy` en verde con **2**
       ficheros y, como mínimo:
   - `CA-15 falla el recálculo de la 2.ª fila (UPDATE OF retention_ends_at, id = 2) → 500 y 0 creados; sin el trigger,
     3 creados una vez` (EC-41: un segundo reintento da 3 `duplicate`).
@@ -57,12 +57,12 @@ sin mocks de módulo: fallos con `failWrites` (trigger real de SQLite, `apps/api
   - `ningún fichero nuevo de os.tmpdir() contiene el marcador del CSV` (RNF-03).
   - `ningún fichero de apps/api/src/modules/candidates/ importa node:fs`.
   - `500 sin stack trace` (RNF-06; el log lleva el error de SQLite, sin valores del fichero).
-- [ ] `npm test -w apps/api` en verde (toda la API).
-- [ ] Los dos ficheros ≤ 300 líneas tras Prettier.
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/api/test/candidates/import-failures-adversarial.test.ts apps/api/test/candidates/import-privacy.test.ts`
+- [x] `npm test -w apps/api` en verde (toda la API).
+- [x] Los dos ficheros ≤ 300 líneas tras Prettier.
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/api/test/candidates/import-failures-adversarial.test.ts apps/api/test/candidates/import-privacy.test.ts`
       sin errores.
-- [ ] Commit único `test(api): import rollback, concurrency and personal data [HU-07 TASK-05]` con los ficheros.
+- [x] Commit único `test(api): import rollback, concurrency and personal data [HU-07 TASK-05]` con los ficheros.
 
 ## Notas de implementación
 - **Instala los triggers de `failWrites` después de preparar los datos**: si no, falla la preparación y no la

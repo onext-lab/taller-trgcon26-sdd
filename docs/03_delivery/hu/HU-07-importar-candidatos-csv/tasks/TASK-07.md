@@ -80,7 +80,7 @@ Usa el cliente y el modelo de TASK-06; `fetch` simulado (`mockFetch`, ruta `'POS
 - **Bloquea:** TASK-08, TASK-09
 
 ## Criterios de done
-- [ ] `npm test -w apps/web -- CandidateImportScreen.test App.test CandidateListScreen.test` en verde con **3**
+- [x] `npm test -w apps/web -- CandidateImportScreen.test App.test CandidateListScreen.test` en verde con **3**
       ficheros y, como mínimo (nombres del TD-frontend):
   - `pantalla inicial: h1, cabecera, selector con label y accept .csv, Importar deshabilitado` (CA-02, EC-02: 0
     peticiones).
@@ -101,13 +101,13 @@ Usa el cliente y el modelo de TASK-06; `fetch` simulado (`mockFetch`, ruta `'POS
     activo` (CA-16).
   - `App.test.tsx › /candidates/import pinta «Importar candidatos» y su título`.
   - `CandidateListScreen.test.tsx › enlace «Importar CSV» con href="/candidates/import"`.
-- [ ] `npm test -w apps/web` en verde (toda la web).
-- [ ] Ningún fichero tocado pasa de 300 líneas (incluidos `App.test.tsx`, 242, y `CandidateListScreen.test.tsx`, 197)
+- [x] `npm test -w apps/web` en verde (toda la web).
+- [x] Ningún fichero tocado pasa de 300 líneas (incluidos `App.test.tsx`, 242, y `CandidateListScreen.test.tsx`, 197)
       ni ninguna función de `src` de 50 (`npm run lint`).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/web/src/components/StatusMessages.tsx apps/web/src/features/candidates/paths.ts apps/web/src/features/candidates/use-import-actions.ts apps/web/src/features/candidates/CandidateImportForm.tsx apps/web/src/features/candidates/CandidateImportReport.tsx apps/web/src/features/candidates/CandidateImportScreen.tsx apps/web/src/App.tsx apps/web/src/features/candidates/CandidateListScreen.tsx apps/web/test/features/candidates/import-fixtures.ts apps/web/test/features/candidates/CandidateImportScreen.test.tsx apps/web/test/App.test.tsx apps/web/test/features/candidates/CandidateListScreen.test.tsx`
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/web/src/components/StatusMessages.tsx apps/web/src/features/candidates/paths.ts apps/web/src/features/candidates/use-import-actions.ts apps/web/src/features/candidates/CandidateImportForm.tsx apps/web/src/features/candidates/CandidateImportReport.tsx apps/web/src/features/candidates/CandidateImportScreen.tsx apps/web/src/App.tsx apps/web/src/features/candidates/CandidateListScreen.tsx apps/web/test/features/candidates/import-fixtures.ts apps/web/test/features/candidates/CandidateImportScreen.test.tsx apps/web/test/App.test.tsx apps/web/test/features/candidates/CandidateListScreen.test.tsx`
       sin errores.
-- [ ] Commit único `feat(web): candidate CSV import screen and report [HU-07 TASK-07]` con los 12 ficheros.
+- [x] Commit único `feat(web): candidate CSV import screen and report [HU-07 TASK-07]` con los 12 ficheros.
 
 ## Notas de implementación
 - El fichero se elige con `fireEvent.change(getByLabelText('Fichero CSV'), { target: { files: [file] } })` (sin

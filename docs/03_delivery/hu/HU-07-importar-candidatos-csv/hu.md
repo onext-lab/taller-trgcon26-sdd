@@ -44,8 +44,10 @@ Cubre UC-20 entero. UC-09 no se modifica.
       _(UC-20 · A2)_
 - [ ] Una fila con el email mal formado y el nombre vacío sale con su número de fila y los dos errores, sin repetir los
       valores; las válidas entran. _(UC-20 · A3)_
-- [ ] Una cabecera separada por `;`, en otro orden o con una columna de más rechaza el fichero entero con la cabecera
-      esperada; un fichero que no es UTF-8 o con comillas sin cerrar, también. _(UC-20 · E1)_
+- [ ] Una cabecera separada por `;` rechaza el fichero entero con el mensaje del separador («El fichero está separado
+      por «;». Guárdalo separado por comas (CSV UTF-8) y vuelve a importarlo.», DT-08 del PRD); una en otro orden o con
+      una columna de más, con la cabecera esperada; un fichero que no es UTF-8 o con comillas sin cerrar, también se
+      rechaza entero. _(UC-20 · E1)_
 - [ ] Un fichero vacío o solo con la cabecera muestra «El fichero no tiene candidatos». _(UC-20 · E2)_
 - [ ] Con 501 filas de datos o más de 1 MiB se rechaza el fichero entero; con 500 filas se importa. _(UC-20 · E3)_
 - [ ] Un fallo de la base al guardar no crea ningún candidato y el error no contiene datos personales. _(UC-20 · E4)_

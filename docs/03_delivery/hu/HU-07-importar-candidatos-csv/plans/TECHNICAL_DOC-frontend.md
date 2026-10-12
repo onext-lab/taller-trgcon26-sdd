@@ -477,3 +477,15 @@ opción recomendada; queda como DD-09.
 - `@testing-library/user-event` u otra dependencia de test.
 
 _Cambio de la sesión (2026-10-12), sin vuelta del arquitecto: DT-08 del PRD v1.3. Un CSV con «;» da el mensaje específico del separador (EC-08, EC-50, CA-19), que la web pinta tal cual desde `error.message`; el e2e T2 usa el fixture de Excel en español._
+
+## Notas de la review (ronda 1, 2026-10-12)
+
+Desviaciones de lo implementado frente a este diseño, aceptadas y anotadas en los briefs (§7):
+
+- `useImportActions(refs)` recibe los `ref` que crea `CandidateImportScreen` (regla `react-hooks/refs`, patrón de
+  `ConsentSection`) y devuelve `hasFile` en lugar de `file`; el hook se partió en `useSendImport` y `useImportFocus` por
+  el umbral de 50 líneas por función.
+- Los tests que este documento asigna a `CandidateImportScreen.test.tsx` para CA-11 a CA-16 y CA-19 están en su hermano
+  `CandidateImportScreen.errors.test.tsx`, por el umbral de 300 líneas (decisión del responsable técnico).
+- DEC-13, que este documento cita como propuesta del backend (DD-01), está aceptada y escrita en `DECISIONS.md`.
+- Este documento cita el PRD v1.1; el PRD está en v1.3 (DT-07 y DT-08).

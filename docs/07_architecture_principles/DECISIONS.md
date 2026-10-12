@@ -323,7 +323,7 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   *boundaries*, no a los bytes del fichero; puede escribir a disco; abre la puerta a formularios entre sitios); JSON
   con el contenido como texto o en base64 (escape o +33 % de tamaño y obligaría a subir el límite global); `text/plain`
   (tipo «simple» sin *preflight* y con un parser global que ya da 400).
-- **Consecuencias.** La web envía `body: file` con `Content-Type` fijado a mano (el `type` de un `File` puede venir vacío
+- **Consecuencias.** La web envía los bytes del fichero (el `ArrayBuffer` de `file.arrayBuffer()`, los mismos bytes que `body: file`) con `Content-Type` fijado a mano (el `type` de un `File` puede venir vacío
   o como `application/vnd.ms-excel`) y no reutiliza `requestJson` tal cual. Se pierden el nombre y los metadatos del
   fichero (no se quieren). Cada ruta de fichero tiene tests del límite exacto (límite y límite + 1), del 415 con otros
   tipos y de que su tipo de medio sigue dando 415 fuera de ella. `multipart` y `urlencoded` siguen en 415 en toda la

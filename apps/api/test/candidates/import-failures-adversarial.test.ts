@@ -61,6 +61,18 @@ function failRetentionOfRow(id: number): void {
   });
 }
 
+/**
+ * Una lectura (`SELECT`) no admite triggers: el fallo se inyecta en la propia conexión, solo para la consulta del ID
+ * existente por email (`findIdByEmail`); el resto del SQL sigue siendo el real.
+ */
+function failReadOfExistingId(): void {
+  const prepare = db.prepare.bind(db);
+  db.prepare = (sql: string) => {
+    if (sql.includes('SELECT id FROM candidates WHERE email')) throw new Error('lectura simulada');
+    return prepare(sql);
+  };
+}
+
 interface Report {
   dataRows: number;
   created: number;
@@ -136,6 +148,22 @@ describe('importación · puerto de procesos (EC-30)', () => {
     expect(response.statusCode).toBe(500);
     expect(response.json()).toEqual(GENERIC_ERROR);
     expect(countCandidates()).toBe(0);
+  });
+
+  it('EC-30 falla la lectura del existente tras el choque del índice → 500 y 0 creados', async () => {
+    // El existente es la fila 2 del CSV: la fila 1 se inserta y la 2 choca con `candidates_email_uq`.
+    await createCandidate(app, {
+      fullName: 'Marcos Vidal Roca',
+      email: 'marcos.vidal@example.com',
+    });
+    failReadOfExistingId();
+
+    const response = await importCsv(app, csvBytes(lines(CA01_ROWS)));
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual(GENERIC_ERROR);
+    expect(response.body).not.toMatch(/example\.com|Marcos|Vidal|lectura simulada/);
+    expect(countCandidates()).toBe(1); // solo el existente: ni la fila 1 ni la 3 quedan creadas
   });
 });
 

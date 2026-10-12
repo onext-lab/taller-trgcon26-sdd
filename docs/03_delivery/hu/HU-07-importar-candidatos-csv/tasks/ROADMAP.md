@@ -3,7 +3,7 @@
 ## Resumen
 - **Fuente de verdad:** `plans/TECHNICAL_DOC-backend.md` y `plans/TECHNICAL_DOC-frontend.md` (aprobados; no el PRD).
   PRD v1.3 (Ready) para los RF Must y la cobertura. **DT-08 / EC-50 / CA-19** (cambio del responsable técnico del
-  2026-10-12, commit `5f6be5d`: PRD v1.3 y TD-backend actualizados; el TD-frontend no) se incorpora aquí (A-1).
+  2026-10-12, commit `5f6be5d`: PRD v1.3 y TD-backend actualizados; el TD-frontend, después, en `ddcfc8b`) se incorpora aquí (A-1).
 - **Pre-flight:** OQ-01 a OQ-05 siguen «PENDIENTE DE RATIFICAR» con la recomendación aplicada y **no bloquean**, por
   decisión del responsable técnico anotada en el PRD. Los dos TD no tienen Open Decisions. Rama
   `hu/HU-07-importar-candidatos-csv` con el árbol limpio.
@@ -42,11 +42,11 @@
 | A-8 | `CA-04 …` (TASK-03) aserta a la vez informe (`created: 1`, `duplicates: 1`, `notImported` exacto) y base (recuento + 1, un solo registro con ese email, Ana igual) | Que M1 caiga sea cual sea su forma | 0 tareas |
 | A-9 | `import-api.test.ts` (TASK-06) envía los bytes del fichero de Excel (BOM, CRLF y `;`) y comprueba que llegan intactos; el e2e elige ese fichero con `mimeType: 'application/vnd.ms-excel'` | EC-50 de punta a punta: la web ni corrige ni rechaza, y siempre manda `text/csv` | 0 tareas |
 
-**Decisión pendiente para la validación (paso 7):** `import.test.ts` (TASK-03, ~18 tests) puede pasar de 300 líneas.
+**Decisión tomada (responsable técnico, 2026-10-12): partir en ficheros hermanos sin tarea nueva.** Contexto original: `import.test.ts` (TASK-03, ~18 tests) puede pasar de 300 líneas.
 El TD no prevé un fichero hermano; el plan dice al builder que **pare y avise**. Si se quiere decidir ya, la opción es
 sacar los tests de A3 y de EC-18 a EC-25/EC-49 a `apps/api/test/candidates/import-rows.test.ts` como **TASK-10
 `[adversarial]` (S/M, capa `api`, depende de TASK-03)**, lo que además engorda la adversarial de RF-03 (ver gate 4).
-**Recomendación: mantener 9 tareas** y decidir solo si el builder topa con el umbral.
+Resultado: `import.test.ts` se partió en `import-rows.test.ts` e `import-contract.test.ts` (TASK-03) y la pantalla en `CandidateImportScreen.errors.test.tsx` (TASK-07), anotado en sus briefs (§7).
 
 ## Fases
 
@@ -196,7 +196,7 @@ y deshacerla, sin commitearla.
 Ningún RF del PRD queda sin cubrir en los TD (RF-01 y RF-07 en el TD-frontend; RF-02 a RF-06 en los dos). Matices:
 1. **DT-08 / EC-50 / CA-19** llegaron durante la planificación (commit `5f6be5d`: PRD v1.3, TD-backend con la fila
    del contrato «separador «;»», EC-08 y EC-50, y UC-20 · E1 con CA-19). El texto de `SEMICOLON_SEPARATOR_MESSAGE`
-   (TASK-02) es **idéntico** al del PRD y del TD-backend. El **TD-frontend no se actualizó**: su fila T2 aún dice
+   (TASK-02) es **idéntico** al del PRD y del TD-backend. El TD-frontend se alineó después (`ddcfc8b`: EC-08, T2 y la nota final); en el momento de planificar, su fila T2 decía
    «alert con `nombre,email,telefono`»; el plan aplica DT-08 (A-1) y cubre CA-19 en TASK-07 (render) y TASK-09 (T2).
 2. Los dos TD citan el PRD v1.1; el PRD está en v1.3 (DT-07/EC-49, ya en DD-07 b del TD-backend; DT-08/EC-50, en su
    nota del 2026-10-12). Cosmético.

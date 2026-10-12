@@ -63,7 +63,7 @@ export function parseCsv(text: string, maxKept: number): CsvParseResult;
 - **Bloquea:** TASK-02
 
 ## Criterios de done
-- [ ] `npm test -w apps/api -- candidates/csv` en verde con **1** fichero y, como mínimo, estos tests:
+- [x] `npm test -w apps/api -- candidates/csv` en verde con **1** fichero y, como mínimo, estos tests:
   - `BOM y CRLF`: `﻿nombre,email,telefono\r\nA,b,c\r\n` decodificado y partido da 2 registros sin BOM ni `\r`.
   - `comillas dobles escapadas y coma entrecomillada`: `"Ferrer, Lucía",x@example.com,` → 3 campos, el primero
     `Ferrer, Lucía`; `"Di ""Pepe"""` → `Di "Pepe"`.
@@ -78,11 +78,11 @@ export function parseCsv(text: string, maxKept: number): CsvParseResult;
   - `0xF1 y firma PNG → null` (EC-09) y `UTF-8 válido con ñ y emoji → texto`.
   - `maxKept cuenta todos y guarda N`: 600 registros con `maxKept = 502` → `records.length === 502`,
     `recordCount === 600`.
-- [ ] `csv.ts` ≤ 300 líneas y ninguna función de más de 50 (lo mide `npm run lint`); no importa nada fuera de
+- [x] `csv.ts` ≤ 300 líneas y ninguna función de más de 50 (lo mide `npm run lint`); no importa nada fuera de
       `node:`/estándar (sin `node:fs`).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/api/src/modules/candidates/csv.ts apps/api/test/candidates/csv.test.ts` sin errores.
-- [ ] Commit único `feat(api): pure CSV parser with physical line numbers [HU-07 TASK-01]` con los 2 ficheros.
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/api/src/modules/candidates/csv.ts apps/api/test/candidates/csv.test.ts` sin errores.
+- [x] Commit único `feat(api): pure CSV parser with physical line numbers [HU-07 TASK-01]` con los 2 ficheros.
 
 ## Notas de implementación
 - **Solo coma** (OQ-03, pendiente de ratificar): el separador es una constante del módulo; no detectes `;` aquí. La

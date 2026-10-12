@@ -68,7 +68,7 @@ transversal (`http/`, `errors.ts`).
 | Parte | Contrato |
 |---|---|
 | Cabecera | `Content-Type: text/csv` (los parámetros, como `; charset=utf-8`, se ignoran: siempre se decodifica como UTF-8). La web la fija **siempre a mano**: el `type` de un `File` puede venir vacío o como `application/vnd.ms-excel` |
-| Cuerpo | Los bytes del fichero tal cual (en la web, `body: file`), sin envoltorio. Máximo **1 048 576 bytes** (`bodyLimit` de la ruta, BOM incluido) |
+| Cuerpo | Los bytes del fichero tal cual (en la web, el `ArrayBuffer` leído del `File`: los mismos bytes), sin envoltorio. Máximo **1 048 576 bytes** (`bodyLimit` de la ruta, BOM incluido) |
 | `params` · `querystring` | Ninguno |
 | Formato del fichero | UTF-8 (BOM inicial opcional, se ignora); separador `,`; comillas dobles RFC 4180 (`""` escapa una comilla; se admiten espacios alrededor de un campo entrecomillado); fin de línea LF o CRLF; línea 1 = cabecera `nombre,email,telefono` (cada nombre recortado y sin distinguir mayúsculas); ≤ 500 filas de datos; las líneas en blanco (sin caracteres o solo con espacios o tabuladores, DD-07 b) se ignoran y no cuentan |
 
@@ -495,3 +495,16 @@ No hay decisiones abiertas. DEC-13 y las aclaraciones de DEC-07, DEC-08 y DEC-11
 - Lista de `Host` en `cross-site.ts` (deuda SEC-06).
 
 _Cambio de la sesión (2026-10-12), sin vuelta del arquitecto: DT-08 del PRD v1.3 (mensaje específico para «;»), fila del contrato, EC-08 y EC-50 en Error paths. Lo decidió el responsable técnico tras aprobar el diseño._
+
+## Notas de la review (ronda 1, 2026-10-12)
+
+Desviaciones de lo implementado frente a este diseño, aceptadas y anotadas en los briefs (§7):
+
+- Los tests que este documento asigna a `import.test.ts` (CA-08, CA-10, EC-49, EC-19/25, EC-20, EC-21, EC-43/46,
+  EC-36 y el test de contrato) están en sus hermanos `import-rows.test.ts` e `import-contract.test.ts`, por el umbral de
+  300 líneas (decisión del responsable técnico).
+- La web envía el `ArrayBuffer` leído del `File` (los mismos bytes), no el `File` tal cual (DD-09 del TD-frontend).
+- Este documento cita el PRD v1.1; el PRD está en v1.3 (DT-07 y DT-08, recogidos en DD-07 b y en la nota anterior).
+- Las referencias `fichero:línea` del código existente son anteriores al cambio (por ejemplo, `toValidationDetails`
+  está ahora en `apps/api/src/http/error-handler.ts`, y `writeUniqueEmail` e `isDuplicateEmailError` se han movido unas
+  líneas). Los símbolos existen; las líneas no se actualizan en un diseño cerrado.

@@ -46,15 +46,15 @@ buffer })`, DD-08 del TD-frontend): sin ficheros con datos en disco y sin depend
 - **Bloquea:** nada
 
 ## Criterios de done
-- [ ] `npx playwright test e2e/candidates-import.spec.ts` en verde con **2** tests.
-- [ ] `npm run e2e` en verde (todos los specs: `candidates.spec.ts` y `candidates-list.spec.ts` siguen pasando con los
+- [x] `npx playwright test e2e/candidates-import.spec.ts` en verde con **2** tests.
+- [x] `npm run e2e` en verde (todos los specs: `candidates.spec.ts` y `candidates-list.spec.ts` siguen pasando con los
       candidatos nuevos en `data/e2e.db`).
-- [ ] T2 compara el mensaje de DT-08 con `toHaveText` **exacto** (no `toContainText`), igual que la constante
+- [x] T2 compara el mensaje de DT-08 con `toHaveText` **exacto** (no `toContainText`), igual que la constante
       `SEMICOLON_SEPARATOR_MESSAGE` de `apps/api/src/modules/candidates/import-file.ts`.
-- [ ] El spec ≤ 300 líneas tras Prettier; solo datos inventados (`@example.com`, `+34 600 000 0xx`).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint e2e/candidates-import.spec.ts` sin errores.
-- [ ] Commit único `test(e2e): CSV import demo flow and Spanish Excel file [HU-07 TASK-09]` con el fichero.
+- [x] El spec ≤ 300 líneas tras Prettier; solo datos inventados (`@example.com`, `+34 600 000 0xx`).
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint e2e/candidates-import.spec.ts` sin errores.
+- [x] Commit único `test(e2e): CSV import demo flow and Spanish Excel file [HU-07 TASK-09]` con el fichero.
 
 ## Notas de implementación
 - **Mutación M1**: T1 también la detecta: si la fila con el email del existente se creara (o se contara como

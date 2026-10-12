@@ -34,7 +34,7 @@ el `arrayBuffer` del `File` (`Object.defineProperty` que rechaza).
 - **Bloquea:** nada
 
 ## Criterios de done
-- [ ] `npm test -w apps/web -- CandidateImportScreen.adversarial` en verde con **1** fichero y, como mínimo:
+- [x] `npm test -w apps/web -- CandidateImportScreen.adversarial` en verde con **1** fichero y, como mínimo:
   - `EC-01 foto.png y .txt se envían igual: PNG → alert con el message del 400; .txt → informe` (la web no mira
     extensión ni tipo).
   - `EC-04 doble clic → 1 POST`.
@@ -51,11 +51,11 @@ el `arrayBuffer` del `File` (`Object.defineProperty` que rechaza).
   - `EC-33 duplicate → solo el POST, 0 GET /api/candidates/:id`.
   - `EC-43 500 filas sin truncar; fila 5 con 3 errores → 3 filas de tabla (nombre, email, telefono)`.
   - `EC-48 Importar otro fichero → estado inicial sin fichero ni informe; sin entradas de historial nuevas`.
-- [ ] `npm test -w apps/web` en verde (toda la web).
-- [ ] El fichero ≤ 300 líneas tras Prettier.
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npx eslint apps/web/test/features/candidates/CandidateImportScreen.adversarial.test.tsx` sin errores.
-- [ ] Commit único `test(web): adversarial CSV import screen [HU-07 TASK-08]` con el fichero (y el arreglo, si lo hubo).
+- [x] `npm test -w apps/web` en verde (toda la web).
+- [x] El fichero ≤ 300 líneas tras Prettier.
+- [x] `npm run typecheck` sin errores.
+- [x] `npx eslint apps/web/test/features/candidates/CandidateImportScreen.adversarial.test.tsx` sin errores.
+- [x] Commit único `test(web): adversarial CSV import screen [HU-07 TASK-08]` con el fichero (y el arreglo, si lo hubo).
 
 ## Notas de implementación
 - Un `File` de 1 048 577 bytes en jsdom: `new File([new Uint8Array(1_048_577)], 'x.csv')`; para no leerlo, espía que

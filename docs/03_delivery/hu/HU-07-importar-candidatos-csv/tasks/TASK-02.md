@@ -102,7 +102,7 @@ Todo lo que decide **qué** se importa, sin ruta todavía (la ruta y la transacc
 - **Bloquea:** TASK-03
 
 ## Criterios de done
-- [ ] `npm test -w apps/api -- candidates/import-file http/payload-too-large` en verde con **2** ficheros y, como
+- [x] `npm test -w apps/api -- candidates/import-file http/payload-too-large` en verde con **2** ficheros y, como
       mínimo:
   - `cabeceras de EC-10 (1 válida, 5 inválidas)`: ` Nombre , EMAIL,Telefono` pasa; `nombre,email`,
     `nombre,email,telefono,resumen`, `email,nombre,telefono`, `nombre,email,email` y `nombre,email,telefono,` → 400
@@ -120,13 +120,13 @@ Todo lo que decide **qué** se importa, sin ruta todavía (la ruta y la transacc
   - `> 1 048 576 bytes → 413 con FILE_TOO_LARGE_MESSAGE` (defensa de DD-02).
   - `ningún mensaje contiene texto del fichero` (cabecera con un email inventado → el 400 no lo contiene; EC-16).
   - `payload-too-large.test.ts › 413 con config.payloadTooLargeMessage usa ese texto; sin él, el genérico`.
-- [ ] `npm test -w apps/api -- http/ candidates/` en verde: `error-handler.test.ts` y `error-details.test.ts` sin
+- [x] `npm test -w apps/api -- http/ candidates/` en verde: `error-handler.test.ts` y `error-details.test.ts` sin
       cambios (el renombre de `toDetails` no cambia ningún mensaje).
-- [ ] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
-- [ ] `npm run typecheck` sin errores (el `declare module` compila con `erasableSyntaxOnly`).
-- [ ] `npx eslint apps/api/src/modules/candidates/import-schemas.ts apps/api/src/modules/candidates/import-file.ts apps/api/src/modules/candidates/import-rows.ts apps/api/src/http/error-handler.ts apps/api/test/helpers/csv.ts apps/api/test/candidates/import-file.test.ts apps/api/test/http/payload-too-large.test.ts`
+- [x] Ningún fichero tocado pasa de 300 líneas ni ninguna función de `src` de 50 (`npm run lint`).
+- [x] `npm run typecheck` sin errores (el `declare module` compila con `erasableSyntaxOnly`).
+- [x] `npx eslint apps/api/src/modules/candidates/import-schemas.ts apps/api/src/modules/candidates/import-file.ts apps/api/src/modules/candidates/import-rows.ts apps/api/src/http/error-handler.ts apps/api/test/helpers/csv.ts apps/api/test/candidates/import-file.test.ts apps/api/test/http/payload-too-large.test.ts`
       sin errores.
-- [ ] Commit único `feat(api): CSV file validation, row rules and 413 message [HU-07 TASK-02]` con los 7 ficheros.
+- [x] Commit único `feat(api): CSV file validation, row rules and 413 message [HU-07 TASK-02]` con los 7 ficheros.
 
 ## Notas de implementación
 - **DT-08 no adivina el separador**: solo cambia el **texto** del error de cabecera. Las filas nunca se parten por `;`

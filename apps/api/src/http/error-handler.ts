@@ -17,7 +17,9 @@ const PAYLOAD_TOO_LARGE_MESSAGE = 'El cuerpo de la petición es demasiado grande
  */
 export function registerErrorHandling(app: FastifyInstance): void {
   app.setErrorHandler((error: FastifyError, request, reply) => {
-    const appError = toAppError(error, request.routeOptions?.config?.payloadTooLargeMessage);
+    const tooLargeMessage =
+      request.routeOptions?.config?.payloadTooLargeMessage ?? PAYLOAD_TOO_LARGE_MESSAGE;
+    const appError = toAppError(error, tooLargeMessage);
     if (appError.statusCode >= 500) request.log.error({ err: error }, 'Error no controlado');
     return reply.code(appError.statusCode).send(toEnvelope(appError));
   });
@@ -35,7 +37,7 @@ const INVALID_JSON_CODES = new Set([
   'FST_ERR_CTP_EMPTY_JSON_BODY',
 ]);
 
-function toAppError(error: FastifyError, payloadTooLargeMessage?: string): AppError {
+function toAppError(error: FastifyError, payloadTooLargeMessage: string): AppError {
   if (error instanceof AppError) return error;
   if (error.validation) {
     const details = toValidationDetails(error.validation, error.validationContext ?? 'body');
@@ -48,11 +50,7 @@ function toAppError(error: FastifyError, payloadTooLargeMessage?: string): AppEr
   }
   const statusCode = error.statusCode ?? 500;
   if (statusCode === 413) {
-    return new AppError(
-      'PAYLOAD_TOO_LARGE',
-      413,
-      payloadTooLargeMessage ?? PAYLOAD_TOO_LARGE_MESSAGE,
-    );
+    return new AppError('PAYLOAD_TOO_LARGE', 413, payloadTooLargeMessage);
   }
   if (statusCode === 415) {
     return new AppError('UNSUPPORTED_MEDIA_TYPE', 415, 'Tipo de contenido no admitido.');
