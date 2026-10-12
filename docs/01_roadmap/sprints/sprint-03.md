@@ -26,7 +26,7 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 ### HU-07 · Importar candidatos desde un CSV · estado: en curso
 - **Origen:** FEAT-04 · **Depende de:** nada · **Rama:** `hu/HU-07-importar-candidatos-csv`
 - [x] prd-writer (Ready, con las 5 PA pendientes de ratificar)
-- [ ] tech-design
+- [x] tech-design
 - [ ] task-planner
 - [ ] implementar-hu
 - [ ] reviewer
