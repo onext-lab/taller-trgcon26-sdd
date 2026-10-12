@@ -250,4 +250,3 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
     Homebrew delante en el `PATH`, `check:harness` y `check-clean` funcionan.
   - `check-clean --publish --mailmap <ruta>` falla **a propósito** hasta la reescritura de identidades (T-15) y hasta
     que se rellene URL_MARKETPLACE en `NOTICE` y `README.md`.
-  - Medir `npm run integrate` en una máquina modesta en el ensayo del 15/10 y guardar `logs/integrate/summary.txt`.
