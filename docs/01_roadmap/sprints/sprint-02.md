@@ -173,10 +173,22 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   - **Refs que se suben, lista cerrada:** `main` y las etiquetas `paso-*` y `vivo-*`, nada más: ni `hu/*`, ni
     `vivo/{A,C}`, ni `worktree-*` (decisión del responsable técnico del 2026-10-12; las etiquetas ya traen sus
     commits). Las etiquetas `vivo-*` tienen que existir antes de empezar (esperan la ratificación de A-1 a A-4 y C-1 a
-    C-5). En `vivo/C`, la etiqueta `vivo-C-4-hecho` va sobre el commit de los CSV de la demo, posterior al cierre del
-    sprint-03.
+    C-5). En `vivo/C`, la etiqueta `vivo-C-4-hecho` va sobre el commit que quita `docs/taller/`, posterior al cierre
+    del sprint-03.
   - **Traspaso a la persona responsable:** el comando de subida exacto con esa lista de refs, y los ajustes del repo en
     GitHub (Issues, Wiki y Discussions desactivados, como dice el README; archivarlo el 2026-12-31).
+- 2026-10-12 · **Fuera el material de la charla** (corrección de la persona responsable): el repo publicado es la app de
+  ejemplo con su kit, sin el guion, los CSV de la demo ni la checklist de escenario, que viven fuera del repo. En el repo
+  de trabajo ya se quitó `docs/taller/` de `main` y de `vivo/C`; queda en el historial y en las etiquetas `paso-3-*`
+  y `vivo-*` anteriores. En la copia:
+  - **Paso 2, en la misma pasada que el `.mailmap`:** `git filter-repo --mailmap <ruta> --path docs/taller
+    --invert-paths --prune-empty never`. `--prune-empty never` porque 4 commits solo tocan `docs/taller/` y quedarían
+    vacíos: uno es el commit auditado del sprint-02 (`9215a8a`, citado en su auditoría como fin de rango) y otro el
+    de `vivo-C-4-hecho`. Si se podaran, sus citas no tendrían a dónde traducirse (paso 4) y la etiqueta se movería a
+    otro commit. Se conservan vacíos, con su mensaje.
+  - **Paso 5, comprobación nueva:** ninguna ref publicada lleva `docs/taller/`. Para cada ref de la lista cerrada,
+    `git ls-tree -r --name-only <ref> -- docs/taller` vacío, y `git log --all --oneline -- docs/taller` también
+    vacío en todo el historial de la copia.
 
 ### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: hecha (2026-10-12)
 - **Tipo:** publicación (DP-01 de la auditoría del sprint-02; decisión de la persona responsable del 2026-10-09,
