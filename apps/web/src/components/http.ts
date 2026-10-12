@@ -137,6 +137,22 @@ async function send(
   }
 }
 
+// Shared by `requestJson` and `postBytes`: same timeout, same `send`, same `interpret`.
+async function dispatch(
+  path: string,
+  init: RequestInit,
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+): Promise<unknown> {
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const fullInit: RequestInit = {
+    ...init,
+    signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
+  };
+  const { status, text } = await send(path, fullInit, signal, timeoutSignal);
+  return interpret(status, text);
+}
+
 /**
  * Sends a request to the API and returns the parsed JSON body (`undefined` for a 204).
  * `Content-Type: application/json` is set only when there is a `body`: `GET` and `DELETE` go without
@@ -144,15 +160,35 @@ async function send(
  */
 export async function requestJson(path: string, options: RequestOptions = {}): Promise<unknown> {
   const { method = 'GET', body, signal, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
-  const timeoutSignal = AbortSignal.timeout(timeoutMs);
-  const init: RequestInit = {
-    method,
-    signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
-  };
+  const init: RequestInit = { method };
   if (body !== undefined) {
     init.headers = { 'Content-Type': 'application/json' };
     init.body = JSON.stringify(body);
   }
-  const { status, text } = await send(path, init, signal, timeoutSignal);
-  return interpret(status, text);
+  return dispatch(path, init, signal, timeoutMs);
+}
+
+export interface BytesOptions {
+  /** Set by hand by the caller (never taken from a `File`, DD-09). */
+  contentType: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
+
+/**
+ * `POST` with the raw bytes as body (DD-01), e.g. the CSV file untouched. Same timeout, envelope and
+ * error translation as `requestJson`; the answer is parsed as JSON.
+ */
+export async function postBytes(
+  path: string,
+  bytes: ArrayBuffer,
+  options: BytesOptions,
+): Promise<unknown> {
+  const { contentType, signal, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const init: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': contentType },
+    body: bytes,
+  };
+  return dispatch(path, init, signal, timeoutMs);
 }

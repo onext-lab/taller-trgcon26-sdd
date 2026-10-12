@@ -5,6 +5,7 @@ import {
   trimTextFields,
   type IdParams,
 } from '../../http/validation.ts';
+import { candidateImportRoutes } from './import-routes.ts';
 import { normalizeCandidateBody } from './normalize.ts';
 import {
   candidatePageSchema,
@@ -117,4 +118,6 @@ export const candidatesRoutes: FastifyPluginAsync<{ service: CandidatesService }
 ) => {
   registerCrudRoutes(app, service);
   registerConsentRoutes(app, service);
+  // Plugin encapsulado: su parser `text/csv` no se hereda ni se filtra al resto (DEC-13).
+  await app.register(candidateImportRoutes, { service });
 };

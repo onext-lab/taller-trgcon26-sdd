@@ -4,6 +4,7 @@ import { parseRouteId } from '../../components/router.tsx';
 export const candidatePaths = {
   list: '/candidates',
   create: '/candidates/new',
+  import: '/candidates/import',
   detail: (id: number): string => `/candidates/${id}`,
   edit: (id: number): string => `/candidates/${id}/edit`,
 } as const;

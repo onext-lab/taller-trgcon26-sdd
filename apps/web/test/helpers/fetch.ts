@@ -18,6 +18,8 @@ export interface RecordedCall {
   url: string;
   headers: Record<string, string>;
   body: string | undefined;
+  /** Binary body (`ArrayBuffer` or a view), copied; `undefined` if the body is not binary. */
+  bytes?: Uint8Array;
 }
 
 export type MockRoute = MockReply | ((call: RecordedCall) => MockReply);
@@ -36,13 +38,32 @@ function toUrl(input: RequestInfo | URL): string {
   return input instanceof URL ? input.href : input.url;
 }
 
+// No `instanceof ArrayBuffer`: in jsdom the buffer can come from another realm.
+function toBytes(body: unknown): Uint8Array | undefined {
+  if (Object.prototype.toString.call(body) === '[object ArrayBuffer]') {
+    return new Uint8Array((body as ArrayBuffer).slice(0));
+  }
+  if (ArrayBuffer.isView(body)) {
+    return new Uint8Array(body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength));
+  }
+  return undefined;
+}
+
 function record(input: RequestInfo | URL, init: RequestInit | undefined): RecordedCall {
   const headers: Record<string, string> = {};
   new Headers(init?.headers).forEach((value, key) => {
     headers[key] = value;
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;
-  return { method: (init?.method ?? 'GET').toUpperCase(), url: toUrl(input), headers, body };
+  const bytes = toBytes(init?.body);
+  const call: RecordedCall = {
+    method: (init?.method ?? 'GET').toUpperCase(),
+    url: toUrl(input),
+    headers,
+    body,
+  };
+  if (bytes) call.bytes = bytes;
+  return call;
 }
 
 function toResponse(reply: { status: number; json?: unknown; text?: string }): Response {

@@ -6,6 +6,7 @@ import { APPLICATION_ROUTE, PIPELINE_ROUTE } from './features/applications/paths
 import { PipelineScreen } from './features/applications/PipelineScreen.tsx';
 import { CandidateDetailScreen } from './features/candidates/CandidateDetailScreen.tsx';
 import { CandidateFormScreen } from './features/candidates/CandidateFormScreen.tsx';
+import { CandidateImportScreen } from './features/candidates/CandidateImportScreen.tsx';
 import { CandidateListScreen } from './features/candidates/CandidateListScreen.tsx';
 import { candidatePaths } from './features/candidates/paths.ts';
 import { JobDetailScreen } from './features/jobs/JobDetailScreen.tsx';
@@ -36,7 +37,8 @@ interface Route extends Screen {
   pattern: string;
 }
 
-// Route table, in match order: `/jobs/new` and `/candidates/new` also match their `/:id` and must go first.
+// Route table, in match order: `/jobs/new`, `/candidates/new` and `/candidates/import` also match their
+// `/:id` and must go first.
 const ROUTES: readonly Route[] = [
   { pattern: jobPaths.list, title: 'Ofertas', element: <JobListScreen /> },
   { pattern: jobPaths.create, title: 'Nueva oferta', element: <JobFormScreen mode="create" /> },
@@ -57,6 +59,11 @@ const ROUTES: readonly Route[] = [
     pattern: candidatePaths.create,
     title: 'Nuevo candidato',
     element: <CandidateFormScreen mode="create" />,
+  },
+  {
+    pattern: candidatePaths.import,
+    title: 'Importar candidatos',
+    element: <CandidateImportScreen />,
   },
   {
     pattern: '/candidates/:id/edit',

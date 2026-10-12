@@ -4,10 +4,21 @@ export function LoadingMessage({ children }: { children: ReactNode }) {
   return <p role="status">{children}</p>;
 }
 
-export function ErrorMessage({ message, onRetry }: { message: string; onRetry?: () => void }) {
+/** With a `ref` the alert can take focus (`tabIndex={-1}`); with an `id` a control can point to it. */
+export function ErrorMessage({
+  message,
+  onRetry,
+  id,
+  ref,
+}: {
+  message: string;
+  onRetry?: () => void;
+  id?: string;
+  ref?: Ref<HTMLParagraphElement>;
+}) {
   return (
     <div className="error-message">
-      <p role="alert" className="error-text">
+      <p role="alert" className="error-text" id={id} ref={ref} tabIndex={ref ? -1 : undefined}>
         {message}
       </p>
       {onRetry ? (

@@ -1,8 +1,10 @@
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 import { performance } from 'node:perf_hooks';
+import type { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { withTransaction } from '../../src/db/transaction.ts';
 import { createCandidatesRepository } from '../../src/modules/candidates/repository.ts';
+import { csvBytes, importCsv } from '../helpers/csv.ts';
 import { createTestApp, createTestClock } from '../helpers/test-app.ts';
 
 // Datos inventados. RNF-01 (lecturas) y RNF-02 (acciones) con 1 000 candidatos.
@@ -15,12 +17,14 @@ const SKILLS = ['typescript', 'sql', 'react', 'python', 'java', 'figma'];
 
 let app: FastifyInstance;
 let lastId: number;
+let database: DatabaseSync;
 
 beforeEach(() => {
   const clock = createTestClock(NOW);
   const created = createTestApp({ now: clock.now });
   app = created.app;
   const { db } = created;
+  database = db;
   const repository = createCandidatesRepository(db);
   withTransaction(db, () => {
     for (let n = 1; n <= CANDIDATES_IN_DB; n += 1) {
@@ -104,5 +108,25 @@ describe('rendimiento de la API de candidatos con 1 000 candidatos', () => {
     for (const { elapsedMs } of [create, patch, withdraw, give]) {
       expect(elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
     }
+  });
+
+  it('RNF-01 importar 500 filas nuevas < 500 ms con 1 000 candidatos', async () => {
+    const header = 'nombre,email,telefono';
+    const fileOf = (prefix: string, count: number) =>
+      csvBytes([
+        header,
+        ...Array.from({ length: count }, (_, i) => `Persona ${i},${prefix}${i}@example.com,`),
+      ]);
+    const warmUp = await importCsv(app, fileOf('calentamiento', 5));
+    const start = performance.now();
+    const response = await importCsv(app, fileOf('importado', 500));
+    const elapsedMs = performance.now() - start;
+
+    expect(warmUp.statusCode).toBe(200);
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({ dataRows: 500, created: 500 });
+    expect(elapsedMs).toBeLessThan(WRITE_BUDGET_MS);
+    const total = database.prepare('SELECT COUNT(*) AS total FROM candidates').get();
+    expect(Number(total?.total)).toBe(CANDIDATES_IN_DB + 5 + 500);
   });
 });

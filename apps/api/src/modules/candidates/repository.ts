@@ -189,7 +189,19 @@ function createCandidateWriteOperations(db: DatabaseSync) {
 export function createCandidatesRepository(db: DatabaseSync) {
   // DD-02: la búsqueda (TASK-05) necesita `fold_search` en esta conexión (registrarla dos veces no falla).
   registerTextSearch(db);
-  return { ...createCandidateQueries(db), ...createCandidateWriteOperations(db) };
+  const queries = createCandidateQueries(db);
+  const writes = createCandidateWriteOperations(db);
+  return {
+    ...queries,
+    ...writes,
+    /**
+     * Si `error` es el choque con `candidates_email_uq`, el ID del candidato que ya tenía `email` (la transacción sigue
+     * abierta tras el fallo: SQLite deshace solo la sentencia, DD-05); `undefined` en cualquier otro caso.
+     */
+    existingIdOnDuplicate(error: unknown, email: string): number | undefined {
+      return writes.isDuplicateEmailError(error) ? queries.findIdByEmail(email) : undefined;
+    },
+  };
 }
 
 export type CandidatesRepository = ReturnType<typeof createCandidatesRepository>;

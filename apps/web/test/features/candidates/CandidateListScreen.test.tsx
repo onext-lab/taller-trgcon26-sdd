@@ -66,6 +66,17 @@ describe('CandidateListScreen · estados y tabla', () => {
     );
   });
 
+  it('enlace «Importar CSV» con href="/candidates/import"', async () => {
+    mockFetch({ 'GET /api/candidates': pageOf(manyItems(1)) });
+
+    render(<CandidateListScreen />);
+    await screen.findByRole('table', { name: 'Candidatos' });
+
+    expect(screen.getByRole('link', { name: 'Importar CSV' }).getAttribute('href')).toBe(
+      '/candidates/import',
+    );
+  });
+
   it('CA-15 pinta tres columnas, skills unidas por «, » y «Sin indicar», en el orden recibido', async () => {
     mockFetch({
       'GET /api/candidates': pageOf([
