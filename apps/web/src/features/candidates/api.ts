@@ -1,5 +1,11 @@
 import { DEFAULT_PAGE_SIZE } from '../../components/list-controls.ts';
-import { badResponseError, isRecord, isValidId, requestJson } from '../../components/http.ts';
+import {
+  badResponseError,
+  isRecord,
+  isValidId,
+  postBytes,
+  requestJson,
+} from '../../components/http.ts';
 import { parseCandidateId } from './paths.ts';
 import type {
   Candidate,
@@ -8,9 +14,14 @@ import type {
   CandidateListParams,
   CandidatePage,
   CandidatePatch,
+  ImportReport,
+  ImportRowError,
+  NotImportedRow,
 } from './types.ts';
 
 const CANDIDATES_URL = '/api/candidates';
+const IMPORT_URL = '/api/candidates/import';
+const IMPORT_REASONS: readonly unknown[] = ['invalid', 'duplicate', 'repeated'];
 
 function candidateUrl(id: number): string {
   // Never build `/api/candidates/{id}` with an ID that the API would reject.
@@ -138,4 +149,52 @@ export function registerConsent(id: number, signal?: AbortSignal): Promise<Candi
 /** `POST /api/candidates/:id/consent/withdrawal` → 200 `Candidate` (also when there was nothing to withdraw). */
 export function withdrawConsent(id: number, signal?: AbortSignal): Promise<Candidate> {
   return postConsent(id, '/consent/withdrawal', signal);
+}
+
+function isCount(value: unknown): boolean {
+  return Number.isSafeInteger(value) && (value as number) >= 0;
+}
+
+function isImportRowError(value: unknown): value is ImportRowError {
+  return isRecord(value) && isString(value.field) && isString(value.message);
+}
+
+// `existingId` is required in `duplicate` and `firstRow` in `repeated`.
+function hasReasonKey(item: Record<string, unknown>): boolean {
+  if (item.reason === 'duplicate') return isValidId(item.existingId);
+  if (item.reason === 'repeated') return isValidId(item.firstRow);
+  return true;
+}
+
+function isNotImportedRow(value: unknown): value is NotImportedRow {
+  if (!isRecord(value) || !isValidId(value.row)) return false;
+  if (!IMPORT_REASONS.includes(value.reason)) return false;
+  const { errors } = value;
+  if (!Array.isArray(errors) || errors.length === 0 || !errors.every(isImportRowError)) {
+    return false;
+  }
+  return hasReasonKey(value);
+}
+
+/**
+ * Shape check of the import report: counts and `notImported[]` with its per-reason keys (S-02).
+ * That `dataRows` is the sum of the other counts is the API's job (EC-46), not checked here.
+ */
+export function isImportReport(value: unknown): value is ImportReport {
+  if (!isRecord(value) || !Array.isArray(value.notImported)) return false;
+  const counts = [value.dataRows, value.created, value.duplicates, value.invalid];
+  return counts.every(isCount) && value.notImported.every(isNotImportedRow);
+}
+
+/**
+ * `POST /api/candidates/import` → 200 `ImportReport`. The bytes of the file go untouched and the
+ * `Content-Type` is always `text/csv`, set by hand: `File.type` can be empty or `application/vnd.ms-excel` (DD-09).
+ */
+export async function importCandidates(
+  bytes: ArrayBuffer,
+  signal?: AbortSignal,
+): Promise<ImportReport> {
+  const response = await postBytes(IMPORT_URL, bytes, { contentType: 'text/csv', signal });
+  if (!isImportReport(response)) throw badResponseError();
+  return response;
 }

@@ -58,3 +58,30 @@ export interface CandidatePatch {
   summary?: string | null;
   skills?: string[];
 }
+
+/** Why a CSV row was not imported (`reason` of `notImported[]`, S-02). */
+export type ImportReason = 'invalid' | 'duplicate' | 'repeated';
+
+/** One error of a row: `field` is a CSV column (`nombre`, `email`, `telefono`) or `fila` for the whole row (S-03). */
+export interface ImportRowError {
+  field: string;
+  message: string;
+}
+
+/** A row that was not imported; `existingId` only in `duplicate`, `firstRow` only in `repeated`. */
+export interface NotImportedRow {
+  row: number;
+  reason: ImportReason;
+  errors: ImportRowError[];
+  existingId?: number;
+  firstRow?: number;
+}
+
+/** 200 of `POST /api/candidates/import` (S-02): counts plus the rows that were not imported. */
+export interface ImportReport {
+  dataRows: number;
+  created: number;
+  duplicates: number;
+  invalid: number;
+  notImported: NotImportedRow[];
+}
