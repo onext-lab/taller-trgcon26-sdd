@@ -1,4 +1,4 @@
-// node scripts/check-clean.mjs --denylist <ruta> [--publish --mailmap <ruta>]  ·  node scripts/check-clean.mjs --self-test
+// node scripts/check-clean.mjs --denylist <ruta> [--publish --mailmap <ruta> [--publish-denylist <ruta>]]  ·  node scripts/check-clean.mjs --self-test
 //
 // Busca términos prohibidos en el árbol de trabajo, en todo el historial (`git log -p --all`, mensajes incluidos), en
 // los nombres de ramas y etiquetas, en las etiquetas anotadas y en las identidades en bruto (sin `.mailmap`) de autor,
@@ -11,34 +11,30 @@
 // --publish --mailmap <ruta> (T-12 del sprint-02) es la puerta de publicación: además, falla si falta el `.mailmap`
 // (vive fuera del repo), si alguna identidad en bruto no es canónica del `.mailmap` ni de Claude <noreply@anthropic.com>
 // (solo dice cuántas) o si queda algún marcador de publicación en el árbol. --self-test se prueba en un repo temporal.
-import { execFileSync, spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
-import { devNull, tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+// --publish-denylist <ruta> (T-18; solo con --publish) añade la lista de publicación, con el mismo formato y también
+// fuera del repo (los nombres de personas que solo se sustituyen en la copia que se publica). Se aplica en la misma
+// pasada a todo lo que escanea la denylist y sus coincidencias son problemas de --publish, con `regla N (línea L de la
+// lista de publicación)` y sin el término. Sin coincidencias, dice cuántas reglas se aplicaron.
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { scanIdentities } from './check-clean-identities.mjs';
 import {
-  buildSelfTestRepo,
-  identitiesProblem,
-  MAILMAP_HELP,
-  scanIdentities,
-  SELF_CASES,
-  SELF_TEST_INPUTS,
-  selfTestEnv,
-} from './check-clean-identities.mjs';
-import { PUBLISH_MARKERS, scanTreeForMarkers } from './publish-markers.mjs';
+  git,
+  hasCommits,
+  makeScanner,
+  publishProblems,
+  reportPublish,
+  runSelfTest,
+  scanHistory,
+  scanRefs,
+  scanTree,
+} from './check-clean-modes.mjs';
 
 function usage(message) {
   console.error(`check-clean: ${message}`);
   console.error(
-    'Uso: node scripts/check-clean.mjs --denylist <ruta-a-la-lista> [--publish --mailmap <ruta>] | --self-test',
+    'Uso: node scripts/check-clean.mjs --denylist <ruta-a-la-lista> [--publish --mailmap <ruta> [--publish-denylist <ruta>]] | --self-test',
   );
   process.exit(1);
 }
@@ -48,28 +44,36 @@ const argValue = (flag) => {
   return index === -1 ? undefined : process.argv[index + 1];
 };
 
-/** @returns {{ n: number, line: number, re: RegExp }[]} */
-function loadRules(denylistPath) {
+/** Una línea de la lista: la regla, o undefined si está vacía o es un comentario. `of` dice de qué lista es. */
+function parseRule(raw, index, of) {
+  const text = raw.trim();
+  if (!text || text.startsWith('#')) return undefined;
+  const match = /^([ic]):(.+)$/.exec(text);
+  if (!match)
+    usage(`la línea ${index + 1} de la lista${of} no tiene el formato i:<regex> o c:<regex>.`);
+  try {
+    return { line: index + 1, re: new RegExp(match[2], match[1] === 'i' ? 'i' : '') };
+  } catch {
+    return usage(
+      `la regla de la línea ${index + 1}${of && ` de la lista${of}`} no es una expresión regular válida.`,
+    );
+  }
+}
+
+/**
+ * @param {string} listPath
+ * @param {string} [of] vacío para la denylist; ` de publicación` para la lista de publicación (sale en los errores)
+ * @returns {{ n: number, line: number, re: RegExp }[]}
+ */
+function loadRules(listPath, of = '') {
   const rules = [];
-  readFileSync(denylistPath, 'utf8')
+  readFileSync(listPath, 'utf8')
     .split(/\r?\n/)
     .forEach((raw, index) => {
-      const text = raw.trim();
-      if (!text || text.startsWith('#')) return;
-      const match = /^([ic]):(.+)$/.exec(text);
-      if (!match)
-        usage(`la línea ${index + 1} de la lista no tiene el formato i:<regex> o c:<regex>.`);
-      try {
-        rules.push({
-          n: rules.length + 1,
-          line: index + 1,
-          re: new RegExp(match[2], match[1] === 'i' ? 'i' : ''),
-        });
-      } catch {
-        usage(`la regla de la línea ${index + 1} no es una expresión regular válida.`);
-      }
+      const rule = parseRule(raw, index, of);
+      if (rule) rules.push({ n: rules.length + 1, ...rule });
     });
-  if (rules.length === 0) usage('la lista no tiene reglas.');
+  if (rules.length === 0) usage(`la lista${of} no tiene reglas.`);
   return rules;
 }
 
@@ -88,97 +92,21 @@ function report(findings, rules, scope) {
   return 0;
 }
 
-const git = (...args) =>
-  execFileSync('git', args, { encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
-
-function hasCommits() {
-  try {
-    git('rev-parse', '--verify', 'HEAD');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** 1. Árbol de trabajo: ficheros versionados y nuevos no ignorados (nombre y contenido). */
-function scanTree(scan) {
-  const files = git('ls-files', '-z', '--cached', '--others', '--exclude-standard')
-    .split('\0')
-    .filter(Boolean);
-  for (const file of new Set(files)) {
-    scan(file, `árbol · ${file} (nombre del fichero)`);
-    if (!existsSync(file) || !statSync(file).isFile()) continue;
-    const buffer = readFileSync(file);
-    if (buffer.includes(0)) continue; // binario
-    buffer
-      .toString('utf8')
-      .split(/\r?\n/)
-      .forEach((line, i) => scan(line, `árbol · ${file}:${i + 1}`));
-  }
-  return files.length;
-}
-
-/** 2. Historial completo: mensajes, rutas y cada línea de cada diff, en todas las refs. */
-function scanHistory(scan) {
-  const log = git('log', '-p', '--all', '--no-color', '--format=%x00COMMIT %h%n%B%x00END');
-  let commit = '?';
-  let file = 'mensaje';
-  let inMessage = false;
-  for (const line of log.split('\n')) {
-    if (line.startsWith('\0COMMIT ')) {
-      [commit, file, inMessage] = [line.slice(8), 'mensaje', true];
-      continue;
-    }
-    if (line.startsWith('\0END')) {
-      inMessage = false;
-      continue;
-    }
-    if (!inMessage && line.startsWith('diff --git ')) {
-      file = line.replace(/^diff --git a\/.* b\//, '');
-    }
-    scan(line, `historial · commit ${commit} · ${inMessage ? 'mensaje' : file}`);
-  }
-}
-
-/** 3. Nombres de ramas y etiquetas, y etiquetas anotadas (cabecera con el tagger y mensaje). */
-function scanRefs(scan) {
-  for (const ref of git('for-each-ref', '--format=%(refname:short)').split('\n').filter(Boolean)) {
-    scan(ref, `ref · ${ref} (nombre)`);
-  }
-  for (const tag of git('tag', '-l').split('\n').filter(Boolean)) {
-    if (git('cat-file', '-t', tag).trim() === 'tag') {
-      scan(git('cat-file', '-p', tag), `etiqueta · ${tag} (cabecera y mensaje)`);
-    }
-  }
-}
-
-/** Problemas de la puerta de publicación: `.mailmap`, identidades fuera de él y marcadores en el árbol. */
-function publishProblems(mailmapPath, withCommits) {
-  const problems = [];
-  if (!mailmapPath) problems.push(`falta --mailmap <ruta>. ${MAILMAP_HELP}`);
-  else if (!existsSync(mailmapPath))
-    problems.push(`no existe el fichero de --mailmap. ${MAILMAP_HELP}`);
-  else if (withCommits) {
-    const problem = identitiesProblem(git, readFileSync(mailmapPath, 'utf8'));
-    if (problem) problems.push(problem);
-  }
-  for (const { where, name } of scanTreeForMarkers(process.cwd()))
-    problems.push(`marcador de publicación ${name} · ${where}: rellénalo antes de publicar.`);
-  return problems;
-}
-
-function reportPublish(problems) {
-  if (problems.length === 0) {
-    console.log('check-clean --publish: identidades y marcadores listos para publicar.');
-    return 0;
-  }
-  console.error(`check-clean --publish: ${problems.length} problema(s) para publicar:`);
-  for (const problem of problems) console.error(`  - ${problem}`);
-  return 1;
+/** --publish-denylist <ruta>: sus reglas, o [] si no se pasa. Solo tiene sentido con --publish y sin --file. */
+function loadPublishRules() {
+  if (!process.argv.includes('--publish-denylist')) return [];
+  if (!process.argv.includes('--publish'))
+    usage('--publish-denylist solo se usa junto con --publish.');
+  if (process.argv.includes('--file')) usage('--publish-denylist no se combina con --file.');
+  const listPath = argValue('--publish-denylist');
+  if (!listPath || listPath.startsWith('--'))
+    usage('falta la ruta de --publish-denylist <ruta> (la lista de publicación).');
+  if (!existsSync(listPath)) usage(`no existe la lista de publicación ${listPath}.`);
+  return loadRules(listPath, ' de publicación');
 }
 
 /** --file <ruta>: revisa solo ese fichero (lo usa el hook commit-msg con el mensaje del commit). */
-function runFile(rules, scan, findings) {
+function runFile({ rules, scan, findings }) {
   const single = argValue('--file');
   if (!single || !existsSync(single)) usage('falta el fichero de --file <ruta>.');
   readFileSync(single, 'utf8')
@@ -187,98 +115,44 @@ function runFile(rules, scan, findings) {
   return report(findings, rules, single);
 }
 
+/** Puerta de publicación: `.mailmap`, identidades, marcadores y las coincidencias de la lista de publicación. */
+function runPublish({ publishRules, publishFindings }, mailmapPath, withCommits) {
+  const hits = [...new Set(publishFindings)];
+  if (publishRules.length > 0 && hits.length === 0)
+    console.log(
+      `check-clean --publish: 0 coincidencias de la lista de publicación (${publishRules.length} reglas aplicadas).`,
+    );
+  return reportPublish([...publishProblems(mailmapPath, withCommits), ...hits]);
+}
+
 /** Árbol, historial, refs e identidades; con --publish, además la puerta de publicación. */
-function runScan(rules, scan, findings) {
+function runScan(ctx) {
   const mailmap = argValue('--mailmap');
   const mailmapPath = mailmap && !mailmap.startsWith('--') ? resolve(mailmap) : undefined;
   process.chdir(git('rev-parse', '--show-toplevel').trim());
-  const fileCount = scanTree(scan);
+  const fileCount = scanTree(ctx.scan);
   const withCommits = hasCommits();
   if (withCommits) {
-    scanHistory(scan);
-    scanRefs(scan);
-    scanIdentities(git, scan);
+    scanHistory(ctx.scan);
+    scanRefs(ctx.scan);
+    scanIdentities(git, ctx.scan);
   }
   const scope = `${fileCount} ficheros del árbol · historial, refs e identidades${withCommits ? '' : ' (sin commits)'}`;
-  const code = report(findings, rules, scope);
+  const code = report(ctx.findings, ctx.rules, scope);
   if (!process.argv.includes('--publish')) return code;
-  return Math.max(code, reportPublish(publishProblems(mailmapPath, withCommits)));
+  return Math.max(code, runPublish(ctx, mailmapPath, withCommits));
 }
 
 /** Lee los argumentos y despacha al modo: --self-test, --file o el escaneo completo (con o sin --publish). */
 function main() {
-  if (process.argv.includes('--self-test')) return runSelfTest();
+  if (process.argv.includes('--self-test')) return runSelfTest(fileURLToPath(import.meta.url));
   const denylistPath = argValue('--denylist');
   if (!denylistPath) usage('falta --denylist <ruta>.');
   if (!existsSync(denylistPath)) usage(`no existe la lista ${denylistPath}.`);
   const rules = loadRules(denylistPath);
-  const findings = [];
-  const scan = (text, where) => {
-    for (const rule of rules) {
-      if (rule.re.test(text))
-        findings.push(`${where} · regla ${rule.n} (línea ${rule.line} de la lista)`);
-    }
-  };
-  const run = process.argv.includes('--file') ? runFile : runScan;
-  return run(rules, scan, findings);
-}
-
-// ---------- autoprueba: repo git temporal con identidades inventadas (fixture y casos en check-clean-identities.mjs)
-function runSelfCases(tmp, repo, env) {
-  const file = (name, text) => (writeFileSync(join(tmp, name), text), join(tmp, name));
-  const { dirty, clean, partialMailmap, fullMailmap, leaks } = SELF_TEST_INPUTS;
-  const paths = { D: file('denylist-sucia', dirty), C: file('denylist-limpia', clean) };
-  paths.M = file('mailmap-parcial', partialMailmap);
-  paths.F = file('mailmap-completo', fullMailmap);
-  paths.X = join(tmp, 'no-existe');
-  const self = fileURLToPath(import.meta.url);
-  const failures = [];
-  for (const [i, [label, args, wantCode, patterns]] of SELF_CASES.entries()) {
-    if (i === SELF_CASES.length - 1)
-      writeFileSync(join(repo, 'marca.md'), `línea\nfirma: ${PUBLISH_MARKERS[0]}\n`);
-    const argv = args[0] === '--denylist' ? args : ['--denylist', 'C', ...args];
-    const r = spawnSync(process.execPath, [self, ...argv.map((a) => paths[a] ?? a)], {
-      cwd: repo,
-      env,
-      encoding: 'utf8',
-    });
-    const out = `${r.stdout}${r.stderr}`;
-    if (r.status !== wantCode)
-      failures.push(`${label}: sale con ${r.status} y se esperaba ${wantCode}`);
-    for (const re of patterns)
-      if (!re.test(out)) failures.push(`${label}: la salida no cumple ${re}`);
-    if (leaks.some((leak) => out.toLowerCase().includes(leak.toLowerCase())))
-      failures.push(`${label}: la salida contiene una identidad o un término`);
-  }
-  return failures;
-}
-
-function selfTest() {
-  const tmp = mkdtempSync(join(tmpdir(), 'check-clean-'));
-  try {
-    const env = selfTestEnv(devNull);
-    const repo = join(tmp, 'repo');
-    mkdirSync(repo);
-    const run = (identity, ...args) =>
-      execFileSync('git', args, { cwd: repo, env: identity, stdio: 'pipe' });
-    buildSelfTestRepo(run, (name, text) => writeFileSync(join(repo, name), text), env);
-    return runSelfCases(tmp, repo, env);
-  } finally {
-    rmSync(tmp, { recursive: true, force: true });
-  }
-}
-
-function runSelfTest() {
-  const failures = selfTest();
-  if (failures.length > 0) {
-    for (const f of failures) console.error(`  ✘ [check-clean] autoprueba: ${f}`);
-    console.error(`check-clean --self-test: ${failures.length} fallo(s).`);
-    return 1;
-  }
-  console.log(
-    '  ✔ check-clean: autoprueba en un repo temporal (identidades en bruto contra la denylist, --publish con .mailmap, sin --mailmap y con marcadores; ninguna salida imprime identidades ni términos)',
-  );
-  return 0;
+  const publishRules = loadPublishRules();
+  const ctx = { rules, publishRules, ...makeScanner(rules, publishRules) };
+  return (process.argv.includes('--file') ? runFile : runScan)(ctx);
 }
 
 // `import.meta.main` (Node ≥ 24.2) y no comparar process.argv[1]: bajo enlaces simbólicos esa comparación falla.

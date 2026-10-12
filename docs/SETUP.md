@@ -181,6 +181,8 @@ Lo hace el responsable técnico, en este orden:
    ficheros; la lista está en `scripts/publish-markers.mjs`). `npm run check:harness` avisa de cuántos quedan.
 2. **Crea el `.mailmap` fuera del repo**, con el nombre y el email canónicos (el titular) de cada autor, committer y
    tagger. No se versiona: publicaría los emails que mapea.
-3. **`node scripts/check-clean.mjs --denylist <ruta> --publish --mailmap <ruta>` en verde**: términos, identidades y
-   marcadores. Si fallan las identidades, se reescriben en la copia de publicación, nunca en este repo.
+3. **`node scripts/check-clean.mjs --denylist <ruta> --publish --mailmap <ruta> --publish-denylist <ruta>` en verde**:
+   términos, identidades, marcadores y la **lista de publicación** (mismo formato que la denylist y también fuera del
+   repo: lo que solo se quita al publicar, como los nombres de personas que la copia sustituye por un rol). Si fallan
+   las identidades o la lista de publicación, se corrige en la copia de publicación, nunca en este repo.
 4. **Después, el bundle** (`git bundle create`), desde la copia que ha pasado el paso 3.

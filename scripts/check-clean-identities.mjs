@@ -116,12 +116,29 @@ export const SELF_TEST_INPUTS = {
   fullMailmap:
     `# comentario\n${line(ANA)}${line(BRUNO, ' <bruno.viejo@example.com>')}` +
     line(CARLA, ' Carla Vieja <carla.vieja@example.com>'),
-  leaks: ['zorzal', 'mirlo', 'garza', ...[ANA, BRUNO, CARLA].flatMap((p) => [p.name, p.email])],
+  // Lista de publicación (T-18), con un comentario y una línea vacía para comprobar la línea que se informa. Sus
+  // reglas coinciden con el árbol y el historial (1), el mensaje de v1 (2), un email (3) y el nombre de la ref v1 (4).
+  publishHit: '# lista inventada\n\ni:HOLA DE NUEVO\nc:version uno\ni:^bruno@\nc:^v1$\n',
+  publishClean: 'c:^NADA_UNO_QX$\ni:^nada_dos_qx$\n',
+  leaks: [
+    ...[
+      'zorzal',
+      'mirlo',
+      'garza',
+      'hola de nuevo',
+      'version uno',
+      'bruno@',
+      'nada_uno',
+      'nada_dos',
+    ],
+    ...[ANA, BRUNO, CARLA].flatMap((p) => [p.name, p.email]),
+  ],
 };
 
 // Casos: [qué se prueba, argumentos, código esperado, patrones de la salida]. D y C son la denylist sucia y la limpia
-// (sin --denylist se usa C), M y F el .mailmap parcial y el completo, y X uno que no existe. Antes del último caso,
-// check-clean deja un marcador en el árbol del repo temporal.
+// (sin --denylist se usa C), M y F el .mailmap parcial y el completo, P y Q la lista de publicación que coincide y la
+// que no, y X una ruta que no existe. Antes del último caso, check-clean deja un marcador en el árbol del repo temporal:
+// los casos nuevos van antes de él.
 export const SELF_CASES = [
   [
     'modo normal',
@@ -142,6 +159,32 @@ export const SELF_CASES = [
   ['--publish con todas mapeadas o de Claude', ['--publish', '--mailmap', 'F'], 0, [/listos/]],
   ['--publish sin --mailmap', ['--publish'], 1, [/falta --mailmap/, /titular/]],
   ['--publish con un --mailmap que no existe', ['--publish', '--mailmap', 'X'], 1, [/no existe/]],
+  [
+    '--publish-denylist que coincide (árbol, historial, ref, etiqueta e identidad)',
+    ['--publish', '--mailmap', 'F', '--publish-denylist', 'P'],
+    1,
+    [
+      /árbol · hola\.txt:1 · regla 1 \(línea 3 de la lista de publicación\)/,
+      /historial · commit \w+ · hola\.txt · regla 1 \(línea 3 de la lista de publicación\)/,
+      /etiqueta · v1 \(cabecera y mensaje\) · regla 2 \(línea 4 de la lista de publicación\)/,
+      /identidad · commit \w+ · committer \(email\) · regla 3 \(línea 5 de la lista de publicación\)/,
+      /ref · v1 \(nombre\) · regla 4 \(línea 6 de la lista de publicación\)/,
+      /problema\(s\) para publicar/,
+    ],
+  ],
+  [
+    '--publish-denylist que no coincide',
+    ['--publish', '--mailmap', 'F', '--publish-denylist', 'Q'],
+    0,
+    [/listos/, /0 coincidencias de la lista de publicación \(2 reglas aplicadas\)/],
+  ],
+  [
+    '--publish-denylist con una ruta que no existe',
+    ['--publish', '--mailmap', 'F', '--publish-denylist', 'X'],
+    1,
+    [/no existe la lista de publicación/, /Uso:/],
+  ],
+  ['--publish-denylist sin --publish', ['--publish-denylist', 'Q'], 1, [/junto con --publish/]],
   ['--publish con un marcador', ['--publish', '--mailmap', 'F'], 1, [/TITULAR · marca\.md:2/]],
 ];
 

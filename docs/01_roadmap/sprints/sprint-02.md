@@ -154,7 +154,7 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   como la denylist; no va a la denylist normal porque pondría en rojo el pre-commit y el historial de trabajo), y la
   verificación del paso 5 pasa `check-clean --publish --publish-denylist <ruta>` en verde. Depende de T-18.
 
-### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: pendiente (antes del 19/10)
+### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: hecha (2026-10-12)
 - **Tipo:** publicación (DP-01 de la auditoría del sprint-02; decisión de la persona responsable del 2026-10-09,
   «Sí, sustituir por un rol»). Fuera de paso-3: solo la necesita la publicación, así que no reabre este sprint.
 - `check-clean --publish` acepta `--publish-denylist <ruta>` (mismo formato que la denylist; la lista vive fuera del
