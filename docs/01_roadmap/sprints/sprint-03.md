@@ -30,8 +30,8 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 - [x] task-planner
 - [x] implementar-hu
 - [x] reviewer (Aprobado con observaciones)
-- [ ] merge a main
-- [ ] module-sync
+- [x] merge a main (a `vivo/C`, `0bd38ac`)
+- [x] module-sync (solo factual)
 
 ## Tareas sin HU
 _Ninguna._

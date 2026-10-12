@@ -3,8 +3,8 @@
 Vista única de qué hay hecho en cada módulo del ATS. La fila de cada módulo la actualiza `/module-sync` al cerrar cada
 HU; el detalle vive en `docs/05_modules/{módulo}/functional.md`.
 
-- **Última actualización:** 2026-10-07 (HU-06: cerrar una oferta rechaza sus inscripciones activas; `ofertas` e
-  `inscripciones` al 100 %).
+- **Última actualización:** 2026-10-12 (HU-07: importar candidatos desde un CSV; `candidatos` sigue al 100 % con 6
+  capacidades).
 
 ## Leyenda
 
@@ -19,7 +19,7 @@ HU; el detalle vive en `docs/05_modules/{módulo}/functional.md`.
 | Módulo | Estado | Capacidades ✅ / total | HU entregadas | Notas |
 |---|---|---|---|---|
 | `ofertas` | ✅ | 8 / 8 | HU-01, HU-02, HU-06 | 100 % MVP (8 ✅ / 0 🚧 / 0 ⬜). HU-06 completó UC-04 · A1: el cierre rechaza las inscripciones activas en su transacción por el puerto real y el diálogo anuncia el número real. HU-04 solo tocó el módulo: cerró SEC-02 (guarda de estado en el SQL), implementó el puerto «estado de la oferta» y añadió «Ver pipeline»; HU-05 añadió `getJobSummary` al puerto y «Ver pipeline» en una cerrada. [functional.md](05_modules/ofertas/functional.md) |
-| `candidatos` | ✅ | 5 / 5 | HU-03, HU-04 | 100 % MVP (5 ✅ / 0 🚧 / 0 ⬜). «Mientras dure el proceso» y el puerto de procesos real, desde HU-04; la retención se recalcula también al cerrar inscripciones (HU-05) y al cerrar una oferta (HU-06). Quedan para la feature A la anonimización y la marca de los candidatos con la retención vencida. [functional.md](05_modules/candidatos/functional.md) |
+| `candidatos` | ✅ | 6 / 6 | HU-03, HU-04, HU-07 | 100 % MVP (6 ✅ / 0 🚧 / 0 ⬜). HU-07 añadió la importación desde un CSV (UC-20: `POST /api/candidates/import`, pantalla `/candidates/import`, sin migración), con SEC-01 y DP-02 como deuda abierta. «Mientras dure el proceso» y el puerto de procesos real, desde HU-04; la retención se recalcula también al cerrar inscripciones (HU-05) y al cerrar una oferta (HU-06). Quedan para la feature A la anonimización y la marca de los candidatos con la retención vencida. [functional.md](05_modules/candidatos/functional.md) |
 | `inscripciones` | ✅ | 6 / 6 | HU-04, HU-05, HU-06 | 100 % MVP (6 ✅ / 0 🚧 / 0 ⬜). Hecho: inscribir (UC-14), avanzar y contratar (UC-15), rechazar (UC-16), el pipeline con sus acciones, también de una cerrada (UC-17), el historial (UC-18) y el rechazo al cerrar una oferta (UC-19), con INV-05 por construcción. Quedan para la feature A el anonimizado y las cuestiones de `docs/RGPD.md` §7. [functional.md](05_modules/inscripciones/functional.md) |
 
 ## Transversal

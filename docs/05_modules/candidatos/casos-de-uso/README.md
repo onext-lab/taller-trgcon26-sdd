@@ -11,4 +11,4 @@ citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso.
 | [UC-11](UC-11-buscar-candidatos.md) | Buscar candidatos | reclutador | implementado | FEAT-02 | HU-03 |
 | [UC-12](UC-12-ver-ficha.md) | Ver la ficha de un candidato | reclutador | implementado | FEAT-02 | HU-03, HU-04 |
 | [UC-13](UC-13-consentimiento.md) | Registrar, retirar o renovar el consentimiento para futuros procesos | reclutador | implementado | FEAT-02 | HU-03 |
-| [UC-20](UC-20-importar-candidatos-csv.md) | Importar candidatos desde un CSV | reclutador | aprobado | FEAT-04 | HU-07 |
+| [UC-20](UC-20-importar-candidatos-csv.md) | Importar candidatos desde un CSV | reclutador | implementado | FEAT-04 | HU-07 |

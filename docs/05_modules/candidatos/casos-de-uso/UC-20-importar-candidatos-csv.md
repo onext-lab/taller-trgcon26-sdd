@@ -3,7 +3,7 @@ id: UC-20
 titulo: "Importar candidatos desde un CSV"
 modulo: candidatos
 actor: reclutador
-estado: aprobado
+estado: implementado
 feature: FEAT-04
 hus: [HU-07]
 ---

@@ -1,6 +1,6 @@
 # Módulo `candidatos` (código `candidates`) — Funcional
 
-Estado de `main` sincronizado hasta **HU-06** (2026-10-07; HU-05 y HU-06 solo tocan quién llama al recálculo de la
+Estado de `main` sincronizado hasta **HU-07** (2026-10-12; HU-05 y HU-06 solo tocan quién llama al recálculo de la
 retención). Lo mantiene `/module-sync`; la foto técnica está en [technical.md](technical.md).
 
 ## Propósito
@@ -15,9 +15,9 @@ ofertas (FEAT-02, IDEA-002).
 
 El de FEAT-02: alta, edición (también del email), búsqueda y listado, ficha y consentimiento, en API y web; la fórmula
 de retención completa y su recálculo, con el puerto de lectura de los procesos del candidato; y 30 candidatos
-inventados en el seed. Fuera: el estado «anonimizado», la anonimización y la exclusión de anonimizados de las búsquedas
-(feature A), la exportación de la ficha por derecho de acceso, la importación CSV (feature C) y el borrado físico, que no
-existe.
+inventados en el seed. Desde HU-07 (FEAT-04), también la importación de candidatos desde un CSV. Fuera: el estado
+«anonimizado», la anonimización y la exclusión de anonimizados de las búsquedas (feature A), la exportación de la ficha
+por derecho de acceso y el borrado físico, que no existe.
 
 ## Actores
 
@@ -36,12 +36,14 @@ Una por caso de uso del [catálogo del módulo](casos-de-uso/README.md). El esta
 | Buscar candidatos | UC-11 | ✅ | HU-03 | Texto sin tildes ni mayúsculas en nombre o email y una skill exacta, en Y; solo nombre, email y skills; página de 20, 50 o 100; la búsqueda no va en la URL |
 | Ver la ficha de un candidato | UC-12 | ✅ | HU-03, HU-04 | Ficha con datos, consentimiento (vigente, retirado o nunca dado) y fin de retención en solo lectura; con una inscripción abierta muestra «Mientras dure el proceso», también si la fecha anterior ya había vencido |
 | Registrar, retirar o renovar el consentimiento | UC-13 | ✅ | HU-03 | Casilla que registra, «Renovar consentimiento» y retirada con confirmación; la retención se recalcula en la misma transacción, aunque el resultado ya esté vencido |
+| Importar candidatos desde un CSV | UC-20 | ✅ | HU-07 | «Importar CSV» desde el listado: fichero UTF-8 con cabecera `nombre,email,telefono` (≤ 500 filas y 1 MiB); entran las filas válidas, sin consentimiento y con la retención calculada (alta + 6 meses), en una sola transacción; el informe en pantalla da creados, duplicados (ya existentes o repetidos en el fichero) y filas con error con su motivo, sin repetir valores ni guardar el fichero |
 
 ## Alcance no implementado
 
 - **Feature A:** anonimización (a petición o al vencer la retención), estado «anonimizado» y su exclusión de las
   búsquedas; mientras tanto, los candidatos con la retención vencida siguen en el listado sin marca.
-- **Fuera de FEAT-02:** exportación de la ficha (RGPD §4), importación CSV y borrado físico.
+- **Fuera de FEAT-02 y FEAT-04:** exportación de la ficha (RGPD §4) y borrado físico. La importación no guarda el origen del
+  dato ni notifica a los candidatos importados (art. 14, fuera como supuesto didáctico).
 
 ## Reglas de negocio
 
@@ -72,6 +74,12 @@ Las de FEAT-02, con su estado real en `main`.
   defecto en `buildApp`) y llama al recálculo al inscribir, al pasar una inscripción a una etapa final y al rechazarla
   por el cierre de su oferta. El stub `noCandidateProcesses` solo queda para tests y el seed.
 - **RN-13** — no existe el borrado: `DELETE /api/candidates/:id` da 404.
+- **Importación (FEAT-04, RN-01 a RN-15 de [UC-20](casos-de-uso/UC-20-importar-candidatos-csv.md))** — cada fila se valida
+  como el alta y entran solo las válidas (importación parcial; 0 creados no es un error); un email que ya existe (sin
+  distinguir mayúsculas) es «duplicado» y no modifica al existente, y uno repetido en el fichero entra la primera vez; los
+  importados no llevan consentimiento y su retención es alta + 6 meses; el fichero y el informe solo viven en pantalla.
+  Las marcadas † en UC-20 (formato, cabecera, límites, parcial, sin consentimiento y sin origen) están aplicadas con la
+  recomendación y pendientes de ratificar (PA-01 a PA-05).
 
 INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en la base desde la migración 002 (ver
 [technical.md](technical.md)); INV-07 se cumple con una sola transacción para candidato, consentimiento y retención.
@@ -98,16 +106,21 @@ INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en
   inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames`.
 - Deuda DP-02 de HU-04 para la feature A: `recalculateRetention` lee la ficha con `SELECT *` (sin fuga; desde HU-06,
   dos lecturas por candidato en cada cierre de oferta; ver [technical.md](technical.md)).
+- Importación (review de HU-07, §9): ratificación por la persona responsable de PA-01 a PA-05 (si cambia alguna, se ajusta
+  lo afectado) y, sin decidir en `docs/RGPD.md`, la base jurídica del candidato importado sin inscripción ni consentimiento
+  y el art. 14; qué hacer al reimportar a alguien anonimizado cuando exista la feature A; y el `existingId` del duplicado,
+  mismo supuesto que el 409 del alta. Deuda técnica SEC-01 y DP-02 en [technical.md](technical.md).
 - El texto de cada versión del consentimiento se conserva en el repositorio (`apps/web/src/features/candidates/consent.ts` y
   su historial de git); cambiar el texto obliga a subir la versión (RGPD §2).
 
 ## Estado vivo del MVP
 
-- **% MVP:** 100 % — `round(5 / 5 · 100)`.
-- **Conteo:** 5 ✅ / 0 🚧 / 0 ⬜ (5 capacidades).
+- **% MVP:** 100 % — `round(6 / 6 · 100)`.
+- **Conteo:** 6 ✅ / 0 🚧 / 0 ⬜ (6 capacidades).
 - **Backlog:** ninguno propio del módulo; la anonimización y la marca de vencidos son de la feature A.
 
 | Fecha | HU | Qué entregó | % MVP |
 |---|---|---|---|
 | 2026-10-06 | HU-03 | Alta, edición, búsqueda, ficha y consentimiento (API, web, migración 002 y seed de 30), fórmula de retención y puerto de procesos con stub, y `details` acotado (DEC-11.4) | ~90 % |
 | 2026-10-07 | HU-04 | UC-12 · A1 «Mientras dure el proceso» de punta a punta: puerto de procesos real, recálculo al inscribir, lecturas `exists` y `findNames` para `inscripciones`, y seed con la retención recalculada | 100 % |
+| 2026-10-12 | HU-07 | UC-20: importación de candidatos desde un CSV (`POST /api/candidates/import`, pantalla `/candidates/import`, informe en pantalla; sin migración) | 100 % |

@@ -1,8 +1,9 @@
 # Módulo `candidatos` (código `candidates`) — Foto técnica
 
-Estado de `main` sincronizado hasta **HU-06** (2026-10-07; de HU-05 y HU-06, solo quién llama al recálculo). Lo mantiene
-`/module-sync`; la parte funcional y el % MVP están en [functional.md](functional.md). Decisiones que lo condicionan:
-DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a DEC-12 de
+Estado de `main` sincronizado hasta **HU-07** (2026-10-12; de HU-05 y HU-06, solo quién llama al recálculo; HU-07 añade
+la importación CSV, sin migración). Lo mantiene `/module-sync`; la parte funcional y el % MVP están en
+[functional.md](functional.md). Decisiones que lo condicionan: DEC-01, DEC-03, DEC-04, DEC-06 (aclarada en HU-04) a
+DEC-13 (ficheros subidos, HU-07; DEC-07, DEC-08 y DEC-11.4 con aclaración fechada 2026-10-12) de
 [DECISIONS.md](../../07_architecture_principles/DECISIONS.md) (con el punto 4 de DEC-11 enmendado en HU-03) y
 [RGPD.md](../../RGPD.md) §1 a §3 y §6.
 
@@ -17,18 +18,19 @@ fecha más tardía de la fórmula). No queda nada latente.
 
 | Capa | Ruta | Contenido |
 |---|---|---|
-| Rutas | `apps/api/src/modules/candidates/routes.ts` | Plugin `candidatesRoutes` (prefijo `/api/candidates`), JSON Schema por ruta, `preValidation` con `normalizeBody` (alta y edición), `trimSearchText` (`q` y `skill`) y `rejectBody` en las dos acciones de consentimiento, sin `try/catch` |
-| Servicio | `apps/api/src/modules/candidates/service.ts` | `createCandidatesService({ repository, now, transaction, processes })`: `list`, `create`, `get`, `update`, `giveConsent`, `withdrawConsent`, `recalculateRetention` y, para el puerto `CandidateLookupPort` de `applications`, `exists` y `findNames` |
+| Rutas | `apps/api/src/modules/candidates/routes.ts` | Plugin `candidatesRoutes` (prefijo `/api/candidates`), JSON Schema por ruta, `preValidation` con `normalizeBody` (alta y edición), `trimSearchText` (`q` y `skill`) y `rejectBody` en las dos acciones de consentimiento, sin `try/catch`; registra al final el plugin hijo `candidateImportRoutes` (hereda el prefijo y la guarda entre sitios) |
+| Importación (API) | `apps/api/src/modules/candidates/import-routes.ts` · `import.ts` · `import-file.ts` · `import-rows.ts` · `import-schemas.ts` · `csv.ts` | `candidateImportRoutes`: plugin **encapsulado** (sin `fastify-plugin`) con `text/csv` como único parser, `bodyLimit` 1 048 576 y `rowValidator` (el esquema del alta compilado por el Ajv de la app) · `importCandidates(deps, bytes, validateRow)`: lectura → clasificación → una transacción → informe · `readImportFile` y sus constantes (`MAX_IMPORT_BYTES`, `MAX_IMPORT_ROWS`, mensajes del fichero) · `classifyRows` y `RowValidator` · tipos del informe, `importRowSchema` e `importReportSchema` · parser CSV propio y puro (`decodeUtf8`, `parseCsv`) |
+| Servicio | `apps/api/src/modules/candidates/service.ts` | `createCandidatesService({ repository, now, transaction, processes })`: `list`, `create`, `get`, `update`, `giveConsent`, `withdrawConsent`, `importCsv` (HU-07, delega en `importCandidates`), `recalculateRetention` y, para el puerto `CandidateLookupPort` de `applications`, `exists` y `findNames` |
 | Retención | `apps/api/src/modules/candidates/retention.ts` | Fórmula pura, sin reloj ni SQL: `computeRetentionEndsAt`, `madridCalendarDate`, `addMonthsClamped` |
 | Puerto | `apps/api/src/modules/candidates/processes-port.ts` | `CandidateProcessesPort` (`getProcesses`), `CandidateProcesses` y el stub `noCandidateProcesses`, **solo para tests y para el seed de candidatos**; la implementación real es de `inscripciones` y se conecta en `app.ts` |
 | Normalización | `apps/api/src/modules/candidates/normalize.ts` | `normalizeCandidateBody(body)`: pura e idempotente; recorta, email en minúsculas, skills recortadas, en minúsculas, sin vacías y deduplicadas (antes de que el esquema cuente `maxItems`) |
-| Repositorio | `apps/api/src/modules/candidates/repository.ts` | `createCandidatesRepository(db)`: SQL preparado (`findById`, `existsById`, `findNamesByIds`, `findIdByEmail`, `insert`, `updateFields`, `setConsent`, `setRetention`, `listPage`, `count`, `isDuplicateEmailError`), `toCandidate(row)`; registra `fold_search` en su conexión. `existsById` (`SELECT 1`) y `findNamesByIds` (solo `id` y `full_name`, con `json_each(?)`) son las lecturas que `applications` usa por puerto |
+| Repositorio | `apps/api/src/modules/candidates/repository.ts` | `createCandidatesRepository(db)`: SQL preparado (`findById`, `existsById`, `findNamesByIds`, `findIdByEmail`, `insert`, `updateFields`, `setConsent`, `setRetention`, `listPage`, `count`, `isDuplicateEmailError`, `existingIdOnDuplicate`), `toCandidate(row)`; registra `fold_search` en su conexión. `existsById` (`SELECT 1`) y `findNamesByIds` (solo `id` y `full_name`, con `json_each(?)`) son las lecturas que `applications` usa por puerto |
 | Esquemas | `apps/api/src/modules/candidates/schemas.ts` | Tipos (`Candidate`, `CandidateListItem`, `CandidatePage`, `CandidateInput`, `CandidatePatch`, `CandidateListQuery`), `CONSENT_TEXT_VERSION = 'v1'`, `READ_ONLY` y JSON Schema (`candidateFieldsSchema`, `createCandidateBodySchema`, `updateCandidateBodySchema`, `listQuerySchema`, respuestas) |
 | Composición | `apps/api/src/app.ts` | `buildApp({ db, logger?, now?, jobApplications?, candidateProcesses?, jobStatus? })` crea el servicio con `processes = candidateProcesses ?? createCandidateProcessesReader(applicationsRepository)` (tipado como `CandidateProcessesPort`, que es lo que comprueba la asignación) y registra el plugin; `candidates` no importa `jobs` ni `applications` (DEC-06). Su servicio también alimenta el `CandidateLookupPort` y el `recalculateRetention` que usa `applications` |
 | Migración · seed | `apps/api/src/db/migrations/002-create-candidates.sql` · `apps/api/src/db/seed-candidates.ts` | Tabla `candidates` · 30 candidatos inventados; `seedCandidates(db, now)` devuelve sus IDs y `seed` los carga en la misma transacción que las ofertas, antes de `seedApplications` |
-| Web | `apps/web/src/features/candidates/` | `api.ts`, `types.ts`, `paths.ts`, `consent.ts`, `list-state.ts`, `candidate-form-model.ts`, `candidate-form-errors.ts`, `use-consent-actions.ts`, `use-consent-focus.ts` y las pantallas y componentes |
-| Tests API | `apps/api/test/candidates/` · `apps/api/test/helpers/candidates.ts` | `create`, `create-adversarial`, `get`, `update`, `update-adversarial`, `list`, `list-adversarial`, `consent`, `consent-adversarial`, `consent-version` (ata `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API), `retention`, `normalize`, `migration`, `seed`, `privacy-logs`, `performance` · `createProcessesStub` y `createCandidate` |
-| Tests web · e2e | `apps/web/test/features/candidates/` · `apps/web/test/components/` · `e2e/candidates.spec.ts`, `e2e/candidates-list.spec.ts` | Testing Library con `fetch` simulado (`apps/web/test/helpers/fetch.ts`, `dialog.ts`, `focus.ts`) · Playwright sobre `data/e2e.db` (10 recorridos) |
+| Web | `apps/web/src/features/candidates/` | `api.ts`, `types.ts`, `paths.ts`, `consent.ts`, `list-state.ts`, `candidate-form-model.ts`, `candidate-form-errors.ts`, `use-consent-actions.ts`, `use-consent-focus.ts` y las pantallas y componentes; la importación (HU-07): `CandidateImportScreen.tsx` (contenedor), `CandidateImportForm.tsx` y `CandidateImportReport.tsx` (presentacionales), `use-import-actions.ts` (estado de la pantalla) e `import-model.ts` (funciones puras y textos) |
+| Tests API | `apps/api/test/candidates/` · `apps/api/test/helpers/candidates.ts` | `create`, `create-adversarial`, `get`, `update`, `update-adversarial`, `list`, `list-adversarial`, `consent`, `consent-adversarial`, `consent-version` (ata `CONSENT_VERSION` de la web con `CONSENT_TEXT_VERSION` de la API), `retention`, `normalize`, `migration`, `seed`, `privacy-logs`, `performance`; de la importación: `csv`, `import-file`, `import-rows`, `import`, `import-contract`, `import-adversarial`, `import-failures-adversarial`, `import-privacy`, `import-privacy-disk` · `createProcessesStub`, `createCandidate` y, en `apps/api/test/helpers/csv.ts`, `csvBytes` e `importCsv` |
+| Tests web · e2e | `apps/web/test/features/candidates/` · `apps/web/test/components/` · `e2e/candidates.spec.ts`, `e2e/candidates-list.spec.ts`, `e2e/candidates-import.spec.ts` | Testing Library con `fetch` simulado (`apps/web/test/helpers/fetch.ts`, `dialog.ts`, `focus.ts`; la importación añade `import-fixtures.ts` y `apps/web/test/components/http.bytes.test.ts`) · Playwright sobre `data/e2e.db` (10 recorridos de candidatos y 2 de la importación, con CSV generados en memoria) |
 
 Piezas transversales que usa: `apps/api/src/http/` (`error-handler.ts`, `validation.ts`, `cross-site.ts`),
 `apps/api/src/errors.ts`, `apps/api/src/clock.ts`, `apps/api/src/db/transaction.ts`, `apps/api/src/db/text-search.ts` y,
@@ -80,6 +82,7 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
 | `PATCH /api/candidates/:id` | Al menos un campo de los cinco editables; ausente = sin cambios; `null` solo vacía `phone` y `summary` | 200 `Candidate` (también sin cambios); nunca toca retención ni consentimiento | 400 · 403 · 404 · 409 · 413 · 415 · 500 |
 | `POST /api/candidates/:id/consent` | Sin cuerpo | 200 `Candidate` con `consentGivenAt` = reloj, `consentVersion` = `v1`, retirada `null` y retención recalculada (registrar y renovar) | 400 (`body` o `id`) · 403 · 404 · 500 |
 | `POST /api/candidates/:id/consent/withdrawal` | Sin cuerpo | 200 `Candidate`: con consentimiento vigente, retirada = reloj y retención recalculada; sin él, la ficha **sin cambios** (sin `now()`, sin escribir) | 400 · 403 · 404 · 500 |
+| `POST /api/candidates/import` | Cuerpo **crudo** `text/csv` (los bytes del fichero, sin envoltorio; UTF-8, cabecera exacta `nombre,email,telefono`, ≤ 500 filas y ≤ 1 048 576 bytes) | 200 `ImportReport` `{ dataRows, created, duplicates, invalid, notImported[] }`, también con 0 creados; crea las filas válidas en una sola transacción, sin consentimiento y con la retención calculada | 400 (del fichero, `details: [{ field: 'file' }]`) · 403 · 413 · 415 · 500 |
 
 - `Candidate` lleva siempre los 11 campos; los opcionales sin valor salen `null`, nunca ausentes. Consentimiento
   **vigente** = `consentGivenAt !== null && consentWithdrawnAt === null`; retirado = ambos no nulos; nunca dado = ambos nulos.
@@ -93,12 +96,24 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
 - **409 `DUPLICATE`**: `message` fijo «Ya existe un candidato con este email.» y
   `details: [{ field: 'email', message, existingId: <id> }]`; nunca el email ni otro dato del existente. Lo emiten el
   alta y el `PATCH` (email de otro).
+- **Importación** (`POST /api/candidates/import`, DEC-13): la ruta vive en un plugin hijo encapsulado cuyo **único** parser
+  es `text/csv` en bruto (los parámetros del tipo, como `charset`, se ignoran: siempre UTF-8); JSON, `text/plain`,
+  `multipart`, `urlencoded` o ninguna cabecera dan 415, y fuera de esa ruta `text/csv` sigue dando 415. `bodyLimit` de
+  1 048 576 bytes (BOM incluido) con su propio texto del 413. Informe `ImportReport`: `dataRows = created + duplicates +
+  invalid`; `notImported[]` ordenado por `row` (línea física, cabecera = 1) con `reason` `invalid`, `duplicate`
+  (`existingId`) o `repeated` (`firstRow`); `duplicates` cuenta `duplicate` y `repeated`; nunca lista los creados ni repite
+  valores del fichero (`errors[]` = `{ field, message }`, `field` ∈ `nombre`, `email`, `telefono`, `fila`).
+  Importación parcial: entran las filas válidas y las demás van al informe; 0 creados es 200. Cada fila se valida con las
+  propiedades de `candidateFieldsSchema` (mismos mensajes que el alta); un email repetido dentro del fichero entra la
+  primera vez (mapa en memoria) y uno ya existente lo decide el índice único (`existingIdOnDuplicate`, sin `SELECT`
+  previo). Nada del fichero se guarda ni se registra.
 
 ## Pantallas y componentes
 
 | Ruta | Contenedor → presentacionales | `document.title` · notas |
 |---|---|---|
-| `/candidates` | `CandidateListScreen` → `CandidateFilters`, `CandidateTable`, `Pagination` | «Candidatos · ATS». Búsqueda en `list-state.ts`, no en la URL; paginación con botones; foco al h1 tras cambiar de página; cargando, vacío (con o sin filtros), error con «Reintentar» |
+| `/candidates` | `CandidateListScreen` → `CandidateFilters`, `CandidateTable`, `Pagination` | «Candidatos · ATS». Enlaces «Nuevo candidato» e «Importar CSV». Búsqueda en `list-state.ts`, no en la URL; paginación con botones; foco al h1 tras cambiar de página; cargando, vacío (con o sin filtros), error con «Reintentar» |
+| `/candidates/import` | `CandidateImportScreen` → `CandidateImportForm`, `CandidateImportReport` (+ `ErrorMessage` y `LoadingMessage` compartidos) | «Importar candidatos · ATS» (constante; el nombre del fichero no se pinta). Se llega por «Importar CSV» en el listado. Estados `ready` (sin o con fichero), `importing`, `error` (el fichero sigue elegido; foco al mensaje) e informe (foco al h2 «Resultado de la importación»); tabla «Filas no importadas» con una fila por error y «Ver candidato (se abre en una pestaña nueva)» por duplicado; «Importar otro fichero» e «Ir al listado» (sin filtros). Lee el fichero entero y comprueba `File.size` antes de enviar; no mira extensión ni tipo MIME |
 | `/candidates/new` · `/candidates/:id/edit` | `CandidateFormScreen` → `CandidateForm` | «Nuevo candidato · ATS» · «Editar candidato · ATS». Un formulario para alta y edición; el alta lleva la casilla de consentimiento; la edición envía solo lo cambiado (`toPatch`) y sin cambios no hace petición; 409 → error junto al email y enlace «Ver el candidato existente» por `existingId` |
 | `/candidates/:id` | `CandidateDetailScreen` → `CandidateDetails`, `ConsentSection` | «Ficha de candidato · ATS» (también cargando y con error); «Candidato no encontrado · ATS» si no existe. Sección de consentimiento con casilla, «Renovar consentimiento» y `ConfirmDialog` para retirar. Con `retentionEndsAt: null` (una inscripción abierta, desde HU-04) pinta «Fin de retención: Mientras dure el proceso» sin cambios de código (`CandidateDetails.tsx`; e2e en `e2e/applications.spec.ts`) |
 
@@ -119,8 +134,12 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
   `PageSizeSelect.tsx`, `form-errors.ts` (`splitValidationDetails`, `focusFirstError`), `use-document-title.ts`,
   `use-lifetime-signal.ts` y `parseRouteId` en `router.tsx`. HU-03 añadió además `formatCalendarDate` en `format.ts` y
   `existingId` en `ApiErrorDetail` de `http.ts` (solo si es un entero seguro > 0).
-- **Rutas:** `apps/web/src/App.tsx` resuelve las pantallas con la tabla `ROUTES` (`/candidates/new` antes de
-  `/candidates/:id`); el enlace «Candidatos» va tras «Ofertas».
+- **Importación (HU-07), piezas transversales:** `postBytes(path, bytes, { contentType, signal?, timeoutMs? })` en
+  `apps/web/src/components/http.ts` envía el `ArrayBuffer` del fichero tal cual, con el mismo tiempo de espera, `send` e
+  `interpret` que `requestJson`; `importCandidates(bytes, signal?)` de `api.ts` fija `text/csv` a mano (`File.type` puede
+  venir vacío) y valida la respuesta con `isImportReport`; `ErrorMessage` acepta `id` y `ref` para recibir el foco.
+- **Rutas:** `apps/web/src/App.tsx` resuelve las pantallas con la tabla `ROUTES` (`/candidates/new` y `/candidates/import`
+  antes de `/candidates/:id`); el enlace «Candidatos» va tras «Ofertas».
 
 ## Validación y errores
 
@@ -144,6 +163,16 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
 - Sin datos personales en logs ni errores: el logger no registra cuerpos y quita la query; ningún `message` ni `details`
   repite valores ni nombres de clave no declaradas; los 500 registran el objeto de error (los mensajes de SQLite de
   `CHECK` y `UNIQUE` llevan nombres de columna, no valores). Lo fija `apps/api/test/candidates/privacy-logs.test.ts`.
+
+- **Importación CSV (HU-07):** un solo error de fichero por petición, en este orden: guarda entre sitios (403) → parser
+  de la ruta (415 · 413) → cuerpo ausente (415) → codificación → formato CSV (comillas; añade «Revisa la línea N.») →
+  sin ninguna línea con contenido → cabecera exacta `nombre,email,telefono` (sin distinguir mayúsculas; con «;» da un mensaje
+  propio, DT-08) → solo cabecera → más de 500 filas (400). Los 400 llevan `message` y `details: [{ field: 'file', message }]`
+  con el mismo texto, y ninguno repite nada del fichero. Las líneas en blanco se ignoran; una celda vacía de `nombre` o
+  `email` equivale a campo ausente; un número de campos distinto del de la cabecera da `fila` / «Número de columnas
+  incorrecto.». Después, validación fila a fila (sin error HTTP) y la transacción (500 y `ROLLBACK` si falla la base o el
+  puerto de procesos; 0 creados). Transversal: `toValidationDetails` (antes `toDetails`) se exporta desde
+  `apps/api/src/http/error-handler.ts` y el 413 usa `config.payloadTooLargeMessage` de la ruta si la declara.
 
 ## Retención y puerto de procesos
 
@@ -187,8 +216,8 @@ columnas del elemento (sin `SELECT *`).
 - Capas `routes` → `service` → `repository`; el servicio lanza `AppError` y nunca construye respuestas (DEC-06).
 - Alta y edición normalizan en `preValidation` (`normalizeCandidateBody`), no en el servicio: el esquema valida lo que se
   guardará y sigue siendo la única fuente del 400.
-- La unicidad del email la decide el índice: el servicio captura el `UNIQUE` (`isDuplicateEmailError`) y consulta
-  `findIdByEmail` en la misma transacción; no hay `SELECT` previo.
+- La unicidad del email la decide el índice: el servicio (y la importación) captura el `UNIQUE` con
+  `existingIdOnDuplicate` (`isDuplicateEmailError` + `findIdByEmail`) en la misma transacción; no hay `SELECT` previo.
 - `UPDATE` con lista fija de 5 columnas (`full_name`, `email`, `phone`, `summary`, `skills`); la retención y el
   consentimiento solo cambian por sus propias rutas.
 - El listado devuelve solo los 4 campos de `CandidateListItem`; la ficha completa solo sale en `GET /:id` y en las
@@ -224,7 +253,7 @@ columnas del elemento (sin `SELECT *`).
 
 ## Deuda técnica
 
-Observaciones aceptadas de las reviews de HU-03 (§9) y HU-04 (§9). Las filas cerradas se quitan en el siguiente sync.
+Observaciones aceptadas de las reviews de HU-03 (§9), HU-04 (§9) y HU-07 (§9). Las filas cerradas se quitan en el siguiente sync.
 
 | Deuda | Estado | Origen |
 |---|---|---|
@@ -240,6 +269,8 @@ Observaciones aceptadas de las reviews de HU-03 (§9) y HU-04 (§9). Las filas c
 | `CandidateProcessesPort` sin implementación real | **Cerrada** en HU-04 (lector de `applications` por defecto en `buildApp`; recálculo al inscribir) | Review HU-03 §9, avisos |
 | `recalculateRetention` lee la ficha con `SELECT *` (`findById` de `apps/api/src/modules/candidates/repository.ts`) solo para usar fechas y consentimiento; el retorno se descarta (sin fuga). Desde HU-06, dos lecturas por candidato en cada cierre de oferta (400 con 200 activas; el cierre tarda 12-24 ms) | Abierta: leer solo las columnas necesarias cuando la feature A toque esa operación | DP-02 · HU-04 §9.3 · DP-01 de HU-05 y HU-06 |
 | Sin decidir en `docs/RGPD.md`, para la feature A: si un candidato con la retención vencida puede inscribirse o aparecer en el buscador (hoy sí, DT-06) y la marca de anonimizado en `exists` y `findNames` | Abierta | HU-04 §9.7 |
+| Sin salida anticipada en `parseCsv` al pasar de `maxKept`: sigue contando registros hasta el final del fichero; coste lineal acotado por el límite de 1 MiB (`apps/api/src/modules/candidates/csv.ts:38-46`) | Abierta (observación) | SEC-01 · HU-07 §9.1 |
+| El 500 registra el objeto de error entero (`apps/api/src/http/error-handler.ts:21`): hoy sin datos personales (lo comprueba `import-privacy.test.ts`), riesgo latente; registrar solo `code`, `message` y `errcode`, o un test con un error no SQLite en la importación | Abierta (observación) | DP-02 · HU-07 §9.2 |
 
 ## Requisitos no funcionales
 
@@ -252,4 +283,7 @@ Observaciones aceptadas de las reviews de HU-03 (§9) y HU-04 (§9). Las filas c
 | `details` acotado | ≤ 1 elemento por campo del esquema + 1; 1 000 claves desconocidas dan uno | `apps/api/test/http/error-details.test.ts` · `apps/api/test/candidates/create-adversarial.test.ts` |
 | HTML | Nombre, resumen y skills siempre como texto | `apps/web/test/features/candidates/CandidateDetailScreen.adversarial.test.tsx` |
 | Navegador | Sin nombre, email ni `q` en `document.title` ni en la URL | `apps/web/test/features/candidates/CandidateListScreen.adversarial.test.tsx` · `e2e/candidates-list.spec.ts` |
+| Importación: rendimiento | 500 filas válidas y nuevas < 500 ms con 1 000 candidatos (`inject`, local; 55 ms medidos) | `apps/api/test/candidates/performance.test.ts` |
+| Importación: privacidad | 0 valores del fichero en logs, errores ni informe; 0 ficheros nuevos en el directorio temporal ni en `data/`; informe solo con claves del esquema y el ID de los existentes | `apps/api/test/candidates/import-privacy.test.ts` · `import-privacy-disk.test.ts` |
+| Importación: límites | 500 y 500 + 30 en blanco pasan, 501 y 1 MiB + 1 byte se rechazan con 0 creados | `apps/api/test/candidates/import-adversarial.test.ts` · `import-file.test.ts` |
 | Accesibilidad | Controles con `<label>`; estados con `role="status"` / `"alert"`; diálogo con foco atrapado | Tests de `apps/web/test/features/candidates/` · `e2e/candidates.spec.ts` |
