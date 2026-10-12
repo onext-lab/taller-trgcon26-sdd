@@ -29,7 +29,7 @@ de referencia de la feature en vivo C del taller, en la rama `vivo/C`, con las e
 - [x] tech-design
 - [x] task-planner
 - [x] implementar-hu
-- [ ] reviewer
+- [x] reviewer (Aprobado con observaciones)
 - [ ] merge a main
 - [ ] module-sync
 
