@@ -57,7 +57,7 @@ El repo se sigue saltando entre etiquetas git, una por fase:
 | `paso-0-kit` | El kit SDD y el esqueleto del monorepo (solo `/api/health`) |
 | `paso-1-discovery` | Ideas, features, casos de uso y HU del núcleo, con sus preguntas y respuestas; aún sin código de negocio |
 | `paso-2-sprint-01` | El sprint 01 entregado: 6 HU de PRD a código, con reviews, auditoría y cierre |
-| `paso-3-punto-de-partida` | Este README, el guion y `SETUP.md`: el punto de partida del taller |
+| `paso-3-punto-de-partida` | Este README y `SETUP.md`: el punto de partida del taller |
 | `vivo-A-1-feature`, `vivo-A-2-prd` | Feature en vivo A (supresión y retención RGPD): el shaping y el PRD de su primera HU; sin código |
 | `vivo-C-{1-feature,2-prd,3-tareas,4-hecho}` | Feature en vivo C (importación CSV), fase a fase y hasta el código integrado |
 
