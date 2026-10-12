@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: implementado
 feature: FEAT-04
-hus: [HU-05]
+hus: [HU-05, HU-07]
 ---
 
 # UC-16 — Rechazar una inscripción

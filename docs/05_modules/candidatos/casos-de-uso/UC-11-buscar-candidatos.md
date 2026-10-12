@@ -5,7 +5,7 @@ modulo: candidatos
 actor: reclutador
 estado: implementado
 feature: FEAT-04
-hus: [HU-03]
+hus: [HU-03, HU-07]
 ---
 
 # UC-11 — Buscar candidatos

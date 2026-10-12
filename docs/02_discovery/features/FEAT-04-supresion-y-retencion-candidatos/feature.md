@@ -1,7 +1,7 @@
 ---
 id: FEAT-04
 titulo: "Supresión y retención de los datos de candidatos"
-estado: shaping          # shaping | priorizada | en delivery | entregada
+estado: priorizada       # shaping | priorizada | en delivery | entregada
 prioridad: null          # alta | media | baja (la fija la persona)
 idea_origen: IDEA-004
 modulos_afectados: [candidatos, inscripciones]

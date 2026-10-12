@@ -5,7 +5,7 @@ modulo: candidatos
 actor: reclutador
 estado: implementado
 feature: FEAT-04
-hus: [HU-03]
+hus: [HU-03, HU-07]
 ---
 
 # UC-10 — Editar la ficha de un candidato

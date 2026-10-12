@@ -3,9 +3,9 @@ id: UC-21
 titulo: "Anonimizar a los candidatos con la retención vencida"
 modulo: candidatos
 actor: proceso programado
-estado: borrador
+estado: aprobado
 feature: FEAT-04
-hus: []
+hus: [HU-08]
 ---
 
 # UC-21 — Anonimizar a los candidatos con la retención vencida

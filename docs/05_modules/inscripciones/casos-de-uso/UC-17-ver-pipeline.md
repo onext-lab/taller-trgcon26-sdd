@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-04, HU-05]
+hus: [HU-04, HU-05, HU-07]
 ---
 
 # UC-17 — Ver el pipeline de una oferta

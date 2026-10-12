@@ -3,9 +3,9 @@ id: UC-20
 titulo: "Anonimizar a un candidato a petición"
 modulo: candidatos
 actor: reclutador
-estado: borrador
+estado: aprobado
 feature: FEAT-04
-hus: []
+hus: [HU-07]
 ---
 
 # UC-20 — Anonimizar a un candidato a petición

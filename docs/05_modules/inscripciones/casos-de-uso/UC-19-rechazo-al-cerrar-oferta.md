@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: implementado
 feature: FEAT-04
-hus: [HU-06]
+hus: [HU-06, HU-07]
 ---
 
 # UC-19 — Rechazar las inscripciones activas al cerrar una oferta

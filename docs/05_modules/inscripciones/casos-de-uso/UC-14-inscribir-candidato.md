@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: implementado
 feature: FEAT-04
-hus: [HU-04]
+hus: [HU-04, HU-07, HU-09]
 ---
 
 # UC-14 — Inscribir un candidato en una oferta
