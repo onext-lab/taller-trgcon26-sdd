@@ -159,10 +159,16 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     **204** · borrado.
   - `error.code` en `SCREAMING_SNAKE_CASE` (`VALIDATION_ERROR`, `NOT_FOUND`, `DUPLICATE`, `INVALID_TRANSITION`,
     `STAGE_MISMATCH`…); el PRD de cada HU fija los suyos.
+  - *Aclaración 2026-10-12 (HU-07 vivo/C):* una operación que procesa un lote y devuelve un informe (importar
+    candidatos desde un CSV, `POST /api/candidates/import`) responde **200** con el informe **también si crea 0
+    elementos**; lo que falla en cada elemento va en el informe, no como un 4xx de la petición. **201** sigue siendo
+    para crear un recurso que se devuelve. El motivo es DT-05 del PRD de HU-07: el informe puede crear de 0 a N
+    candidatos. La decisión no cambia.
 - **Alternativas.** 422 para validación de negocio (más códigos que explicar en la demo); 400 para todo (los tests no
   distinguen un duplicado de un dato inválido).
 - **Consecuencias.** Los criterios de aceptación de los PRD citan el código esperado, y cada uno tiene su test.
-- **Estado.** Aceptada (2026-10-06).
+- **Estado.** Aceptada (2026-10-06); aclarada en el diseño de HU-07 (200 con informe en las operaciones por lotes, sin
+  cambiar la decisión).
 
 ## DEC-08 · Concurrencia e idempotencia
 
@@ -177,10 +183,16 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
     RV-23 sobre RV-22).
   - **Unicidad** (email del candidato, pareja candidato-oferta): la garantiza un índice único en la base, no solo una
     comprobación previa; el choque se traduce a 409.
+  - *Aclaración 2026-10-12 (HU-07 vivo/C):* en una operación **por lotes** (importar candidatos desde un CSV), el
+    choque con el índice único es el resultado de **esa fila**: una fila «duplicado» del informe con `existingId`
+    (el ID del existente, nunca otro dato suyo), **nunca un 409 ni un 500**, y el lote sigue con las demás filas. La
+    unicidad la sigue garantizando el índice (`candidates_email_uq`), sin `SELECT` previo. El motivo es DT-05 del PRD
+    de HU-07. La decisión no cambia.
 - **Alternativas.** Versión optimista en todas las ediciones (más carga en formularios sin beneficio con un único
   usuario); bloqueos explícitos (innecesarios con `node:sqlite` síncrono).
 - **Consecuencias.** Los edge cases de concurrencia e idempotencia de los PRD se prueban contra estas reglas.
-- **Estado.** Aceptada (2026-10-06).
+- **Estado.** Aceptada (2026-10-06); aclarada en el diseño de HU-07 (el choque del índice en un lote es una fila
+  «duplicado», sin cambiar la decisión).
 
 ## DEC-09 · Fechas, zona horaria y reloj
 
@@ -230,6 +242,11 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
      Los campos de solo lectura que la API nombra (`id`, fechas, estado, `retentionEndsAt`…) se declaran en el
      esquema con el esquema `false` y salen con su nombre y «Campo no permitido.». En un 409 `DUPLICATE`, el elemento
      lleva además `existingId` con el ID del existente (DEC-07).
+     - *Aclaración 2026-10-12 (HU-07 vivo/C):* los errores de un **fichero entero** (codificación, formato CSV,
+       cabecera, sin filas, más filas de las permitidas) llevan un **único** `details: [{ field: 'file', message }]`,
+       con el mismo texto que `message` y sin ningún contenido del fichero (la línea, si aplica, va en el texto, sin
+       claves nuevas). Las filas del informe de importación reutilizan los mensajes del esquema del alta. El motivo
+       es DT-05 del PRD de HU-07. El punto no cambia.
   5. Códigos adicionales a los de DEC-07: `INTERNAL_ERROR` (500), `PAYLOAD_TOO_LARGE` (413),
      `UNSUPPORTED_MEDIA_TYPE` (415) y `BAD_REQUEST` (otros 4xx). Todos en el envelope de DEC-01, sin *stack traces*.
   6. Reloj `Clock = () => Date` inyectado en `buildApp({ now })` (concreta DEC-09).
@@ -247,7 +264,8 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   utilidades de test. Cada HU con esquema estricto tiene un test de «campo desconocido → 400» y otro de «número como
   texto → 400».
 - **Estado.** Aceptada (2026-10-06), en el diseño de HU-01; punto 8 añadido en la review de HU-01 (ronda 1);
-  punto 4 enmendado en el diseño de HU-03.
+  punto 4 enmendado en el diseño de HU-03; punto 4 aclarado en el diseño de HU-07 (`details` de los errores de un
+  fichero entero).
 
 ## DEC-12 · Escrituras desde otro sitio: 403 por `Sec-Fetch-Site`
 
@@ -277,3 +295,37 @@ Formato: **Contexto · Decisión · Alternativas · Consecuencias · Estado**.
   antiguo sin `Sec-Fetch-Site` no estaría protegido; se acepta para un taller local.
 - **Estado.** Aceptada (2026-10-06), en el diseño de HU-02 (OD-01); enmendada en la review de HU-02 (ronda 1): lista de
   métodos seguros, `same-site` rechazado y código `CROSS_SITE_REQUEST` nombrado.
+
+## DEC-13 · Ficheros subidos: cuerpo crudo con su tipo de medio, sin multipart
+
+- **Contexto.** HU-07 importa candidatos desde un CSV de hasta 1 MiB, medido sobre los bytes del fichero, BOM incluido
+  (DT-06 de su PRD). La API solo acepta JSON y `text/plain`, y responde 415 a `multipart/form-data` y
+  `application/x-www-form-urlencoded` (DEC-11.5, DEC-12). Su `bodyLimit` es el de Fastify, 1 048 576 bytes **para todo
+  el cuerpo**: con cualquier envoltorio (JSON escapado o en base64, *boundaries* de multipart), un fichero de 1 MiB
+  exacto daría 413 antes de validarse.
+- **Decisión.** Una ruta que recibe un fichero lo acepta como **cuerpo crudo**, sin envoltorio, con su tipo de medio
+  (`text/csv` en `POST /api/candidates/import`):
+  - La ruta vive en un **plugin encapsulado** (registrado con `app.register`, sin `fastify-plugin`) que quita los
+    parsers heredados (`removeAllContentTypeParsers()`) y registra solo el suyo con `parseAs: 'buffer'`. En esa ruta,
+    JSON, `text/plain`, `multipart/form-data`, `x-www-form-urlencoded` y la petición sin cuerpo dan 415; el resto de
+    la API no cambia (`text/csv` en cualquier otra ruta sigue dando 415).
+  - El **`bodyLimit` de la ruta es el límite del fichero**: como el cuerpo es el fichero, mide exactamente sus bytes.
+    Comprobado con una sonda en Fastify 5.12.5 en el diseño de HU-07: con `bodyLimit: 1_048_576`, un cuerpo de
+    1 048 576 bytes pasa y uno de 1 048 577 da 413; con 50 MiB, el 413 sale por `Content-Length` sin leer el cuerpo.
+  - El texto del 413 de la ruta va en `config.payloadTooLargeMessage`, y el **manejador único** de errores
+    (`apps/api/src/http/error-handler.ts`) lo usa en lugar del genérico; sin esa clave, el 413 no cambia.
+  - Nada se escribe a disco: el fichero vive en memoria durante la petición (`docs/RGPD.md` §6.5).
+  - **Refuerza DEC-12:** `text/csv` no es un tipo «simple» de CORS, así que un `fetch` desde otro origen exige
+    *preflight* (la API no responde cabeceras CORS y el navegador lo bloquea), y **ningún formulario HTML** puede
+    enviarlo (solo envían `urlencoded`, `multipart` y `text/plain`, que dan 415 en la ruta). El 403
+    `CROSS_SITE_REQUEST` por `Sec-Fetch-Site` sigue aplicándose antes de leer el cuerpo.
+- **Alternativas.** `@fastify/multipart` (dependencia nueva, DEC-05; el límite se aplicaría a la parte o al cuerpo con
+  *boundaries*, no a los bytes del fichero; puede escribir a disco; abre la puerta a formularios entre sitios); JSON
+  con el contenido como texto o en base64 (escape o +33 % de tamaño y obligaría a subir el límite global); `text/plain`
+  (tipo «simple» sin *preflight* y con un parser global que ya da 400).
+- **Consecuencias.** La web envía `body: file` con `Content-Type` fijado a mano (el `type` de un `File` puede venir vacío
+  o como `application/vnd.ms-excel`) y no reutiliza `requestJson` tal cual. Se pierden el nombre y los metadatos del
+  fichero (no se quieren). Cada ruta de fichero tiene tests del límite exacto (límite y límite + 1), del 415 con otros
+  tipos y de que su tipo de medio sigue dando 415 fuera de ella. `multipart` y `urlencoded` siguen en 415 en toda la
+  API (DEC-11.5 no cambia).
+- **Estado.** Aceptada (2026-10-12), en el diseño de HU-07 (DD-01 y DD-02 de su TD-backend).
