@@ -19,13 +19,13 @@ responsable del 2026-10-09): no se implementa; HU-08 y HU-09 quedan en el backlo
 
 ## Resumen de estado
 - HU: hechas 0 / 1 · en curso 1 · bloqueadas 0 (HU-07, hasta el PRD)
-- Última actualización: 2026-10-12
+- Última actualización: 2026-10-13
 
 ## Historias de usuario
 
 ### HU-07 · Anonimizar a petición · estado: en curso
 - **Origen:** FEAT-04 · **Depende de:** nada · **Rama:** `hu/HU-07-anonimizar-a-peticion`
-- [ ] prd-writer
+- [x] prd-writer (Ready, 2026-10-13; OQ-01 a OQ-04 respondidas)
 - [ ] tech-design (fuera de la variante mínima)
 - [ ] task-planner (fuera de la variante mínima)
 - [ ] implementar-hu (fuera de la variante mínima)
@@ -57,3 +57,6 @@ _Ninguna._
   taller son las etiquetas `vivo-A-1-feature` y `vivo-A-2-prd`.
 - 2026-10-12 · **Pendiente de ratificar:** las 4 respuestas de producto de FEAT-04 (PA-01 a PA-04) llevan la
   recomendación aplicada; si la persona responsable cambia alguna, se ajustan la feature y el PRD en una sola vuelta.
+- 2026-10-13 · **Ratificadas:** PA-01 a PA-04 se ratificaron tal como estaban aplicadas. El PRD de HU-07 se escribió
+  parado en ellas (OQ-01 a OQ-04, `docs(HU-07): PRD draft, open questions`) y pasó a `Ready` con las respuestas
+  (DT-01 a DT-04); ahí va `vivo-A-2-prd`.

@@ -2,7 +2,7 @@
 id: HU-07
 feature: FEAT-04
 titulo: "Anonimizar a petición"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [candidatos, inscripciones]
 sprint: sprint-03        # sprint-NN
@@ -25,8 +25,8 @@ aplicación sobre un anonimizado y el candidato anonimizado del seed.
 **Variante mínima del taller** (decisión de la persona responsable del 2026-10-09): la solución de referencia de la
 feature en vivo A llega hasta el PRD de esta HU, sin implementar.
 
-Cuatro respuestas de producto están **pendientes de ratificar** (FEAT-04, PA-01 a PA-04); el contenido aplica la
-recomendación. Para esta HU importan PA-01 (anonimizar con inscripciones abiertas, rechazándolas) y PA-04 (se
+Cuatro respuestas de producto (FEAT-04, PA-01 a PA-04) se ratificaron el 2026-10-13 tal como las recomendaba el
+shaping; el PRD las recoge como DT-01 a DT-04. Para esta HU importan PA-01 (anonimizar con inscripciones abiertas, rechazándolas) y PA-04 (se
 conservan las fechas del consentimiento y del alta).
 
 ## Casos de uso
@@ -70,7 +70,7 @@ No cubre: UC-21 (HU-08), UC-12 · A3, UC-13 · A4 y UC-14 · E7 (HU-09).
 - Datos personales: la revisa el agente `datos-personales-auditor` en `/reviewer`.
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
 - [ ] Diseño técnico (`plans/TECHNICAL_DOC.md`) — `/tech-design`
 - [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [ ] Implementación + integración — `/implementar-hu`

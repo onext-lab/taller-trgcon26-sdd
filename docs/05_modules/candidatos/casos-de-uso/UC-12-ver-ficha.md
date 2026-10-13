@@ -69,9 +69,9 @@ Lee todos los datos del candidato (RGPD §1). La ficha completa solo se muestra 
 |---|---|---|---|
 | P | HU-03 | CA-22 | `apps/api/test/candidates/get.test.ts:41`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:101`, `e2e/candidates.spec.ts:213` |
 | A1 | HU-04 | CA-19, CA-20 | `e2e/applications.spec.ts:31`, `apps/api/test/applications/ports.test.ts:92` |
-| A2 | — (FEAT-04 · pendiente) | | pendiente |
+| A2 | HU-07 | CA-14 | pendiente |
 | A3 | — (FEAT-04 · pendiente) | | pendiente |
-| A4 | — (FEAT-04 · pendiente) | | pendiente |
+| A4 | HU-07 | CA-02 | pendiente |
 | E1 | HU-03 | CA-23 | `apps/api/test/candidates/get.test.ts:140`, `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:195` |
 | E2 | HU-03 | CA-24 | `apps/web/test/features/candidates/CandidateDetailScreen.test.tsx:232` |
 

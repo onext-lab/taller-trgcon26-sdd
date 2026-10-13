@@ -49,7 +49,7 @@ filas ni romper las estadísticas de las ofertas (RGPD §4 y §5, RV-16).
   registrado (FEAT-04 RN-10, RGPD §5, S-01, DEC-08). Continúa en el paso 5.
 - **A2 — Con inscripciones activas** (en el paso 4): el candidato tiene inscripciones en etapa no final → en la misma
   transacción, cada una pasa a `rejected` con el motivo «retirada del candidato», sin nota y con un `StageChange` propio
-  con la fecha de la anonimización (FEAT-04 RN-08, RV-20, RV-21; **pendiente de ratificar**, FEAT-04 PA-01). Continúa
+  con la fecha de la anonimización (FEAT-04 RN-08, RV-20, RV-21; ratificada el 2026-10-13, FEAT-04 PA-01). Continúa
   con el resto del paso 4.
 - **A3 — Cancelar** (en el paso 3): el reclutador cancela el diálogo → no cambia nada y sigue en la ficha.
 
@@ -86,14 +86,14 @@ supresión (RGPD §5, minimización §1).
 ## Trazabilidad
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
-| P | | | |
-| A1 | | | |
-| A2 | | | |
-| A3 | | | |
-| E1 | | | |
-| E2 | | | |
-| E3 | | | |
-| E4 | | | |
-| E5 | | | |
+| P | HU-07 | CA-01, CA-02 | |
+| A1 | HU-07 | CA-03 | |
+| A2 | HU-07 | CA-04 | |
+| A3 | HU-07 | CA-05 | |
+| E1 | HU-07 | CA-06 | |
+| E2 | HU-07 | CA-07 | |
+| E3 | HU-07 | CA-08 | |
+| E4 | HU-07 | CA-09 | |
+| E5 | HU-07 | CA-10 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

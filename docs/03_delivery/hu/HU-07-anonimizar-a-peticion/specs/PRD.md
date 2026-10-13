@@ -5,7 +5,7 @@
 - **Scope:** fullstack
 - **Módulos:** `candidatos` (código `candidates`) e `inscripciones` (código `applications`)
 - **Fecha:** 2026-10-13
-- **Estado:** Draft (4 Open Questions de producto abiertas: OQ-01 a OQ-04)
+- **Estado:** Ready (0 Open Questions: OQ-01 a OQ-04 respondidas el 2026-10-13, DT-01 a DT-04)
 
 ## Contexto
 
@@ -95,8 +95,8 @@ propio.
 | ID | Descripción | Prioridad | Scope | Criterios de aceptación |
 |----|-------------|-----------|-------|-------------------------|
 | RF-01 | **Anonimizar a petición.** Una acción de la API sin cuerpo anonimiza a un candidato y responde 200 con su ficha (como el consentimiento, HU-03). En una sola transacción (DEC-06, FEAT-04 RN-20): comprueba que existe y que no está anonimizado (DEC-08); el nombre pasa a «Candidato anonimizado»; el email, a uno generado a partir del ID en el dominio reservado `anonimizado.invalid`, único por construcción y sin derivar del original; teléfono y resumen quedan vacíos y skills, una lista vacía (FEAT-04 RN-02, RN-03); y registra la fecha (reloj inyectado, DEC-09) y el motivo «petición», sin guardar los datos borrados ni quién lo pidió (RN-06). Repetirla sobre un anonimizado responde 200 sin cambios (RN-10). | Must | backend | - [ ] CA-01, CA-03, CA-06, CA-07, CA-08, CA-10 |
-| RF-02 | **Inscripciones y notas al anonimizar.** En la misma transacción de RF-01: cada inscripción del candidato en etapa no final pasa a `rejected` con el motivo `candidate_withdrew` («Retirada del candidato»), sin nota y con su `StageChange` fechado en la anonimización; se vacía la nota de todos sus rechazos anteriores; las inscripciones, sus etapas y el resto del historial se conservan (FEAT-04 RN-04, RN-08; INV-02, INV-03, INV-05; pendiente de OQ-01). | Must | backend | - [ ] CA-04, CA-08 |
-| RF-03 | **Lo que se conserva y el fin de retención.** Se conservan el ID, la fecha de alta y las fechas y la versión del consentimiento (FEAT-04 RN-05; pendiente de OQ-02). El fin de retención queda vacío y ningún recálculo posterior lo cambia (RN-07). | Must | backend | - [ ] CA-01, CA-17, CA-20 |
+| RF-02 | **Inscripciones y notas al anonimizar.** En la misma transacción de RF-01: cada inscripción del candidato en etapa no final pasa a `rejected` con el motivo `candidate_withdrew` («Retirada del candidato»), sin nota y con su `StageChange` fechado en la anonimización; se vacía la nota de todos sus rechazos anteriores; las inscripciones, sus etapas y el resto del historial se conservan (FEAT-04 RN-04, RN-08; INV-02, INV-03, INV-05; DT-01). | Must | backend | - [ ] CA-04, CA-08 |
+| RF-03 | **Lo que se conserva y el fin de retención.** Se conservan el ID, la fecha de alta y las fechas y la versión del consentimiento (FEAT-04 RN-05; DT-02). El fin de retención queda vacío y ningún recálculo posterior lo cambia (RN-07). | Must | backend | - [ ] CA-01, CA-17, CA-20 |
 | RF-04 | **Escrituras sobre un anonimizado y dominio reservado.** Editar la ficha, registrar o renovar el consentimiento, retirarlo e inscribir a un anonimizado responden 409 `CANDIDATE_ANONYMIZED` sin cambiar nada; el estado se comprueba dentro de la transacción de cada escritura (FEAT-04 RN-11, RN-20; DEC-07, DEC-08). El alta y la edición rechazan con 400 `VALIDATION_ERROR` en el campo `email` un email del dominio `anonimizado.invalid`, comparado tras normalizar (RN-03). Avanzar o rechazar una inscripción de un anonimizado sigue sus reglas actuales (todas están en etapa final) y no recalcula su retención. | Must | backend | - [ ] CA-11, CA-12, CA-15, CA-16, CA-17 |
 | RF-05 | **Lecturas con un anonimizado.** El listado y la búsqueda (también el buscador del panel de inscribir del pipeline) lo excluyen siempre, también del `total`, sin filtro para verlo (FEAT-04 RN-12; INV-09). La ficha, el pipeline y el detalle de una inscripción responden 200 y lo muestran como «Candidato anonimizado», nunca 404, 410 ni un error interno (RN-13). La ficha devuelve además la fecha y el motivo de la anonimización. | Must | fullstack | - [ ] CA-13, CA-14, CA-18, CA-19 |
 | RF-06 | **Pantalla.** En la ficha de un candidato no anonimizado, el botón «Anonimizar» abre el diálogo de confirmación (`ConfirmDialog`): avisa de que es irreversible y, si las hay, de cuántas inscripciones activas se rechazarán (FEAT-04 RN-09), con el número real leído de la API antes de abrirlo. Al confirmar, «Anonimizar» se deshabilita mientras se envía; con éxito, la ficha muestra «Candidato anonimizado», «Anonimizado el dd/mm/aaaa · a petición» y un mensaje de estado con `role="status"`; con error, un mensaje con `role="alert"` y se puede reintentar. La ficha de un anonimizado no ofrece «Editar», consentimiento ni «Anonimizar», y no muestra «Mientras dure el proceso». Ningún dato del candidato va a la URL, al título ni al almacenamiento del navegador (RNF-03 de HU-03). | Must | frontend | - [ ] CA-02, CA-05, CA-09, CA-14 |
@@ -115,7 +115,7 @@ propio.
 
 ## Modelo de datos
 - **`candidates`** (dueño `candidatos`): marca de anonimizado con la fecha (instante UTC, DEC-09) y el motivo
-  (`petición`; `vencimiento` llegará con HU-08, pendiente de OQ-03). Migración nueva (DEC-03); los candidatos
+  (`petición`, y `vencimiento`, que escribirá la pasada de HU-08; DT-03). Migración nueva (DEC-03); los candidatos
   existentes quedan sin marca. Los valores neutros caben en las restricciones actuales («Candidato anonimizado» tiene
   21 caracteres; el email generado, menos de 254). El nombre de las columnas y la forma de la guarda, en
   `/tech-design` (FEAT-04 Q21).
@@ -155,7 +155,7 @@ Las rutas exactas de la API las puede ajustar `/tech-design` sin cambiar código
 
 ## Datos personales
 - **Qué:** sustituye nombre y apellidos, email, teléfono, resumen y skills, y vacía las notas de rechazo (RGPD §1 y
-  §5). Conserva la fecha de alta y las fechas y la versión del consentimiento (FEAT-04 RN-05; pendiente de OQ-02).
+  §5). Conserva la fecha de alta y las fechas y la versión del consentimiento (FEAT-04 RN-05; DT-02).
   Registra solo la fecha y el motivo de la anonimización: ni los datos borrados ni quién o por qué canal la pidió
   (RN-06; minimización).
 - **Para qué:** atender el derecho de supresión (art. 17, RGPD §4) sin romper las estadísticas de las ofertas.
@@ -188,7 +188,7 @@ Las rutas exactas de la API las puede ajustar `/tech-design` sin cambiar código
 | EC-16 | RF-02 | 6 Seguridad | Nota con el nombre del candidato y HTML | Vacía tras anonimizar; no vuelve a aparecer en el detalle (INV-02) |
 | EC-17 | RF-02 | 7 Idempotencia | Repetir la anonimización | No crea más `StageChange` ni cambia fechas (DEC-08) |
 | EC-18 | RF-03 | 1 Input inválido | — | N/A — no recibe datos: conserva o vacía campos ya guardados |
-| EC-19 | RF-03 | 2 Boundary | Candidato sin consentimiento nunca; con consentimiento vigente; con consentimiento retirado | Las tres combinaciones de fechas y versión se conservan tal cual (pendiente de OQ-02) |
+| EC-19 | RF-03 | 2 Boundary | Candidato sin consentimiento nunca; con consentimiento vigente; con consentimiento retirado | Las tres combinaciones de fechas y versión se conservan tal cual (DT-02) |
 | EC-20 | RF-03 | 3 Fallo de dependencia | El puerto de procesos del candidato falla al recalcular | No se recalcula nada sobre un anonimizado: el fin de retención sigue vacío (RN-07) |
 | EC-21 | RF-03 | 4 Concurrencia | Renovar el consentimiento a la vez que se anonimiza | El que llega después de la anonimización recibe 409; la retención queda vacía |
 | EC-22 | RF-03 | 5 Datos corruptos | Un anonimizado al que un SQL manual le puso un fin de retención | La ficha de un anonimizado nunca muestra fin de retención ni «Mientras dure el proceso» |
@@ -246,21 +246,19 @@ Las rutas exactas de la API las puede ajustar `/tech-design` sin cambiar código
 - El mecanismo concreto contra los residuos y la forma de la guarda de estado (`/tech-design`).
 
 ## Open Questions
-OQ-01 a OQ-04 son las PA-01 a PA-04 de FEAT-04: el shaping las dejó con la recomendación aplicada y pendientes de la
-persona responsable. Este PRD las recoge como suyas porque cambian criterios de esta HU (OQ-01, OQ-02) o el
-vocabulario que comparte con HU-08 y HU-09 (OQ-03, OQ-04). **No pasa a diseño hasta que estén respondidas.**
-
-| ID | Pregunta | Contexto | Recomendación | Decisión | Estado |
-|----|----------|----------|---------------|----------|--------|
-| OQ-01 | [Producto · PA-01] ¿Se puede anonimizar a petición a un candidato con inscripciones abiertas? | FEAT-04 RN-08, INV-03, Q03; afecta a RF-02, CA-04, CA-10, CA-17, CA-20, EC-11 a EC-14. Si fuera «no», UC-20 tendría una excepción nueva (409) y el art. 17 quedaría bloqueado mientras dure un proceso | Sí: en la misma transacción se rechazan sus activas con «Retirada del candidato», sin nota. Así avanzar, rechazar y cerrar la oferta nunca encuentran activas de un anonimizado | PENDIENTE | Abierta |
-| OQ-02 | [Producto · PA-04] ¿Se conservan al anonimizar las fechas y la versión del consentimiento y la fecha de alta? | FEAT-04 RN-05, Q11; RGPD §7.9a; afecta a RF-03, CA-01, CA-14, EC-19. La alternativa es vaciarlas por minimización | Sí: sin nombre ni email no identifican a nadie y prueban el art. 7.1 | PENDIENTE | Abierta |
-| OQ-03 | [Producto · PA-02] ¿Quién lanza la anonimización por vencimiento? | FEAT-04 RN-15, Q01. No cambia ningún CA de esta HU, pero fija si el motivo «vencimiento» existe y, con él, el modelo de datos y lo que muestra la ficha (UC-12 · A2) | Un proceso de la API, al arrancar y una vez al día, sin botón. El motivo admite «petición» y «vencimiento» desde esta HU | PENDIENTE | Abierta |
-| OQ-04 | [Producto · PA-03] ¿Se puede inscribir a un candidato con la retención vencida aún no anonimizado? | FEAT-04 RN-18, Q22; RGPD §7.1. No cambia ningún CA de esta HU (es UC-14 · E7, de HU-09), pero decide si el 409 de inscribir tiene dos causas con códigos distintos | No: 409 «retención vencida» en HU-09, con un código propio distinto de `CANDIDATE_ANONYMIZED` | PENDIENTE | Abierta |
+No hay preguntas abiertas. OQ-01 a OQ-04 (las PA-01 a PA-04 de FEAT-04) se respondieron el 2026-10-13 tal como las
+recomendaba el shaping y están en «Decisiones tomadas» (DT-01 a DT-04).
 
 > Un PRD con Open Questions abiertas **no pasa** a diseño.
 
 ## Decisiones tomadas
-_Ninguna todavía._
+
+| ID | Decisión | Razón | Impacto en el PRD | Fecha |
+|----|----------|-------|-------------------|-------|
+| DT-01 | (OQ-01 · PA-01) ¿Se puede anonimizar a petición a un candidato con inscripciones abiertas? → Sí: en la misma transacción se rechazan sus activas con «Retirada del candidato» (`candidate_withdrew`), sin nota | Respuesta de producto ratificada el 2026-10-13 según la recomendación. No bloquea el art. 17 mientras dure un proceso, y avanzar, rechazar y cerrar la oferta nunca encuentran activas de un anonimizado (FEAT-04 Q03, INV-03) | RF-02, CA-04, CA-10, CA-17, CA-20 y EC-11 a EC-14 se quedan como están; UC-20 no tiene excepción por inscripciones abiertas | 2026-10-13 |
+| DT-02 | (OQ-02 · PA-04) ¿Se conservan las fechas y la versión del consentimiento y la fecha de alta? → Sí | Respuesta de producto ratificada el 2026-10-13 según la recomendación. Sin nombre ni email no identifican a nadie y prueban el art. 7.1 (FEAT-04 Q11, RGPD §2 y §7.9a) | RF-03, CA-01, CA-14 y EC-19 se quedan como están | 2026-10-13 |
+| DT-03 | (OQ-03 · PA-02) ¿Quién lanza la anonimización por vencimiento? → Un proceso de la API, al arrancar y una vez al día, sin botón | Respuesta de producto ratificada el 2026-10-13 según la recomendación. RGPD §3 dice «al vencer: anonimizar» y no puede depender de que el reclutador se acuerde (FEAT-04 Q01) | Ningún CA de esta HU cambia. El motivo de la anonimización admite «petición» y «vencimiento» desde esta HU (Modelo de datos), y la ficha sabe rotular los dos (UC-12 · A2); solo «petición» se escribe aquí | 2026-10-13 |
+| DT-04 | (OQ-04 · PA-03) ¿Se puede inscribir a un candidato con la retención vencida aún no anonimizado? → No: 409 «retención vencida» | Respuesta de producto ratificada el 2026-10-13 según la recomendación. Inscribirlo alargaría la conservación sin una base jurídica nueva (FEAT-04 Q22, RGPD §2 y §7.1) | Ningún CA de esta HU cambia. El 409 de inscribir tendrá dos causas: `CANDIDATE_ANONYMIZED` (esta HU, CA-16) y la de la retención vencida, con su propio código, en HU-09 (UC-14 · E7) | 2026-10-13 |
 
 ## Criterios de aceptación
 Reloj inyectado en 2026-10-13T09:00:00Z salvo que se diga otra cosa (DEC-09). Todos los datos son inventados.
@@ -295,8 +293,12 @@ Reloj inyectado en 2026-10-13T09:00:00Z salvo que se diga otra cosa (DEC-09). To
 - [ ] Cada flujo de UC cubierto tiene al menos un CA, y cada CA su test.
 - [ ] Cada edge case Must tiene su test.
 - [ ] Review aprobada.
-- [ ] 0 Open Questions.
+- [x] 0 Open Questions.
 
 ---
 _v1 (2026-10-13): borrador de `/prd-writer` con 4 Open Questions de producto (OQ-01 a OQ-04, las PA-01 a PA-04 de
 FEAT-04), con la recomendación del shaping aplicada y pendientes de respuesta. Estado: Draft._
+
+_v1.1 (2026-10-13): Ready, validado en el paso 8 de `/prd-writer`. OQ-01 a OQ-04 respondidas tal como las recomendaba el shaping (PA-01 a PA-04 de FEAT-04,
+ratificadas el 2026-10-13) y movidas a DT-01 a DT-04. Ningún RF, RNF ni CA cambia; DT-03 fija que el motivo admite
+«vencimiento» desde esta HU y DT-04, que el 409 de la retención vencida tendrá su propio código en HU-09._

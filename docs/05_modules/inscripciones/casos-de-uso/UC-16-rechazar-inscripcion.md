@@ -81,7 +81,7 @@ fecha de fin de retención (RGPD §3).
 |---|---|---|---|
 | P | HU-05 | CA-12, CA-13, CA-21 | `apps/api/test/applications/reject.test.ts:95`, `apps/web/test/features/applications/PipelineScreen.reject.test.tsx:60`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | A1 | HU-05 | CA-14 | `apps/api/test/applications/reject.test.ts:124` |
-| A2 | — (FEAT-04 · pendiente) | | pendiente |
+| A2 | HU-07 | CA-17 | pendiente |
 | E1 | HU-05 | CA-15 | `apps/api/test/applications/reject.test.ts:195` |
 | E2 | HU-05 | CA-16, CA-21 | `apps/api/test/applications/reject-note.test.ts:57`, `apps/api/test/applications/stage-change-privacy.test.ts:83` |
 | E3 | HU-05 | CA-17 | `apps/api/test/applications/reject.test.ts:207` |

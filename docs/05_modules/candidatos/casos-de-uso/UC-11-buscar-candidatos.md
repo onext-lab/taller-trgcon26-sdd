@@ -70,7 +70,7 @@ se registra en los logs (RGPD §6).
 | A2 | HU-03 | CA-17 | `apps/api/test/candidates/list.test.ts:62`, `e2e/candidates-list.spec.ts:48` |
 | A3 | HU-03 | CA-18 | `apps/api/test/candidates/list.test.ts:79`, `apps/web/test/features/candidates/CandidateListScreen.test.tsx:111` |
 | A4 | HU-03 | CA-19 | `apps/api/test/candidates/list.test.ts:112`, `e2e/candidates-list.spec.ts:67` |
-| A5 | — (FEAT-04 · pendiente) | | pendiente |
+| A5 | HU-07 | CA-13 | pendiente |
 | E1 | HU-03 | CA-20, CA-32 | `apps/api/test/candidates/list-adversarial.test.ts:52`, `apps/web/test/features/candidates/CandidateListScreen.adversarial.test.tsx:49` |
 | E2 | HU-03 | CA-21 | `apps/web/test/features/candidates/CandidateListScreen.test.tsx:126`, `e2e/candidates-list.spec.ts:113` |
 

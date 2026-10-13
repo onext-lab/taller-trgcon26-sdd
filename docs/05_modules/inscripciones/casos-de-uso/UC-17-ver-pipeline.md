@@ -68,7 +68,7 @@ un valor de lista cerrada, no texto libre.
 | P | HU-04, HU-05 | CA-12, CA-13 (HU-04); CA-22 (HU-05) | `apps/api/test/applications/pipeline.test.ts:60`, `apps/web/test/features/applications/PipelineScreen.test.tsx:40`; CA-22: `apps/web/test/features/applications/PipelineScreen.links.test.tsx:60`, `apps/web/test/features/applications/PipelineScreen.advance.test.tsx:64` |
 | A1 | HU-05 | CA-23 | `apps/web/test/features/applications/PipelineScreen.links.test.tsx:99`, `e2e/pipeline-closed.spec.ts:31` |
 | A2 | HU-04 | CA-14 | `apps/api/test/applications/pipeline.test.ts:137`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:41` |
-| A3 | — (FEAT-04 · pendiente) | | pendiente |
+| A3 | HU-07 | CA-18 | pendiente |
 | E1 | HU-04 | CA-15 | `apps/api/test/applications/pipeline.test.ts:146`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:87` |
 | E2 | HU-04 | CA-16 | `apps/web/test/features/applications/PipelineScreen.states.test.tsx:105` |
 

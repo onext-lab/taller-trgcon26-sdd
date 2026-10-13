@@ -59,7 +59,7 @@ _Ninguno._
   ([UC-11](../../candidatos/casos-de-uso/UC-11-buscar-candidatos.md) · A5).
 - **E7 — Retención vencida sin anonimizar** (FEAT-04 · pendiente) (en el paso 2): el candidato no está anonimizado y su fecha de fin es igual
   o anterior a hoy en Europe/Madrid → 409 con un mensaje que lo explica; no se crea nada ni se recalcula la retención.
-  Se podrá inscribir tras registrar un consentimiento nuevo (FEAT-04 RN-18 y RN-19; **pendiente de ratificar**,
+  Se podrá inscribir tras registrar un consentimiento nuevo (FEAT-04 RN-18 y RN-19; ratificada el 2026-10-13,
   FEAT-04 PA-03).
 
 ## Reglas de negocio
@@ -87,7 +87,7 @@ más datos de los necesarios (RGPD §6).
 | E3 | HU-04 | CA-09 | `apps/api/test/applications/enroll.test.ts:174` |
 | E4 | HU-04 | CA-10 | `apps/api/test/applications/enroll-adversarial.test.ts:90` |
 | E5 | HU-04 | CA-11 | `apps/api/test/applications/enroll-failures-adversarial.test.ts:86` |
-| E6 | — (FEAT-04 · pendiente) | | pendiente |
+| E6 | HU-07 | CA-16 | pendiente |
 | E7 | — (FEAT-04 · pendiente) | | pendiente |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -81,6 +81,6 @@ retirada es el ejercicio del art. 7.3 (RGPD §4).
 | A4 | — (FEAT-04 · pendiente) | | pendiente |
 | E1 | HU-03 | CA-29 | `apps/api/test/candidates/consent-adversarial.test.ts:135` |
 | E2 | HU-03 | CA-30 | `apps/api/test/candidates/consent-adversarial.test.ts:149`, `apps/web/test/features/candidates/CandidateDetailScreen.adversarial.test.tsx:162` |
-| E3 | — (FEAT-04 · pendiente) | | pendiente |
+| E3 | HU-07 | CA-15 | pendiente |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

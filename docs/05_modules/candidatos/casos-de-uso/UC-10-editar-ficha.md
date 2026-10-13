@@ -76,7 +76,7 @@ Lee y escribe nombre y apellidos, email, teléfono, resumen y skills (RGPD §1).
 | E2 | HU-03 | CA-12 | `apps/api/test/candidates/update.test.ts:161`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:175` |
 | E3 | HU-03 | CA-13 | `apps/api/test/candidates/update.test.ts:176`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:226` |
 | E4 | HU-03 | CA-14 | `apps/api/test/candidates/update-adversarial.test.ts:107`, `apps/web/test/features/candidates/CandidateFormScreen.edit.test.tsx:244` |
-| E5 | — (FEAT-04 · pendiente) | | pendiente |
-| E6 | — (FEAT-04 · pendiente) | | pendiente |
+| E5 | HU-07 | CA-12 | pendiente |
+| E6 | HU-07 | CA-11 | pendiente |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

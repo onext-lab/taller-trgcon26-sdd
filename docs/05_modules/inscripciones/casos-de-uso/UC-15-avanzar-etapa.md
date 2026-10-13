@@ -90,6 +90,6 @@ de fin de retención del candidato (RGPD §3).
 | E4 | HU-05 | CA-09 | `apps/api/test/applications/stage-change-adversarial.test.ts:108` |
 | E5 | HU-05 | CA-10 | `apps/api/test/applications/advance.test.ts:250` |
 | E6 | HU-05 | CA-11 | `apps/api/test/applications/stage-change-failures-adversarial.test.ts:112` |
-| E7 | — (FEAT-04 · pendiente) | | pendiente |
+| E7 | HU-07 | CA-17 | pendiente |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

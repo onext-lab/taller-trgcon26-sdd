@@ -18,8 +18,8 @@ Fuentes: la idea `IDEA-004`; las reglas validadas `RV-NN` y las respuestas `S-NN
 `docs/02_discovery/reglas-validadas.md`; `DEC-NN` de `docs/07_architecture_principles/DECISIONS.md`; `docs/RGPD.md`
 (sobre todo §3, §4, §5 y las 9 cuestiones de §7); los principios de `docs/06_design_principles/README.md`; y las
 respuestas del shaping de la tabla [Respuestas del shaping](#respuestas-del-shaping) (`Q01`..`Q33`), dadas por el
-**responsable técnico el 2026-10-12**. Cuatro de ellas (Q01, Q03, Q11 y Q22) llevan la recomendación ya aplicada pero
-están **PENDIENTES DE RATIFICAR por la persona responsable** (PA-01..PA-04).
+**responsable técnico el 2026-10-12**. Cuatro de ellas (Q01, Q03, Q11 y Q22) llevaban la recomendación aplicada a la
+espera de la persona responsable (PA-01..PA-04) y se **ratificaron el 2026-10-13** tal como estaban.
 
 ## Qué
 El reclutador anonimiza a un candidato cuando este pide la supresión de sus datos, y el sistema anonimiza solo a los
@@ -59,7 +59,7 @@ auditoría del sprint-01.
 - **Reclutador:** único rol de la aplicación, sin login _(DEC-04)_. Registra la petición de supresión declarando que
   el candidato la hizo, igual que el consentimiento _(Q02; RV-11)_. Dispara UC-20 y los UC modificados.
 - **Proceso programado de la API:** actor nuevo; lanza la pasada de UC-21 al arrancar la API y una vez al día mientras
-  siga en marcha _(Q01; **PENDIENTE DE RATIFICAR**, PA-02)_.
+  siga en marcha _(Q01; ratificada el 2026-10-13, PA-02)_.
 - **Candidato:** interesado cuyos datos se tratan; no usa la aplicación _(DEC-04, RGPD §2)_.
 
 ## Casos de uso
@@ -99,7 +99,7 @@ Las `RN-NN` de esta feature se citan en los UC como «FEAT-04 RN-NN», para no c
   vacía la nota de todos sus rechazos, sea la anonimización a petición o por vencimiento _(RGPD §5 y §7.3; UC-16,
   «Datos personales»; Q08)_.
 - **RN-05:** al anonimizar, se conservan las fechas y la versión del consentimiento (otorgamiento, versión y retirada)
-  y la fecha de alta, como prueba del art. 7.1 _(RGPD §2 y §7.9a; Q11; **PENDIENTE DE RATIFICAR**, PA-04)_.
+  y la fecha de alta, como prueba del art. 7.1 _(RGPD §2 y §7.9a; Q11; ratificada el 2026-10-13, PA-04)_.
 - **RN-06:** al anonimizar, se registran la fecha y el motivo («petición» o «vencimiento»), sin guardar los datos
   borrados ni quién o por qué canal pidió la supresión _(RGPD §5; Q07)_.
 - **RN-07:** al anonimizar, el fin de retención queda vacío y ningún recálculo posterior lo cambia; la ficha de un
@@ -108,7 +108,7 @@ Las `RN-NN` de esta feature se citan en los UC como «FEAT-04 RN-NN», para no c
 **Anonimizar a petición**
 - **RN-08:** si el candidato tiene inscripciones en etapa no final, entonces, en la misma transacción de la
   anonimización, cada una pasa a `rejected` con el motivo «retirada del candidato», sin nota y con su `StageChange`
-  _(RV-20, RV-21, S-15; Q03; **PENDIENTE DE RATIFICAR**, PA-01)_.
+  _(RV-20, RV-21, S-15; Q03; ratificada el 2026-10-13, PA-01)_.
 - **RN-09:** antes de anonimizar, la web pide confirmación con un aviso de que es irreversible y, si las hay, el número
   de inscripciones activas que se rechazarán _(patrón de S-10; IDEA-004, notas; Q04)_.
 - **RN-10:** anonimizar a un candidato ya anonimizado devuelve 200 sin cambios _(RGPD §5, S-01, DEC-08; Q19)_.
@@ -126,7 +126,7 @@ Las `RN-NN` de esta feature se citan en los UC como «FEAT-04 RN-NN», para no c
 - **RN-14:** un candidato vence el mismo día de su fecha de fin de retención, por día natural de Europe/Madrid; la
   pasada anonimiza a los no anonimizados con la fecha igual o anterior a hoy _(RGPD §3, RV-25, DEC-09; Q26)_.
 - **RN-15:** la pasada la lanza la propia API al arrancar y una vez al día mientras siga en marcha, sin intervención
-  del reclutador _(Q01; **PENDIENTE DE RATIFICAR**, PA-02)_.
+  del reclutador _(Q01; ratificada el 2026-10-13, PA-02)_.
 - **RN-16:** la pasada anonimiza a cada candidato en su propia transacción; si uno falla, queda como estaba, la pasada
   sigue y se reintenta en la siguiente; los logs no llevan datos personales _(RGPD §6.1; Q27)_.
 - **RN-17:** si un candidato tiene la fecha vencida y alguna inscripción no final (dato legacy que la fórmula no
@@ -134,7 +134,7 @@ Las `RN-NN` de esta feature se citan en los UC como «FEAT-04 RN-NN», para no c
 
 **Retención vencida aún no anonimizada**
 - **RN-18:** un candidato con la retención vencida y aún no anonimizado no se puede inscribir: 409 con un mensaje que
-  lo explica _(RGPD §2 y §7.1; Q22; **PENDIENTE DE RATIFICAR**, PA-03)_. Por eso contratar, rechazar o cerrar la oferta
+  lo explica _(RGPD §2 y §7.1; Q22; ratificada el 2026-10-13, PA-03)_. Por eso contratar, rechazar o cerrar la oferta
   solo pueden llevar a «cierre + 6 meses» a candidatos cuyo proceso se abrió con una retención vigente, lo que es
   correcto según la fórmula _(S-06, RGPD §7.4; Q25)_.
 - **RN-19:** un candidato con la retención vencida y aún no anonimizado sigue en el listado sin marca; su ficha muestra
@@ -153,7 +153,7 @@ Las `RN-NN` de esta feature se citan en los UC como «FEAT-04 RN-NN», para no c
   _(RGPD §5; RN-02, RN-03, RN-11)_.
 - **INV-02:** ningún `StageChange` de un candidato anonimizado tiene nota _(RGPD §5; RN-04)_.
 - **INV-03:** ningún candidato anonimizado tiene inscripciones en etapa no final _(RV-17; RN-08, RN-11;
-  **PENDIENTE DE RATIFICAR**, PA-01)_.
+  ratificada el 2026-10-13, PA-01)_.
 - **INV-04:** la fecha y el motivo de una anonimización, una vez registrados, nunca se borran ni cambian _(RGPD §5;
   RN-06, RN-10)_.
 - **INV-05:** anonimizar no borra ninguna inscripción ni ningún `StageChange`: se conservan las estadísticas de las
@@ -219,7 +219,7 @@ Toca datos personales: el agente `datos-personales-auditor` lo revisará en `/re
   - El mecanismo contra los residuos puede encarecer las escrituras _(RGPD §7.8)_.
   - Si la pasada corre al arrancar, los vencidos del seed se anonimizan en cuanto se arranca la API _(Q31)_.
 - **Supuestos confirmados:** las respuestas Q02, Q04-Q10, Q12-Q21 y Q23-Q33 _(responsable técnico, 2026-10-12)_.
-  Q01, Q03, Q11 y Q22 están aplicadas pero pendientes de ratificar (PA-01..PA-04).
+  Q01, Q03, Q11 y Q22, ratificadas el 2026-10-13 según la recomendación (PA-01..PA-04).
 
 ## Criterios de aceptación
 - [ ] Dado un candidato con dos inscripciones activas, cuando el reclutador lo anonimiza a petición y confirma,
@@ -248,28 +248,26 @@ Toca datos personales: el agente `datos-personales-auditor` lo revisará en `/re
 - **PA-01:** ¿se puede anonimizar a petición a un candidato con inscripciones abiertas? Recomendación aplicada: sí; en
   la misma transacción se rechazan sus activas con el motivo «retirada del candidato», sin nota (RN-08, INV-03,
   UC-20 · A2). Así no se bloquea el art. 17 y avanzar, rechazar y cerrar oferta nunca encuentran activas de un
-  anonimizado _(Q03)_. — _Estado: **PENDIENTE DE RATIFICAR** (persona responsable)_
+  anonimizado _(Q03)_. — _Estado: ratificada el 2026-10-13 según la recomendación_
 - **PA-02:** ¿quién lanza la anonimización por vencimiento? Recomendación aplicada: un proceso de la propia API, al
   arrancar y una vez al día mientras siga en marcha, sin botón (RN-15, UC-21). RGPD §3 dice «al vencer: anonimizar»
-  y no puede depender de que el reclutador se acuerde _(Q01)_. — _Estado: **PENDIENTE DE RATIFICAR** (persona
-  responsable)_
+  y no puede depender de que el reclutador se acuerde _(Q01)_. — _Estado: ratificada el 2026-10-13 según la recomendación_
 - **PA-03:** ¿se puede inscribir a un candidato con la retención vencida aún no anonimizado? Recomendación aplicada:
   no, 409, hasta que se anonimice o se registre un consentimiento nuevo (RN-18, UC-14 · E7). Inscribirlo alargaría la
-  conservación sin una base jurídica nueva _(RGPD §2 y §7.1; Q22)_. — _Estado: **PENDIENTE DE RATIFICAR** (persona
-  responsable)_
+  conservación sin una base jurídica nueva _(RGPD §2 y §7.1; Q22)_. — _Estado: ratificada el 2026-10-13 según la recomendación_
 - **PA-04:** ¿se conservan al anonimizar las fechas y la versión del consentimiento y la fecha de alta? Recomendación
   aplicada: sí (RN-05). Sin nombre ni email no identifican a nadie y son la prueba del art. 7.1 de que el tratamiento
-  previo tenía base _(RGPD §2 y §7.9a; Q11)_. — _Estado: **PENDIENTE DE RATIFICAR** (persona responsable)_
+  previo tenía base _(RGPD §2 y §7.9a; Q11)_. — _Estado: ratificada el 2026-10-13 según la recomendación_
 
 ## Respuestas del shaping
 Clase **R**: se responde con una fuente existente; clase **P**: decisión de producto nueva. Fuente de todas:
-«responsable técnico, 2026-10-12», salvo las cuatro marcadas «PENDIENTE DE RATIFICAR (persona responsable)».
+«responsable técnico, 2026-10-12», salvo las cuatro marcadas «Ratificada el 2026-10-13», que eran PA-01..PA-04.
 
 | Q | Clase | Pregunta | Respuesta | Fuente | RGPD §7 |
 |---|---|---|---|---|---|
-| Q01 | P | ¿Quién lanza la pasada por vencimiento? | Proceso de la API, al arrancar y una vez al día | PENDIENTE DE RATIFICAR (persona responsable), PA-02 | — |
+| Q01 | P | ¿Quién lanza la pasada por vencimiento? | Proceso de la API, al arrancar y una vez al día | Ratificada el 2026-10-13, PA-02 | — |
 | Q02 | R | ¿Quién registra la petición? | El reclutador, declarando que el candidato la hizo | DEC-04, RV-11 | — |
-| Q03 | P | ¿Anonimizar con inscripciones abiertas? | Sí; se rechazan con «retirada del candidato» | PENDIENTE DE RATIFICAR (persona responsable), PA-01 | 2, 5 |
+| Q03 | P | ¿Anonimizar con inscripciones abiertas? | Sí; se rechazan con «retirada del candidato» | Ratificada el 2026-10-13, PA-01 | 2, 5 |
 | Q04 | P | ¿Confirmación previa? | Sí: irreversible y número de activas | responsable técnico | — |
 | Q05 | R | ¿También con consentimiento vigente o contratado? | Sí, sin excepciones | RGPD §4 y §5 | — |
 | Q06 | P | ¿Desde dónde y qué se ve después? | Botón en la ficha; queda la ficha anonimizada con mensaje de estado | responsable técnico | — |
@@ -277,7 +275,7 @@ Clase **R**: se responde con una fuente existente; clase **P**: decisión de pro
 | Q08 | R | ¿Se vacía siempre la nota del rechazo? | Sí, en toda anonimización | RGPD §5, UC-16, DT-12 de HU-04 | 3, 6 |
 | Q09 | R | ¿Valores neutros? | «Candidato anonimizado»; teléfono, resumen y skills vacíos | RGPD §5, RV-09 | — |
 | Q10 | P | ¿Cómo se genera el email? | Desde el ID en dominio `.invalid`; alta y edición rechazan ese dominio | responsable técnico | 9c |
-| Q11 | P | ¿Se conservan consentimiento y alta? | Sí | PENDIENTE DE RATIFICAR (persona responsable), PA-04 | 9a |
+| Q11 | P | ¿Se conservan consentimiento y alta? | Sí | Ratificada el 2026-10-13, PA-04 | 9a |
 | Q12 | P | ¿Valor final del fin de retención? | Vacío y sin recálculos | responsable técnico | 9b |
 | Q13 | R | ¿Residuos en los ficheros? | Prohibidos; test que lo compruebe; mecanismo en `/tech-design` | RGPD §5 | 8 |
 | Q14 | R | ¿Listado y búsqueda? | Excluyen siempre a los anonimizados | RV-14 | 7c |
@@ -288,7 +286,7 @@ Clase **R**: se responde con una fuente existente; clase **P**: decisión de pro
 | Q19 | R | ¿Escrituras sobre un anonimizado? | 409, no 410; repetir anonimizar, 200 | DEC-07, RGPD §5, S-01 | 7a |
 | Q20 | R | ¿Avanzar, rechazar y cerrar oferta? | Sin activas: 409, 200 o sin efecto; sin recálculo | RV-19, RV-23, RV-05, RGPD §5 | 2, 5 |
 | Q21 | R | ¿Guarda en el `WHERE` o comprobación previa? | Técnica, de `/tech-design`; estado comprobado en la transacción | DEC-08 | 7b |
-| Q22 | P | ¿Inscribir a un vencido? | No, 409 | PENDIENTE DE RATIFICAR (persona responsable), PA-03 | 1 |
+| Q22 | P | ¿Inscribir a un vencido? | No, 409 | Ratificada el 2026-10-13, PA-03 | 1 |
 | Q23 | P | ¿Se ocultan los vencidos? | No; marca solo en la ficha | responsable técnico | 1 |
 | Q24 | P | ¿Editar o renovar a un vencido? | Sí a las dos | responsable técnico | 1 |
 | Q25 | R | ¿Cerrar un proceso alarga la conservación? | «Cierre + 6 meses» es correcto con Q22 | S-06, RGPD §2 | 4 |

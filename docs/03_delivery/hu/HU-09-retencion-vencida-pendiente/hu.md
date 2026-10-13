@@ -17,7 +17,7 @@ anonimice o dé un consentimiento nuevo**, para **no alargar la conservación de
 
 ## Contexto
 Tercera rebanada de FEAT-04 (`docs/02_discovery/features/FEAT-04-supresion-y-retencion-candidatos/feature.md`,
-«Handoff a delivery»). El bloqueo de la inscripción de un vencido está **pendiente de ratificar** (FEAT-04, PA-03). Se
+«Handoff a delivery»). El bloqueo de la inscripción de un vencido se ratificó el 2026-10-13 (FEAT-04, PA-03). Se
 puede fusionar con HU-08 si la ventana entre el vencimiento y la pasada se considera despreciable.
 
 **Fuera de la variante mínima del taller:** queda en el backlog, sin sprint.

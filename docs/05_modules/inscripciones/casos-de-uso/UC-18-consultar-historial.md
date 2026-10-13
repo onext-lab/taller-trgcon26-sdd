@@ -65,7 +65,7 @@ pipeline ni en listados (RGPD §6.2).
 | P | HU-05 | CA-24 | `apps/api/test/applications/detail.test.ts:67`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:45` |
 | A1 | HU-05 | CA-25 | `apps/api/test/applications/detail.test.ts:103`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:78` |
 | A2 | HU-05 | CA-26 | `apps/api/test/applications/detail.test.ts:114`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:90` |
-| A3 | — (FEAT-04 · pendiente) | | pendiente |
+| A3 | HU-07 | CA-19 | pendiente |
 | E1 | HU-05 | CA-27 | `apps/api/test/applications/detail.test.ts:192`, `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:123` |
 | E2 | HU-05 | CA-28 | `apps/web/test/features/applications/ApplicationDetailScreen.test.tsx:139` |
 

@@ -18,7 +18,7 @@ Como **reclutador**, quiero **que los candidatos se anonimicen solos el día en 
 ## Contexto
 Segunda rebanada de FEAT-04 (`docs/02_discovery/features/FEAT-04-supresion-y-retencion-candidatos/feature.md`,
 «Handoff a delivery»). Reutiliza la anonimización de HU-07 con el motivo «vencimiento». El disparador (un proceso de
-la propia API al arrancar y una vez al día) está **pendiente de ratificar** (FEAT-04, PA-02).
+la propia API al arrancar y una vez al día) se ratificó el 2026-10-13 (FEAT-04, PA-02).
 
 **Fuera de la variante mínima del taller:** queda en el backlog, sin sprint.
 

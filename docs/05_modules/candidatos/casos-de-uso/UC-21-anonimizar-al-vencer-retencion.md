@@ -20,7 +20,7 @@ Ningún candidato conserva sus datos personales más allá de su fecha de fin de
 que nadie tenga que acordarse (RGPD §3: «al vencer: anonimizar»).
 
 ## Actor y disparador
-- **Actor principal:** proceso programado de la propia API (FEAT-04 RN-15; **pendiente de ratificar**, FEAT-04
+- **Actor principal:** proceso programado de la propia API (FEAT-04 RN-15; ratificada el 2026-10-13, FEAT-04
   PA-02). El reclutador no interviene.
 - **Disparador:** el arranque de la API y, mientras siga en marcha, una vez al día (FEAT-04 RN-15).
 
