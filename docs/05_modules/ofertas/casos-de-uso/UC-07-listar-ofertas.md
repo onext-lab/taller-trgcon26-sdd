@@ -3,8 +3,8 @@ id: UC-07
 titulo: "Listar y buscar ofertas"
 modulo: ofertas
 actor: reclutador
-estado: implementado
-feature: FEAT-01
+estado: aprobado
+feature: FEAT-04
 hus: [HU-01, HU-02]
 ---
 
@@ -14,6 +14,9 @@ hus: [HU-01, HU-02]
 > el PRD y la revisión, y `/module-sync` lo marca `implementado` cuando la HU que lo cubre llega a `main`.
 > Cada flujo tiene un identificador estable (**P**, **A1…**, **E1…**): el PRD convierte cada uno en, al menos, un
 > criterio de aceptación, y la revisión exige un test por flujo.
+
+**Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
+de su HU.
 
 ## Objetivo
 El reclutador encuentra sus ofertas en un listado paginado, filtrado por estado y por texto del título.
@@ -30,7 +33,8 @@ El reclutador encuentra sus ofertas en un listado paginado, filtrado por estado 
 2. El sistema devuelve la primera página, de 20 ofertas de todos los estados, ordenadas por fecha de referencia (la de
    publicación o, si no hay, la de creación), de la más reciente a la más antigua, con desempate por ID (RV-08, S-04).
 3. El sistema muestra cada oferta con su estado y su fecha de referencia en Europe/Madrid, en formato dd/mm/aaaa
-   (RV-25, `docs/06_design_principles/README.md` §6).
+   (RV-25, `docs/06_design_principles/README.md` §6). (FEAT-04) Una columna muestra su fecha límite de inscripción
+   en `dd/mm/aaaa`, vacía si no tiene; el listado no se filtra ni se ordena por ella (FEAT-04 · RN-12; R6, P18).
 
 ## Flujos alternativos
 - **A1 — Filtrar** (desde el paso 1): el reclutador filtra por estado, por un texto contenido en el título (sin
@@ -53,6 +57,7 @@ El reclutador encuentra sus ofertas en un listado paginado, filtrado por estado 
 ## Reglas de negocio
 - RN-11: filtros, orden y paginación del listado.
 - RN-12: fechas en UTC, mostradas en Europe/Madrid.
+- FEAT-04 · RN-12: la fecha límite se ve en una columna del listado, sin filtro ni orden por ella.
 
 ## Postcondiciones
 - **Éxito:** el reclutador ve la página pedida; el listado no cambia ningún dato.
@@ -72,5 +77,6 @@ Ninguno.
 | E2 | HU-02 | CA-20 | `apps/api/test/jobs/list-filters-adversarial.test.ts:89` |
 | E3 | HU-02 | CA-21 | `apps/api/test/jobs/list-filters-adversarial.test.ts:80` |
 | E4 | HU-01 | CA-18 | `apps/web/test/features/jobs/JobListScreen.test.tsx:66` |
+| P (FEAT-04) | — (pendiente) | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
