@@ -1,6 +1,9 @@
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Pipeline } from '../../../src/features/applications/types.ts';
+import type { FetchMock } from '../../helpers/fetch.ts';
+import { expectFocusOn } from '../../helpers/focus.ts';
+import { PAGE, envelope, ok as okReply, sequence, type Reply } from './enroll-fixtures.ts';
 import {
   CLOSED_PIPELINE,
   EMPTY_PUBLISHED_PIPELINE,
@@ -111,5 +114,79 @@ describe('PipelineScreen: plazo de inscripción', () => {
     expect((await screen.findByText(EXPIRED_TEXT)).getAttribute('role')).toBe('status');
     expect(screen.queryByRole('button', BUTTON)).toBeNull();
     expect(attempts).toBe(2);
+  });
+});
+
+const SEARCH = 'GET /api/candidates?q=ana&pageSize=10';
+const POST = 'POST /api/applications';
+const FIELD = 'Nombre o email';
+const LATE_MESSAGE = 'El plazo de inscripción de esta oferta terminó el 13/10/2026.';
+const LOADING_TEXT = 'Cargando el pipeline…';
+const LATE_REPLY = envelope(409, 'ENROLLMENT_DEADLINE_PASSED', LATE_MESSAGE);
+const OLD_PAGE_EXPIRED = withJob(PUBLISHED_PIPELINE, {
+  enrollmentDeadline: '2026-10-13',
+  enrollmentDeadlinePassed: true,
+});
+
+// The page was loaded before midnight: the first GET still offers «Inscribir candidato»; `reloads` follow.
+async function enrollOnOldPage(...reloads: Reply[]): Promise<FetchMock> {
+  const mock = renderPipeline(PATH, {
+    [KEY]: sequence(okReply(PUBLISHED_PIPELINE), ...reloads),
+    [SEARCH]: okReply(PAGE),
+    [POST]: LATE_REPLY,
+  });
+  fireEvent.click(await screen.findByRole('button', BUTTON));
+  await expectFocusOn(() => screen.getByLabelText(FIELD));
+  fireEvent.change(screen.getByLabelText(FIELD), { target: { value: 'ana' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+  const table = await screen.findByRole('table', { name: 'Resultados de la búsqueda' });
+  fireEvent.click(within(table).getAllByRole('button')[1] as HTMLElement);
+  return mock;
+}
+
+function pipelineGets(mock: FetchMock): number {
+  return mock.calls.filter((call) => call.url === '/api/jobs/7/applications').length;
+}
+
+describe('PipelineScreen: 409 ENROLLMENT_DEADLINE_PASSED · adversarial', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it('CA-10 pipeline viejo: el 409 cierra el panel, alerta con el mensaje y foco, y la recarga quita el botón', async () => {
+    const mock = await enrollOnOldPage(okReply(OLD_PAGE_EXPIRED));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe(LATE_MESSAGE);
+    await expectFocusOn(() => screen.getByRole('alert'));
+    expect(screen.queryByRole('region', BUTTON)).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('button', BUTTON)).toBeNull());
+    expect(screen.getByRole('status').textContent).toBe(
+      'El plazo de inscripción terminó el 13/10/2026: no se pueden inscribir más candidatos.',
+    );
+    expect(pipelineGets(mock)).toBe(2);
+    expect(screen.queryByText(LOADING_TEXT)).toBeNull();
+    expect(screen.getByRole('alert').textContent).toBe(LATE_MESSAGE);
+  });
+
+  it('EC-26 el 409 con la recarga en 500: alerta y error con «Reintentar»', async () => {
+    const failing = envelope(500, 'INTERNAL_ERROR', 'Error interno. Inténtalo de nuevo.');
+    await enrollOnOldPage(failing);
+
+    expect(await screen.findByRole('button', { name: 'Reintentar' })).toBeDefined();
+    const texts = screen.getAllByRole('alert').map((alert) => alert.textContent);
+    expect(texts).toHaveLength(2);
+    expect(texts).toContain(LATE_MESSAGE);
+    expect(texts).toContain('Error interno. Inténtalo de nuevo.');
+    expect(screen.queryByRole('button', BUTTON)).toBeNull();
+  });
+
+  it('EC-15 la alerta del 409 no añade el nombre del candidato', async () => {
+    await enrollOnOldPage(okReply(OLD_PAGE_EXPIRED));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe(LATE_MESSAGE);
+    expect(alert.textContent).not.toMatch(/Candidata Inventada|example\.com/);
   });
 });

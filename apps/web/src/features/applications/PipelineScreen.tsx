@@ -116,6 +116,11 @@ function enrollCallbacks(
       feedback.show('alert', NOT_PUBLISHED_MESSAGE);
       reload();
     },
+    onDeadlinePassed(message) {
+      panel.dismiss();
+      feedback.show('alert', message);
+      reload();
+    },
     onNotFound(message) {
       panel.showAlert(message);
       reload();

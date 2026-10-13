@@ -97,14 +97,18 @@ function salaryErrors(values: JobFormValues): JobFormErrors {
 }
 
 // The web only checks that the value is a day; «not before today» is decided by the API (DD-03).
-function deadlineError(values: JobFormValues): string | undefined {
+// A partial entry reads as `''` in the state, so the browser's `badInput` is the only way to tell it (DD-02).
+function deadlineError(values: JobFormValues, badInput: boolean): string | undefined {
   const text = values.enrollmentDeadline;
+  if (badInput) return MESSAGES.deadlineFormat;
   return text === '' || isCalendarDate(text) ? undefined : MESSAGES.deadlineFormat;
 }
 
 export type ValidateOptions = {
   /** Editing a published job: description, location and work mode become required (RF-03, DD-08). */
   published?: boolean;
+  /** The date control holds a partial entry (`validity.badInput`): «Introduce una fecha válida.» (EC-17). */
+  deadlineBadInput?: boolean;
 };
 
 // Description, location and work mode cannot be left empty (or in spaces) on a published job.
@@ -132,7 +136,7 @@ export function validateJobForm(
   const location = locationError(values.location);
   if (location) errors.location = location;
   if (values.workMode !== '' && !isWorkMode(values.workMode)) errors.workMode = MESSAGES.workMode;
-  const deadline = deadlineError(values);
+  const deadline = deadlineError(values, options.deadlineBadInput === true);
   if (deadline) errors.enrollmentDeadline = deadline;
   const required = options.published ? publishedErrors(values) : {};
   return { ...required, ...errors, ...salaryErrors(values) };

@@ -213,3 +213,87 @@ describe('JobFormScreen · fecha límite de inscripción (edición)', () => {
     expect(bodies(mock, 'PATCH')).toEqual([]);
   });
 });
+
+// jsdom never reports `badInput`: it is simulated on the control, as Chromium does with a half-typed date (DD-02).
+function simulateBadInput(): void {
+  Object.defineProperty(deadlineField(), 'validity', {
+    value: { badInput: true },
+    configurable: true,
+  });
+}
+
+const INVALID_DATE = 'Introduce una fecha válida.';
+
+describe('JobFormScreen · fecha límite de inscripción · adversarial', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it('EC-17 entrada a medias (badInput) en el alta da «Introduce una fecha válida.» sin petición', async () => {
+    window.history.replaceState(null, '', '/jobs/new');
+    const mock = mockFetch({ 'POST /api/jobs': { status: 201, json: makeJob() } });
+    render(<JobFormScreen mode="create" />);
+    type('Título (obligatorio)', 'Técnica/o de selección');
+    simulateBadInput();
+
+    save();
+
+    expect(errorOfDeadline()).toBe(INVALID_DATE);
+    await expectFocusOn(deadlineField);
+    expect(mock.calls).toHaveLength(0);
+    expect(window.location.pathname).toBe('/jobs/new');
+  });
+
+  it('EC-17 entrada a medias (badInput) en la edición de una oferta con plazo no envía null', async () => {
+    window.history.replaceState(null, '', '/jobs/7/edit');
+    const mock = await openEditor(makeJob({ enrollmentDeadline: '2026-12-31' }), {
+      'PATCH /api/jobs/7': { status: 200, json: makeJob({ enrollmentDeadline: null }) },
+    });
+    type(LABEL, '');
+    simulateBadInput();
+
+    save();
+
+    expect(errorOfDeadline()).toBe(INVALID_DATE);
+    await expectFocusOn(deadlineField);
+    expect(bodies(mock, 'PATCH')).toEqual([]);
+    expect(window.location.pathname).toBe('/jobs/7/edit');
+  });
+
+  it('EC-19 red caída al guardar conserva la fecha escrita', async () => {
+    window.history.replaceState(null, '', '/jobs/new');
+    const mock = mockFetch({ 'POST /api/jobs': { networkError: true } });
+    render(<JobFormScreen mode="create" />);
+    type('Título (obligatorio)', 'Técnica/o de selección');
+    type(LABEL, '2026-12-31');
+
+    save();
+
+    expect((await screen.findByRole('alert')).textContent).toContain('No se ha podido conectar');
+    expect(deadlineField().value).toBe('2026-12-31');
+    expect(mock.calls).toHaveLength(1);
+    expect((screen.getByRole('button', { name: 'Guardar' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+  });
+
+  it('EC-20 doble clic con fecha = 1 POST', async () => {
+    window.history.replaceState(null, '', '/jobs/new');
+    const mock = mockFetch({ 'POST /api/jobs': { hang: true } });
+    render(<JobFormScreen mode="create" />);
+    type('Título (obligatorio)', 'Técnica/o de selección');
+    type(LABEL, '2026-12-31');
+    const form = screen.getByRole('button', { name: 'Guardar' }).closest('form') as HTMLFormElement;
+
+    save();
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    const busy = await screen.findByRole('button', { name: 'Guardando…' });
+    expect((busy as HTMLButtonElement).disabled).toBe(true);
+    expect(bodies(mock, 'POST')).toEqual([
+      { title: 'Técnica/o de selección', enrollmentDeadline: '2026-12-31' },
+    ]);
+  });
+});

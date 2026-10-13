@@ -11,6 +11,8 @@ export interface EnrollCallbacks {
   onDuplicate: (existingId: number | undefined) => void;
   /** 409 `INVALID_TRANSITION`: the job is no longer published. */
   onNotPublished: () => void;
+  /** 409 `ENROLLMENT_DEADLINE_PASSED`: the `message` of the API, which carries the date it used (DD-05). */
+  onDeadlinePassed: (message: string) => void;
   /** 404 `NOT_FOUND`: the `message` of the API (it carries no personal data). */
   onNotFound: (message: string) => void;
   /** Network, timeout, 400, 403, 413, 415, 500 or an invalid answer: `userMessage(error)`. */
@@ -29,6 +31,8 @@ function failureOutcome(error: unknown, callbacks: EnrollCallbacks): () => void 
       return () => callbacks.onDuplicate(existingIdOf(error));
     case 'not-published':
       return callbacks.onNotPublished;
+    case 'deadline-passed':
+      return () => callbacks.onDeadlinePassed(userMessage(error));
     case 'not-found':
       return () => callbacks.onNotFound(userMessage(error));
     default:

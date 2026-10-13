@@ -35,6 +35,19 @@ describe('modelo del formulario · fecha límite de inscripción', () => {
     },
   );
 
+  it('EC-17 validateJobForm con deadlineBadInput → error; sin él y vacío → válido', () => {
+    const empty = form({ enrollmentDeadline: '' });
+
+    expect(validateJobForm(empty, { deadlineBadInput: true })).toEqual({
+      enrollmentDeadline: 'Introduce una fecha válida.',
+    });
+    expect(validateJobForm(empty, { deadlineBadInput: false })).toEqual({});
+    expect(validateJobForm(empty)).toEqual({});
+    expect(
+      validateJobForm(form({ enrollmentDeadline: '2026-10-13' }), { deadlineBadInput: true }),
+    ).toEqual({ enrollmentDeadline: 'Introduce una fecha válida.' });
+  });
+
   it('el error de la fecha convive con los de otros campos y con los de publicada', () => {
     const errors = validateJobForm(form({ title: '', enrollmentDeadline: 'x' }), {
       published: true,

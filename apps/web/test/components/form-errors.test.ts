@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { focusFirstError, splitValidationDetails } from '../../src/components/form-errors.ts';
+import {
+  focusFirstError,
+  hasBadInput,
+  splitValidationDetails,
+} from '../../src/components/form-errors.ts';
 import { ApiError } from '../../src/components/http.ts';
 
 const FIELDS = ['fullName', 'email', 'skills'] as const;
@@ -54,6 +58,29 @@ describe('splitValidationDetails', () => {
       fields: {},
       form: 'Hay campos con errores.',
     });
+  });
+});
+
+describe('hasBadInput', () => {
+  function markBadInput(input: Element): void {
+    Object.defineProperty(input, 'validity', { value: { badInput: true }, configurable: true });
+  }
+
+  it('EC-17 hasBadInput: true solo para el control con badInput', () => {
+    const form = document.createElement('form');
+    for (const name of ['when', 'other']) {
+      const input = document.createElement('input');
+      input.name = name;
+      form.append(input);
+    }
+    markBadInput(form.elements.namedItem('when') as Element);
+
+    expect(hasBadInput(form, 'when')).toBe(true);
+    expect(hasBadInput(form, 'other')).toBe(false);
+  });
+
+  it('un nombre que no existe en el formulario es false', () => {
+    expect(hasBadInput(document.createElement('form'), 'ghost')).toBe(false);
   });
 });
 

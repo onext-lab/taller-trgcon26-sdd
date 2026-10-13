@@ -273,6 +273,16 @@ describe('classifyEnrollError', () => {
     expect(classifyEnrollError(missing)).toBe('not-found');
   });
 
+  it('classifyEnrollError: ENROLLMENT_DEADLINE_PASSED → deadline-passed (CA-10), también con details', () => {
+    const late = new ApiError(409, 'ENROLLMENT_DEADLINE_PASSED', 'texto de la API');
+    const withDetails = new ApiError(409, 'ENROLLMENT_DEADLINE_PASSED', 'texto', [
+      { field: 'jobId', message: 'ignorado', existingId: 9 },
+    ]);
+
+    expect(classifyEnrollError(late)).toBe('deadline-passed');
+    expect(classifyEnrollError(withDetails)).toBe('deadline-passed');
+  });
+
   it('cualquier otro error (envelope, cliente o desconocido) es other', () => {
     expect(classifyEnrollError(new ApiError(400, 'VALIDATION_ERROR', 'x'))).toBe('other');
     expect(classifyEnrollError(new ApiError(0, 'CLIENT_TIMEOUT', 'x'))).toBe('other');

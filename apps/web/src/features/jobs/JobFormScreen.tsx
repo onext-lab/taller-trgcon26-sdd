@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { hasBadInput } from '../../components/form-errors.ts';
 import { isNotFound, userMessage } from '../../components/http.ts';
 import { Link, matchPath, navigate, usePath } from '../../components/router.tsx';
 import { ErrorMessage, LoadingMessage } from '../../components/StatusMessages.tsx';
@@ -62,7 +63,10 @@ function useJobSubmission(values: JobFormValues, submit: Submit, options: Submis
     event.preventDefault();
     if (inFlight.current) return;
     const form = event.currentTarget;
-    const found = validateJobForm(values, { published: options.published });
+    const found = validateJobForm(values, {
+      published: options.published,
+      deadlineBadInput: hasBadInput(form, 'enrollmentDeadline'),
+    });
     setErrors(found);
     setFormError(undefined);
     setGone(false);

@@ -34,3 +34,12 @@ export function focusFirstError<Field extends string>(
   const control = first ? form.elements.namedItem(first) : null;
   if (control instanceof HTMLElement) control.focus();
 }
+
+/**
+ * Whether the control called `name` holds a partial entry the browser could not turn into a value
+ * (`validity.badInput`, e.g. an incomplete `type="date"`): its `value` is `''`, same as an empty control.
+ */
+export function hasBadInput(form: HTMLFormElement, name: string): boolean {
+  const control = form.elements.namedItem(name);
+  return control instanceof HTMLInputElement && control.validity.badInput;
+}

@@ -1,6 +1,6 @@
 import { ApiError } from '../../components/http.ts';
 
-export type EnrollErrorKind = 'duplicate' | 'not-published' | 'not-found' | 'other';
+export type EnrollErrorKind = 'duplicate' | 'not-published' | 'deadline-passed' | 'not-found' | 'other';
 
 /** Fixed texts of the product (DD-05): they do not depend on the wording of the API. */
 export const DUPLICATE_MESSAGE = 'Este candidato ya está inscrito en la oferta.';
@@ -14,6 +14,8 @@ export function classifyEnrollError(error: unknown): EnrollErrorKind {
       return 'duplicate';
     case 'INVALID_TRANSITION':
       return 'not-published';
+    case 'ENROLLMENT_DEADLINE_PASSED':
+      return 'deadline-passed';
     case 'NOT_FOUND':
       return 'not-found';
     default:
