@@ -9,9 +9,10 @@ import { getPipeline } from './api.ts';
 import { DUPLICATE_MESSAGE, NOT_PUBLISHED_MESSAGE } from './enroll-errors.ts';
 import { EnrollPanel } from './EnrollPanel.tsx';
 import { PipelineBoard } from './PipelineBoard.tsx';
+import { canEnroll, deadlinePassedText } from './labels.ts';
 import { parsePipelineJobId } from './paths.ts';
 import { StageDialogs } from './StageDialogs.tsx';
-import type { Pipeline } from './types.ts';
+import type { Pipeline, PipelineJob } from './types.ts';
 import { useEnrollment, type EnrollCallbacks } from './use-enrollment.ts';
 import { useEnrollPanel, type EnrollPanelState } from './use-enroll-panel.ts';
 import { usePipelineFeedback, type PipelineFeedback } from './use-pipeline-feedback.ts';
@@ -48,6 +49,15 @@ function EnrollButton({ panel, triggerRef }: Pick<PanelProps, 'panel' | 'trigger
   );
 }
 
+function DeadlinePassedNotice({ deadline }: { deadline: string }) {
+  return <p role="status">{deadlinePassedText(deadline)}</p>;
+}
+
+// The deadline to explain, only in a published job whose deadline the API says has passed (EC-28: not in `closed`).
+function passedDeadline(job: PipelineJob): string | null {
+  return job.status === 'published' && job.enrollmentDeadlinePassed ? job.enrollmentDeadline : null;
+}
+
 type ContentProps = PanelProps & {
   pipeline: Pipeline;
   pendingId: number | null;
@@ -57,12 +67,16 @@ type ContentProps = PanelProps & {
 
 function PipelineContent({ pipeline, pendingId, onEnroll, stageActions, ...props }: ContentProps) {
   const { panel, triggerRef, inputRef, alertRef } = props;
-  const { status } = pipeline.job;
-  if (status === 'draft') return <p>{DRAFT_TEXT}</p>;
+  const { job } = pipeline;
+  const enrollable = canEnroll(job);
+  const deadline = passedDeadline(job);
+  const published = job.status === 'published';
+  if (job.status === 'draft') return <p>{DRAFT_TEXT}</p>;
   return (
     <>
-      {status === 'published' ? <EnrollButton panel={panel} triggerRef={triggerRef} /> : null}
-      {panel.open && status === 'published' ? (
+      {enrollable ? <EnrollButton panel={panel} triggerRef={triggerRef} /> : null}
+      {deadline !== null ? <DeadlinePassedNotice deadline={deadline} /> : null}
+      {panel.open && enrollable ? (
         <EnrollPanel
           panel={panel}
           inputRef={inputRef}
@@ -74,12 +88,9 @@ function PipelineContent({ pipeline, pendingId, onEnroll, stageActions, ...props
       {pipeline.items.length === 0 ? (
         <p>{EMPTY_TEXT}</p>
       ) : (
-        <PipelineBoard
-          items={pipeline.items}
-          actions={status === 'published' ? stageActions : null}
-        />
+        <PipelineBoard items={pipeline.items} actions={published ? stageActions : null} />
       )}
-      {status === 'published' ? <StageDialogs actions={stageActions} /> : null}
+      {published ? <StageDialogs actions={stageActions} /> : null}
     </>
   );
 }
@@ -126,11 +137,11 @@ function PageMessage({ feedback }: { feedback: PipelineFeedback }) {
 
 function PipelineLoader({ id, jobPath, notFound }: ScreenProps & { id: number }) {
   const pipeline = useResource((signal) => getPipeline(id, signal), [id]);
-  const published = pipeline.state === 'success' && pipeline.data.job.status === 'published';
+  const enrollable = pipeline.state === 'success' && canEnroll(pipeline.data.job);
   const feedback = usePipelineFeedback();
   const enrollment = useEnrollment(id);
   const stageActions = useStageActions(feedback, pipeline.reload);
-  const enrollPanel = useEnrollPanel(published, enrollment.pendingId !== null, feedback.clear);
+  const enrollPanel = useEnrollPanel(enrollable, enrollment.pendingId !== null, feedback.clear);
   function enroll(candidate: CandidateListItem): void {
     enrollPanel.panel.showAlert(undefined);
     void enrollment.enroll(

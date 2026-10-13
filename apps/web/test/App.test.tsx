@@ -123,7 +123,15 @@ describe('App', () => {
       'GET /api/jobs/7': { status: 200, json: { ...JOB, ...job } },
       'GET /api/jobs/7/applications': {
         status: 200,
-        json: { job: { id: 7, status: 'published' }, items: [] },
+        json: {
+          job: {
+            id: 7,
+            status: 'published',
+            enrollmentDeadline: null,
+            enrollmentDeadlinePassed: false,
+          },
+          items: [],
+        },
       },
     });
 
@@ -191,7 +199,15 @@ describe('App', () => {
       ...HEALTH_OK,
       'GET /api/jobs/7/applications': {
         status: 200,
-        json: { job: { id: 7, status: 'published' }, items: [item] },
+        json: {
+          job: {
+            id: 7,
+            status: 'published',
+            enrollmentDeadline: null,
+            enrollmentDeadlinePassed: false,
+          },
+          items: [item],
+        },
       },
       'GET /api/applications/32': { status: 200, json: detail },
     });

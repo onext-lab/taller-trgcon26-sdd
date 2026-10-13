@@ -28,7 +28,10 @@ function withStage(stage: PipelineItem['stage'], lastChangeAt: string): Pipeline
     lastChangeAt,
     rejectionReason,
   };
-  return { job: { id: 7, status: 'published' }, items: [item] };
+  return {
+    job: { id: 7, status: 'published', enrollmentDeadline: null, enrollmentDeadlinePassed: false },
+    items: [item],
+  };
 }
 
 describe('PipelineScreen: columnas y tarjetas', () => {
@@ -133,7 +136,15 @@ describe('PipelineScreen: columnas y tarjetas', () => {
       lastChangeAt: '2026-10-06T10:00:00.000Z',
       rejectionReason: null,
     }));
-    await renderBoard({ job: { id: 7, status: 'published' }, items });
+    await renderBoard({
+      job: {
+        id: 7,
+        status: 'published',
+        enrollmentDeadline: null,
+        enrollmentDeadlinePassed: false,
+      },
+      items,
+    });
 
     const cards = cardsOf('Recibida');
     expect(cards).toHaveLength(200);

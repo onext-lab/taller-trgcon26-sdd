@@ -1,4 +1,15 @@
-import type { PipelineItem, RejectionReason, Stage } from './types.ts';
+import { formatCalendarDate } from '../../components/format.ts';
+import type { PipelineItem, PipelineJob, RejectionReason, Stage } from './types.ts';
+
+/** «Inscribir candidato» is offered only in a published job whose deadline has not passed (RF-04, RN-10). */
+export function canEnroll(job: Pick<PipelineJob, 'status' | 'enrollmentDeadlinePassed'>): boolean {
+  return job.status === 'published' && !job.enrollmentDeadlinePassed;
+}
+
+/** DT-01: why the pipeline of a published job with a passed deadline offers no enrollment. */
+export function deadlinePassedText(deadline: string): string {
+  return `El plazo de inscripción terminó el ${formatCalendarDate(deadline)}: no se pueden inscribir más candidatos.`;
+}
 
 const STAGE_LABELS: Record<Stage, string> = {
   received: 'Recibida',

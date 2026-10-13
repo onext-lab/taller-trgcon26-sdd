@@ -77,7 +77,12 @@ describe('PipelineScreen: estados', () => {
   });
 
   it('CA-26: una cerrada vacía muestra el mensaje de vacío y ningún botón', async () => {
-    renderPipeline(PATH, { [KEY]: ok({ job: { id: 7, status: 'closed' }, items: [] }) });
+    renderPipeline(PATH, {
+      [KEY]: ok({
+        job: { id: 7, status: 'closed', enrollmentDeadline: null, enrollmentDeadlinePassed: false },
+        items: [],
+      }),
+    });
 
     expect(await screen.findByText(EMPTY_TEXT)).toBeDefined();
     expect(screen.queryByRole('button')).toBeNull();

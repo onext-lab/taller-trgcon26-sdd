@@ -20,7 +20,12 @@ import {
 import type { Application } from '../../../src/features/applications/types.ts';
 import { ApiError } from '../../../src/components/http.ts';
 import { mockFetch } from '../../helpers/fetch.ts';
-import { ELEVEN_CANDIDATES_PAGE, JOB_ID, PUBLISHED_PIPELINE } from './fixtures.ts';
+import {
+  ELEVEN_CANDIDATES_PAGE,
+  EXPIRED_PIPELINE,
+  JOB_ID,
+  PUBLISHED_PIPELINE,
+} from './fixtures.ts';
 
 const APPLICATION: Application = {
   id: 40,
@@ -40,6 +45,10 @@ async function rejection(promise: Promise<unknown>): Promise<unknown> {
     return error;
   }
   throw new Error('Se esperaba un error y la promesa se resolvió');
+}
+
+function withJob(patch: Record<string, unknown>): unknown {
+  return { ...PUBLISHED_PIPELINE, job: { ...PUBLISHED_PIPELINE.job, ...patch } };
 }
 
 function withItem(patch: Record<string, unknown>): unknown {
@@ -81,7 +90,55 @@ describe('cliente del pipeline', () => {
 
   it('EC-37: isPipeline acepta un pipeline válido y vacío', () => {
     expect(isPipeline(PUBLISHED_PIPELINE)).toBe(true);
-    expect(isPipeline({ job: { id: 7, status: 'closed' }, items: [] })).toBe(true);
+    expect(
+      isPipeline({
+        job: { id: 7, status: 'closed', enrollmentDeadline: null, enrollmentDeadlinePassed: false },
+        items: [],
+      }),
+    ).toBe(true);
+  });
+
+  it('isPipeline acepta el plazo: sin fecha, con fecha vigente y con fecha vencida', () => {
+    expect(isPipeline(withJob({ enrollmentDeadline: null, enrollmentDeadlinePassed: false }))).toBe(
+      true,
+    );
+    expect(
+      isPipeline(withJob({ enrollmentDeadline: '2026-12-31', enrollmentDeadlinePassed: false })),
+    ).toBe(true);
+    expect(isPipeline(EXPIRED_PIPELINE)).toBe(true);
+  });
+
+  it.each([
+    ['vencido sin fecha', { enrollmentDeadline: null, enrollmentDeadlinePassed: true }],
+    ['fecha inexistente', { enrollmentDeadline: '2026-02-31', enrollmentDeadlinePassed: false }],
+    [
+      'fecha con otro formato',
+      { enrollmentDeadline: '13/10/2026', enrollmentDeadlinePassed: true },
+    ],
+    ['fecha que no es texto', { enrollmentDeadline: 20261013, enrollmentDeadlinePassed: false }],
+    [
+      'vencido que no es booleano',
+      { enrollmentDeadline: '2026-10-10', enrollmentDeadlinePassed: 1 },
+    ],
+    [
+      'sin enrollmentDeadlinePassed',
+      { enrollmentDeadline: null, enrollmentDeadlinePassed: undefined },
+    ],
+  ])('isPipeline rechaza el plazo incoherente o no válido: %s', (_name, patch) => {
+    expect(isPipeline(withJob(patch))).toBe(false);
+  });
+
+  it('getPipeline con un vencido sin fecha es una respuesta no válida', async () => {
+    mockFetch({
+      [`GET ${PIPELINE_URL}`]: {
+        status: 200,
+        json: withJob({ enrollmentDeadline: null, enrollmentDeadlinePassed: true }),
+      },
+    });
+
+    const error = await rejection(getPipeline(JOB_ID));
+
+    expect((error as ApiError).code).toBe('CLIENT_BAD_RESPONSE');
   });
 
   it('EC-37: isPipeline rechaza etapa o motivo desconocidos', () => {
@@ -107,7 +164,15 @@ describe('cliente del pipeline', () => {
     mockFetch({
       [`GET ${PIPELINE_URL}`]: {
         status: 200,
-        json: { job: { id: 8, status: 'draft' }, items: [] },
+        json: {
+          job: {
+            id: 8,
+            status: 'draft',
+            enrollmentDeadline: null,
+            enrollmentDeadlinePassed: false,
+          },
+          items: [],
+        },
       },
     });
 

@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canEnroll,
+  deadlinePassedText,
   groupByStage,
   nextStage,
   rejectionReasonLabel,
   stageLabel,
 } from '../../../src/features/applications/labels.ts';
-import { REJECTION_REASONS, STAGES } from '../../../src/features/applications/types.ts';
+import {
+  REJECTION_REASONS,
+  STAGES,
+  type PipelineJobStatus,
+} from '../../../src/features/applications/types.ts';
 import { PUBLISHED_PIPELINE } from './fixtures.ts';
 
 describe('etiquetas de inscripciones', () => {
@@ -66,5 +72,24 @@ describe('groupByStage', () => {
 
     expect(Object.keys(groups)).toEqual([...STAGES]);
     expect(Object.values(groups).every((cards) => cards.length === 0)).toBe(true);
+  });
+});
+
+describe('plazo de inscripción', () => {
+  it('deadlinePassedText da el texto de DT-01 con la fecha dd/mm/aaaa', () => {
+    expect(deadlinePassedText('2026-10-13')).toBe(
+      'El plazo de inscripción terminó el 13/10/2026: no se pueden inscribir más candidatos.',
+    );
+  });
+
+  it.each<[PipelineJobStatus, boolean, boolean]>([
+    ['draft', false, false],
+    ['draft', true, false],
+    ['published', false, true],
+    ['published', true, false],
+    ['closed', false, false],
+    ['closed', true, false],
+  ])('canEnroll(%s, vencido: %s) → %s', (status, enrollmentDeadlinePassed, expected) => {
+    expect(canEnroll({ status, enrollmentDeadlinePassed })).toBe(expected);
   });
 });

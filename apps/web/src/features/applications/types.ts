@@ -34,9 +34,21 @@ export interface PipelineItem {
   rejectionReason: RejectionReason | null;
 }
 
+/**
+ * Job of the pipeline. `enrollmentDeadlinePassed` is computed by the API with the server clock (DD-04, DEC-09):
+ * the web never compares dates. If it is `true`, `enrollmentDeadline` is not null.
+ */
+export interface PipelineJob {
+  id: number;
+  status: PipelineJobStatus;
+  /** `AAAA-MM-DD` or `null` when the job has no deadline. */
+  enrollmentDeadline: string | null;
+  enrollmentDeadlinePassed: boolean;
+}
+
 /** `GET /api/jobs/:jobId/applications`: a flat list already ordered by the API (DD-08). */
 export interface Pipeline {
-  job: { id: number; status: PipelineJobStatus };
+  job: PipelineJob;
   items: PipelineItem[];
 }
 

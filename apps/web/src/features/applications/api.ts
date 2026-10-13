@@ -1,3 +1,4 @@
+import { isCalendarDate } from '../../components/format.ts';
 import { badResponseError, isRecord, isValidId, requestJson } from '../../components/http.ts';
 import { listCandidates } from '../candidates/api.ts';
 import type { CandidatePage } from '../candidates/types.ts';
@@ -44,12 +45,21 @@ function isPipelineItem(value: unknown): value is PipelineItem {
   return value.rejectionReason === null;
 }
 
-/** Minimal shape check of the pipeline: `{ job: { id, status }, items }` (S1). */
+// `enrollmentDeadline` is `null` or a calendar date; a passed deadline needs a date (it cannot pass without one).
+function isDeadlineConsistent(job: Record<string, unknown>): boolean {
+  const { enrollmentDeadline, enrollmentDeadlinePassed } = job;
+  if (typeof enrollmentDeadlinePassed !== 'boolean') return false;
+  if (enrollmentDeadline === null) return !enrollmentDeadlinePassed;
+  return typeof enrollmentDeadline === 'string' && isCalendarDate(enrollmentDeadline);
+}
+
+/** Minimal shape check of the pipeline: `{ job: { id, status, deadline fields }, items }` (S1, S4). */
 export function isPipeline(value: unknown): value is Pipeline {
   if (!isRecord(value) || !isRecord(value.job) || !Array.isArray(value.items)) return false;
   return (
     isValidId(value.job.id) &&
     isOneOf(JOB_STATUSES, value.job.status) &&
+    isDeadlineConsistent(value.job) &&
     value.items.every(isPipelineItem)
   );
 }

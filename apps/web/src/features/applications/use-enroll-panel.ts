@@ -57,10 +57,11 @@ function usePanelAlert() {
 
 /**
  * Open state, focus and alert of the «Inscribir candidato» panel (DD-02: not modal, no focus trap), composed
- * with its search. `published` is whether the job accepts enrollments: if it stops being so, the panel is dropped.
- * `busy` is an enrollment in flight; `onOpen` runs when the trigger opens the panel (it clears the page message).
+ * with its search. `enrollable` is whether the job accepts enrollments (published and deadline not passed): if it
+ * stops being so, the panel is dropped. `busy` is an enrollment in flight; `onOpen` runs when the trigger opens
+ * the panel (it clears the page message).
  */
-export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => void) {
+export function useEnrollPanel(enrollable: boolean, busy = false, onOpen?: () => void) {
   const [open, setOpen] = useState(false);
   const { alert, alertLinkId, showAlert } = usePanelAlert();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -68,11 +69,11 @@ export function useEnrollPanel(published: boolean, busy = false, onOpen?: () => 
   const alertRef = useRef<HTMLParagraphElement>(null);
   const search = useCandidateSearch(inputRef);
 
-  usePanelFocus(open && published, alert, inputRef, alertRef);
+  usePanelFocus(open && enrollable, alert, inputRef, alertRef);
 
-  // A reload that brings a job that is no longer `published` drops the panel and what was searched (no focus:
-  // the trigger is gone too).
-  if (open && !published) dismiss();
+  // A reload that brings a job that no longer accepts enrollments drops the panel and what was searched (no
+  // focus: the trigger is gone too).
+  if (open && !enrollable) dismiss();
 
   function dismiss(): void {
     setOpen(false);

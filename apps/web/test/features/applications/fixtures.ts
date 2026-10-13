@@ -21,7 +21,12 @@ function item(
 
 /** Published job with cards in the six stages (the API order: `lastChangeAt` DESC, `id` DESC). */
 export const PUBLISHED_PIPELINE: Pipeline = {
-  job: { id: JOB_ID, status: 'published' },
+  job: {
+    id: JOB_ID,
+    status: 'published',
+    enrollmentDeadline: null,
+    enrollmentDeadlinePassed: false,
+  },
   items: [
     item(31, 'Marina Ortega Vidal', 'received', '2026-10-06T10:00:00.000Z'),
     item(30, 'Iván Soler Prats', 'received', '2026-10-05T09:00:00.000Z'),
@@ -37,19 +42,41 @@ export const PUBLISHED_PIPELINE: Pipeline = {
 };
 
 export const EMPTY_PUBLISHED_PIPELINE: Pipeline = {
-  job: { id: JOB_ID, status: 'published' },
+  job: {
+    id: JOB_ID,
+    status: 'published',
+    enrollmentDeadline: null,
+    enrollmentDeadlinePassed: false,
+  },
   items: [],
 };
 
-export const DRAFT_PIPELINE: Pipeline = { job: { id: JOB_ID, status: 'draft' }, items: [] };
+export const DRAFT_PIPELINE: Pipeline = {
+  job: { id: JOB_ID, status: 'draft', enrollmentDeadline: null, enrollmentDeadlinePassed: false },
+  items: [],
+};
 
 export const CLOSED_PIPELINE: Pipeline = {
-  job: { id: JOB_ID, status: 'closed' },
+  job: { id: JOB_ID, status: 'closed', enrollmentDeadline: null, enrollmentDeadlinePassed: false },
   items: [
     item(12, 'Elena Mora Lara', 'hired', '2026-09-20T08:00:00.000Z'),
     item(11, 'Sergi Roig Font', 'rejected', '2026-09-20T07:00:00.000Z', 'job_closed'),
   ],
 };
+
+/** Published job whose deadline (`2026-10-10`) has passed according to the API clock, with cards (CA-12). */
+export const EXPIRED_PIPELINE: Pipeline = {
+  ...PUBLISHED_PIPELINE,
+  job: {
+    id: JOB_ID,
+    status: 'published',
+    enrollmentDeadline: '2026-10-10',
+    enrollmentDeadlinePassed: true,
+  },
+};
+
+/** Same, without enrollments. */
+export const EXPIRED_EMPTY_PIPELINE: Pipeline = { ...EXPIRED_PIPELINE, items: [] };
 
 function candidatePage(count: number, total: number): CandidatePage {
   return {
