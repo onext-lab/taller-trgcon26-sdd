@@ -32,7 +32,7 @@ export interface JobsService {
   close(id: number): Job;
   /** Lectura previa al cierre, en cualquier estado (DD-11). `NOT_FOUND` si no existe. */
   closePreview(id: number): ClosePreview;
-  /** Copia de los 6 campos editables como borrador nuevo, desde cualquier estado (DD-09). No es idempotente. */
+  /** Copia de los campos editables, sin la fecha límite, como borrador nuevo, desde cualquier estado (DD-09). No es idempotente. */
   duplicate(id: number): Job;
   /** Filtros en Y (estado, texto plegado), orden de HU-01 y `total` del resultado filtrado (DEC-10). */
   list(query: JobListQuery): JobPage;
@@ -52,7 +52,7 @@ const NOT_FOUND_MESSAGE = 'La oferta no existe.';
 // DD-09: inalcanzable por la API (el servicio comprueba antes); distinto de los mensajes de `rules.ts` a propósito.
 const STATE_CHANGED_MESSAGE = 'El estado de la oferta ha cambiado: recarga e inténtalo de nuevo.';
 
-/** Solo los 6 campos editables de la oferta guardada: `status` y las fechas nunca entran en la fusión. */
+/** Solo los 7 campos editables de la oferta guardada: `status` y las fechas de estado nunca entran en la fusión. */
 function editableFields({
   title,
   description,
@@ -60,8 +60,9 @@ function editableFields({
   workMode,
   salaryMin,
   salaryMax,
+  enrollmentDeadline,
 }: Job): JobEditableFields {
-  return { title, description, location, workMode, salaryMin, salaryMax };
+  return { title, description, location, workMode, salaryMin, salaryMax, enrollmentDeadline };
 }
 
 function requireJob(repository: JobsRepository, id: number): Job {
@@ -144,7 +145,9 @@ export function createJobsService(deps: JobsServiceDeps): JobsService {
     duplicate(id) {
       return transaction(() => {
         const original = requireJob(repository, id);
-        return repository.insert(editableFields(original), now().toISOString());
+        // DD-05, RN-08: la copia nace sin fecha límite, de forma explícita.
+        const copy = { ...editableFields(original), enrollmentDeadline: null };
+        return repository.insert(copy, now().toISOString());
       });
     },
     list({ status, q, page, pageSize }) {

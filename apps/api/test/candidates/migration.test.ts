@@ -74,6 +74,7 @@ describe('migración 002-create-candidates', () => {
         '001-create-job-openings.sql',
         '002-create-candidates.sql',
         '003-create-applications.sql',
+        '004-add-job-enrollment-deadline.sql',
       ]);
       const indexes = fresh
         .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'candidates'")

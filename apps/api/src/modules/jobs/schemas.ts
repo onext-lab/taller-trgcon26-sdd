@@ -25,6 +25,8 @@ export interface Job {
   createdAt: string;
   publishedAt: string | null;
   closedAt: string | null;
+  /** Día de calendario `AAAA-MM-DD` (Europe/Madrid); `null` = sin límite. */
+  enrollmentDeadline: string | null;
 }
 
 /** Cuerpo del alta ya recortado y validado. `status` y `createdAt` solo los fija el servicio. */
@@ -35,6 +37,7 @@ export interface JobInput {
   workMode?: WorkMode | null;
   salaryMin?: number | null;
   salaryMax?: number | null;
+  enrollmentDeadline?: string | null;
 }
 
 /** Cuerpo de la edición (TASK-05): campo ausente = sin cambios; `title` no admite `null`. */
@@ -83,6 +86,8 @@ export const jobFieldsSchema = {
   workMode: { type: ['string', 'null'], enum: [...WORK_MODES, null] },
   salaryMin: { type: ['integer', 'null'], exclusiveMinimum: 0, maximum: MAX_SALARY },
   salaryMax: { type: ['integer', 'null'], exclusiveMinimum: 0, maximum: MAX_SALARY },
+  // DD-03: sin `pattern` ni `format`; la validez del día la pone TASK-02.
+  enrollmentDeadline: { type: ['string', 'null'], maxLength: 32 },
 } as const;
 
 /** Oferta completa en las respuestas: los opcionales sin valor salen como `null`, nunca ausentes. */
@@ -101,6 +106,7 @@ export const jobSchema = {
     'createdAt',
     'publishedAt',
     'closedAt',
+    'enrollmentDeadline',
   ],
   properties: {
     id: { type: 'integer' },
@@ -114,6 +120,7 @@ export const jobSchema = {
     createdAt: { type: 'string' },
     publishedAt: { type: ['string', 'null'] },
     closedAt: { type: ['string', 'null'] },
+    enrollmentDeadline: { type: ['string', 'null'] },
   },
 } as const;
 

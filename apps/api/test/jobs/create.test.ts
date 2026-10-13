@@ -60,6 +60,7 @@ describe('POST /api/jobs — alta de borradores (camino feliz)', () => {
       createdAt: NOW,
       publishedAt: null,
       closedAt: null,
+      enrollmentDeadline: null,
     });
     expect(countJobs()).toBe(1);
 

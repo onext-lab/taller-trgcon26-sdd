@@ -46,6 +46,7 @@ describe('GET /api/jobs/:id — ficha (camino feliz)', () => {
       createdAt: NOW,
       publishedAt: null,
       closedAt: null,
+      enrollmentDeadline: null,
     });
   });
 
@@ -68,6 +69,7 @@ describe('GET /api/jobs/:id — ficha (camino feliz)', () => {
       createdAt: NOW,
       publishedAt: null,
       closedAt: null,
+      enrollmentDeadline: null,
     });
     // Los opcionales salen como `null`, nunca ausentes.
     for (const key of ['description', 'location', 'workMode', 'salaryMin', 'salaryMax']) {

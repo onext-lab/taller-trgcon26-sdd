@@ -62,6 +62,7 @@ describe('migración 003-create-applications', () => {
       '001-create-job-openings.sql',
       '002-create-candidates.sql',
       '003-create-applications.sql',
+      '004-add-job-enrollment-deadline.sql',
     ]);
     const registered = db.prepare('SELECT name FROM schema_migrations ORDER BY name').all();
     expect(registered.map((row) => row.name)).toContain('003-create-applications.sql');

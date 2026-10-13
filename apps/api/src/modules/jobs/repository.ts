@@ -15,6 +15,7 @@ interface JobRow {
   created_at: string;
   published_at: string | null;
   closed_at: string | null;
+  enrollment_deadline: string | null;
 }
 
 export function toJob(row: JobRow): Job {
@@ -30,18 +31,20 @@ export function toJob(row: JobRow): Job {
     createdAt: row.created_at,
     publishedAt: row.published_at,
     closedAt: row.closed_at,
+    enrollmentDeadline: row.enrollment_deadline,
   };
 }
 
 const INSERT_SQL = `INSERT INTO job_openings
-  (title, description, location, work_mode, salary_min, salary_max, status, created_at)
-  VALUES (?, ?, ?, ?, ?, ?, 'draft', ?)
+  (title, description, location, work_mode, salary_min, salary_max, enrollment_deadline, status, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?)
   RETURNING *`;
 
-// DD-05: lista fija de las 6 columnas editables; nunca un `SET` construido con las claves recibidas.
+// DD-05: lista fija de las 7 columnas editables; nunca un `SET` construido con las claves recibidas.
 // SEC-02: la guarda de estado (una `closed` no se edita) va en el propio `WHERE`, como en `MARK_*_SQL`.
 const UPDATE_SQL = `UPDATE job_openings
-  SET title = ?, description = ?, location = ?, work_mode = ?, salary_min = ?, salary_max = ?
+  SET title = ?, description = ?, location = ?, work_mode = ?, salary_min = ?, salary_max = ?,
+      enrollment_deadline = ?
   WHERE id = ? AND status IN ('draft', 'published')
   RETURNING *`;
 
@@ -57,7 +60,7 @@ const MARK_CLOSED_SQL = `UPDATE job_openings SET status = 'closed', closed_at = 
   WHERE id = ? AND status = 'published'
   RETURNING *`;
 
-/** Los 6 campos editables ya fusionados (todos presentes). */
+/** Los 7 campos editables ya fusionados (todos presentes). */
 export interface JobEditableFields {
   title: string;
   description: string | null;
@@ -65,6 +68,7 @@ export interface JobEditableFields {
   workMode: WorkMode | null;
   salaryMin: number | null;
   salaryMax: number | null;
+  enrollmentDeadline: string | null;
 }
 
 interface JobListRow {
@@ -142,6 +146,7 @@ function createJobWriteOperations(db: DatabaseSync) {
           input.workMode ?? null,
           input.salaryMin ?? null,
           input.salaryMax ?? null,
+          input.enrollmentDeadline ?? null,
           createdAt,
         );
       if (!row) throw new Error('INSERT ... RETURNING no devolvió la fila');
@@ -158,6 +163,7 @@ function createJobWriteOperations(db: DatabaseSync) {
           fields.workMode,
           fields.salaryMin,
           fields.salaryMax,
+          fields.enrollmentDeadline,
           id,
         );
       return row ? toJob(row as unknown as JobRow) : undefined;

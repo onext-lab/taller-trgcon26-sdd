@@ -22,14 +22,14 @@ import {
 import type { JobsService } from './service.ts';
 
 /**
- * Recorte previo a la validación (DD-01, DEC-11.3): el JSON Schema no ve el cuerpo original. `title`, `description` y
- * `location` se recortan; `description` y `location` que quedan `""` pasan a `null`. `title` no pasa a `null` (un `""`
- * lo rechaza `minLength`). `workMode` y los salarios no se tocan: solo valen los literales exactos.
+ * Recorte previo a la validación (DD-01, DEC-11.3): el JSON Schema no ve el cuerpo original. `title`, `description`,
+ * `location` y `enrollmentDeadline` se recortan; los tres últimos que quedan `""` pasan a `null`. `title` no pasa a
+ * `null` (un `""` lo rechaza `minLength`). `workMode` y los salarios no se tocan: solo valen los literales exactos.
  */
 const trimJobText: preValidationHookHandler = (request, _reply, done) => {
   trimTextFields(request.body, {
-    trim: ['title', 'description', 'location'],
-    emptyToNull: ['description', 'location'],
+    trim: ['title', 'description', 'location', 'enrollmentDeadline'],
+    emptyToNull: ['description', 'location', 'enrollmentDeadline'],
   });
   done();
 };

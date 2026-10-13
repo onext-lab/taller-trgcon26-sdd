@@ -63,6 +63,7 @@ describe('regresión de las respuestas de edición y borrado de ofertas', () => 
       createdAt: NOW,
       publishedAt: null,
       closedAt: null,
+      enrollmentDeadline: null,
     });
   });
 
@@ -84,6 +85,7 @@ describe('regresión de las respuestas de edición y borrado de ofertas', () => 
       createdAt: NOW,
       publishedAt: NOW,
       closedAt: null,
+      enrollmentDeadline: null,
     });
   });
 
@@ -145,6 +147,7 @@ const EDIT_FIELDS = {
   workMode: 'remota',
   salaryMin: 20000,
   salaryMax: 30000,
+  enrollmentDeadline: null,
 } as const;
 
 /** Servicio con las dependencias de `buildApp`, sobre un repositorio real cuyo `findById` miente sobre el estado. */
