@@ -239,15 +239,9 @@ El repo se recorre en el taller saltando entre etiquetas git **locales**. Cada u
 | `vivo-{A,C}-2-prd` | La misma feature con su HU y su PRD `Ready` |
 | `vivo-C-3-tareas` | Con diseño técnico y tareas (A se queda en el PRD) |
 | `vivo-C-4-hecho` | Implementada, revisada y sincronizada: la solución de referencia |
-| `taller-1-feature` | Práctica del taller (fecha límite de inscripción): idea, feature con sus respuestas, HU y sprint |
-| `taller-2-prd` | El PRD `Ready` de la HU de la práctica |
-| `taller-3-tareas` | Con diseño técnico y tareas |
-| `taller-4-implementada` | Con la TASK-01 implementada (brief, integración y commit) |
-| `taller-5-hecho` | Todas las tasks, la integración y la review con su `VERDICT` |
+| `taller-{1-feature,2-prd,3-tareas,4-implementada,5-hecho}` | Práctica del taller (fecha límite de inscripción): feature y HU, PRD, diseño y tareas, TASK-01, y la HU completa con su review |
 
-Para saltar: `git switch --detach <etiqueta> && npm ci && npm run db:reset`. En la práctica, para seguir trabajando
-desde un punto de control sobre una rama que las skills reconocen como la de la HU:
-`git switch -C hu/HU-07-fecha-limite-inscripcion taller-N-… && npm run db:reset`.
+Para saltar: `git switch --detach <etiqueta> && npm ci && npm run db:reset`. Para seguir la práctica desde un punto de control: `git switch -C hu/HU-07-fecha-limite-inscripcion taller-N-… && npm run db:reset`.
 
 ## Referencias
 
