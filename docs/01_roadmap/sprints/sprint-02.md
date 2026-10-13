@@ -190,6 +190,9 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   - **Paso 5, comprobación nueva:** ninguna ref publicada lleva `docs/taller/`. Para cada ref de la lista cerrada,
     `git ls-tree -r --name-only <ref> -- docs/taller` vacío, y `git log --all --oneline -- docs/taller` también
     vacío en todo el historial de la copia.
+- 2026-10-14 · **Hecha, adelantada:** la copia de publicación se genera y se verifica fuera de este repo, con estos
+  pasos. La lista cerrada de refs se amplía a las etiquetas `taller-*` (los puntos de control de la práctica); la
+  línea del 12/10 se deja como estaba, como registro de aquella decisión.
 
 ### T-18 · `check-clean --publish` con una lista de publicación aparte · estado: hecha (2026-10-12)
 - **Tipo:** publicación (DP-01 de la auditoría del sprint-02; decisión de la persona responsable del 2026-10-09,

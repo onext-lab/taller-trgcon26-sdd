@@ -226,7 +226,7 @@ la review exige `datos-personales-auditor` sin hallazgos críticos. Base: [RGPD.
 
 ## 10. Etiquetas por fase
 
-El repo se recorre en el taller saltando entre etiquetas git **locales**. Cada una se crea con `test`, `typecheck`,
+El repo se recorre en el taller saltando entre etiquetas git. Cada una se crea con `test`, `typecheck`,
 `lint`, `e2e` y `check:harness` en verde.
 
 | Etiqueta | Qué contiene |

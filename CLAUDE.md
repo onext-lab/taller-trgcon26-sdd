@@ -4,7 +4,8 @@
 
 - **Skills:** se invocan con `/nombre` y su argumento (`/prd-writer HU-01`, `/audit-sprint 01`). Las 12 están en
   `.claude/skills/`; cada una dice al principio qué lee, qué escribe y qué gate aplica.
-- **Agentes:** en `.claude/agents/`. Los lanzan las skills; heredan el modelo de la sesión.
+- **Agentes:** en `.claude/agents/`. Los lanzan las skills; heredan el modelo de la sesión (Opus, fijado en `.claude/settings.json`), salvo los que
+  declaran `model: sonnet`: los dos builders, los tres auditores y `qa-e2e-runner`.
 - **Hooks** (`.claude/hooks/*.mjs`, Node sin dependencias y sin red), configurados en `.claude/settings.json`:
   - `sensitive-files`: bloquea escribir `.env*`, `*.pem`, `*.key`, lockfiles y `data/*.db`.
   - `raw-chars`: bloquea NUL y U+2028/U+2029 crudos en lo que escribes.

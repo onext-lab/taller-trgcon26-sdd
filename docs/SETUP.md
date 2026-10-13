@@ -112,7 +112,7 @@ distinto de 0; si todo pasa, sale con 0.
 
 ## Recorrer el taller por etiquetas
 
-El taller se sigue saltando entre etiquetas git locales, una por fase (`docs/WORKFLOW.md` §10). Lista las que tienes
+El taller se sigue saltando entre etiquetas git, una por fase (`docs/WORKFLOW.md` §10). Lista las que tienes
 con `git tag -l`.
 
 | Etiqueta | Qué ves | La app |
@@ -140,7 +140,8 @@ npm ci && npm run db:reset
 - Si has cambiado algo y quieres saltar, guárdalo en una rama tuya (`git switch -c mis-pruebas` y un commit) o
   descártalo con `git restore .`. El repo no usa `git stash`.
 - Los e2e de cada etiqueta usan su propia base (`data/e2e.db`); no hace falta nada más.
-- Las ramas `hu/HU-NN-slug` siguen en el repo: cada una es la historia de una HU, commit a commit (`[HU-NN TASK-NN]`).
+- Las ramas `hu/HU-NN-slug` no se publican: la historia de cada HU está en `main`, en su merge `Merge HU-NN: …` y sus
+  commits `[HU-NN TASK-NN]` (`git log --first-parent main` y `git log <merge>^2`).
 
 ## Versiones fijadas que conviene conocer
 

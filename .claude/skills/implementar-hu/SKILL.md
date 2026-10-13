@@ -76,7 +76,7 @@ git add -- <ficheros de la tarea> docs/03_delivery/hu/HU-NN-slug/tasks/TASK-NN.m
 git commit -m "feat(api): create job openings endpoint [HU-NN TASK-NN]"
 ```
 
-Mensaje en inglés, conventional, con `[HU-NN TASK-NN]`. El hook `typecheck-precommit` bloquea el commit si el typecheck falla: en ese caso es un fallo de integración (vuelve al paso 4). Sin push: el repo del taller no tiene remoto.
+Mensaje en inglés, conventional, con `[HU-NN TASK-NN]`. El hook `typecheck-precommit` bloquea el commit si el typecheck falla: en ese caso es un fallo de integración (vuelve al paso 4). Sin push: el hook `no-externo` lo bloquea.
 
 ## Al acabar todas las tareas
 
