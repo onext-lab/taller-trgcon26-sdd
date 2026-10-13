@@ -172,20 +172,21 @@ _Ninguna: sprint técnico (decisión del responsable técnico, 2026-10-09)._
   - **Paso 6:** el bundle se sigue creando, desde la misma copia verificada y con las mismas refs que se suben.
   - **Refs que se suben, lista cerrada:** `main` y las etiquetas `paso-*` y `vivo-*`, nada más: ni `hu/*`, ni
     `vivo/{A,C}`, ni `worktree-*` (decisión del responsable técnico del 2026-10-12; las etiquetas ya traen sus
-    commits). Las etiquetas `vivo-*` tienen que existir antes de empezar (esperan la ratificación de A-1 a A-4 y C-1 a
-    C-5). En `vivo/C`, la etiqueta `vivo-C-4-hecho` va sobre el commit que quita `docs/taller/`, posterior al cierre
-    del sprint-03.
+    commits). Las etiquetas `vivo-*` tienen que existir antes de empezar (A-1 a A-4 y C-1 a C-5 se ratificaron el
+    2026-10-13). En `vivo/C`, la etiqueta `vivo-C-4-hecho` va sobre el commit que cierra OQ-01 a OQ-05 del PRD de HU-07
+    (`b44ce67`), posterior al que quita `docs/taller/` y al cierre del sprint-03.
   - **Traspaso a la persona responsable:** el comando de subida exacto con esa lista de refs, y los ajustes del repo en
     GitHub (Issues, Wiki y Discussions desactivados, como dice el README; archivarlo el 2026-12-31).
 - 2026-10-12 · **Fuera el material de la charla** (corrección de la persona responsable): el repo publicado es la app de
   ejemplo con su kit, sin el guion, los CSV de la demo ni la checklist de escenario, que viven fuera del repo. En el repo
-  de trabajo ya se quitó `docs/taller/` de `main` y de `vivo/C`. Sigue en el historial, en `vivo/A` y en las
-  etiquetas que se pongan antes de quitarlo (`paso-3-punto-de-partida` y las `vivo-A-*`). En la copia:
+  de trabajo ya se quitó `docs/taller/` de `main` y de `vivo/C`. Sigue en el historial y en las etiquetas puestas en
+  commits anteriores a quitarlo: `paso-3-punto-de-partida`, `vivo-A-1-feature` y de `vivo-C-1-feature` a
+  `vivo-C-3-tareas`. En la copia:
   - **Paso 2, en la misma pasada que el `.mailmap`:** `git filter-repo --mailmap <ruta> --path docs/taller
     --invert-paths --prune-empty never`. `--prune-empty never` porque 3 commits solo tocan `docs/taller/` y quedarían
     vacíos; uno es el commit auditado del sprint-02 (`9215a8a`, citado en su auditoría como fin de rango). Si se
     podaran, sus citas no tendrían a dónde traducirse (paso 4). Se conservan vacíos, con su mensaje. El commit de
-    `vivo-C-4-hecho` no se vacía: también toca el README y los docs.
+    `vivo-C-4-hecho` no se vacía: no toca `docs/taller/`.
   - **Paso 5, comprobación nueva:** ninguna ref publicada lleva `docs/taller/`. Para cada ref de la lista cerrada,
     `git ls-tree -r --name-only <ref> -- docs/taller` vacío, y `git log --all --oneline -- docs/taller` también
     vacío en todo el historial de la copia.
