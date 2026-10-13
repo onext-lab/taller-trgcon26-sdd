@@ -1,3 +1,4 @@
+import { isCalendarDate } from '../../components/format.ts';
 import { WORK_MODES, type Job, type JobInput, type JobPatch, type WorkMode } from './types.ts';
 
 /**
@@ -12,6 +13,7 @@ export const FIELD_ORDER = [
   'workMode',
   'salaryMin',
   'salaryMax',
+  'enrollmentDeadline',
 ] as const;
 export type FieldName = (typeof FIELD_ORDER)[number];
 
@@ -25,6 +27,7 @@ export const EMPTY_FORM: JobFormValues = {
   workMode: '',
   salaryMin: '',
   salaryMax: '',
+  enrollmentDeadline: '',
 };
 
 export function isFieldName(value: string): value is FieldName {
@@ -44,6 +47,8 @@ const MESSAGES = {
   workMode: 'Elige presencial, híbrida o remota.',
   salary: 'Escribe un número entero mayor que 0, sin puntos ni espacios.',
   salaryOrder: 'El salario mínimo no puede ser mayor que el máximo.',
+  // Same text as the API (DT-01): it lives in two places.
+  deadlineFormat: 'Introduce una fecha válida.',
   // Same text as the API (DD-08): it lives in two places.
   requiredPublished: 'Obligatorio en una oferta publicada.',
 } as const;
@@ -91,6 +96,12 @@ function salaryErrors(values: JobFormValues): JobFormErrors {
   return errors;
 }
 
+// The web only checks that the value is a day; «not before today» is decided by the API (DD-03).
+function deadlineError(values: JobFormValues): string | undefined {
+  const text = values.enrollmentDeadline;
+  return text === '' || isCalendarDate(text) ? undefined : MESSAGES.deadlineFormat;
+}
+
 export type ValidateOptions = {
   /** Editing a published job: description, location and work mode become required (RF-03, DD-08). */
   published?: boolean;
@@ -121,6 +132,8 @@ export function validateJobForm(
   const location = locationError(values.location);
   if (location) errors.location = location;
   if (values.workMode !== '' && !isWorkMode(values.workMode)) errors.workMode = MESSAGES.workMode;
+  const deadline = deadlineError(values);
+  if (deadline) errors.enrollmentDeadline = deadline;
   const required = options.published ? publishedErrors(values) : {};
   return { ...required, ...errors, ...salaryErrors(values) };
 }
@@ -140,6 +153,7 @@ export function toCreateInput(values: JobFormValues): JobInput {
   if (typeof min === 'number') input.salaryMin = min;
   const max = parseSalary(values.salaryMax);
   if (typeof max === 'number') input.salaryMax = max;
+  if (values.enrollmentDeadline !== '') input.enrollmentDeadline = values.enrollmentDeadline;
   return input;
 }
 
@@ -152,6 +166,7 @@ export function jobToForm(job: Job): JobFormValues {
     workMode: job.workMode ?? '',
     salaryMin: job.salaryMin === null ? '' : String(job.salaryMin),
     salaryMax: job.salaryMax === null ? '' : String(job.salaryMax),
+    enrollmentDeadline: job.enrollmentDeadline ?? '',
   };
 }
 
@@ -180,5 +195,7 @@ export function toPatch(original: Job, values: JobFormValues): JobPatch {
   if (min !== 'invalid' && min !== original.salaryMin) patch.salaryMin = min;
   const max = parseSalary(values.salaryMax);
   if (max !== 'invalid' && max !== original.salaryMax) patch.salaryMax = max;
+  const deadline = values.enrollmentDeadline === '' ? null : values.enrollmentDeadline;
+  if (deadline !== original.enrollmentDeadline) patch.enrollmentDeadline = deadline;
   return patch;
 }

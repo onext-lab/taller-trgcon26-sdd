@@ -1,5 +1,5 @@
 import type { Ref } from 'react';
-import { formatDate } from '../../components/format.ts';
+import { formatCalendarDate, formatDate } from '../../components/format.ts';
 import { formatSalaryBand, jobStatusLabel, NOT_SPECIFIED_TEXT, workModeLabel } from './labels.ts';
 import type { Job } from './types.ts';
 
@@ -14,6 +14,19 @@ function DateEntry({ label, iso }: { label: string; iso: string | null }) {
       <dt>{label}</dt>
       <dd>
         <time dateTime={iso}>{formatDate(iso)}</time>
+      </dd>
+    </>
+  );
+}
+
+// RF-06, DD-07: the deadline is a calendar date (no time, no zone); no «expired» notice, and no row without one.
+function DeadlineEntry({ date }: { date: string | null }) {
+  if (date === null) return null;
+  return (
+    <>
+      <dt>Fecha límite de inscripción</dt>
+      <dd>
+        <time dateTime={date}>{formatCalendarDate(date)}</time>
       </dd>
     </>
   );
@@ -44,6 +57,7 @@ export function JobDetails({ job, headingRef }: Props) {
         <dd>{workModeLabel(job.workMode)}</dd>
         <dt>Banda salarial</dt>
         <dd>{formatSalaryBand(job.salaryMin, job.salaryMax)}</dd>
+        <DeadlineEntry date={job.enrollmentDeadline} />
         <DateEntry label="Fecha de creación" iso={job.createdAt} />
         <DateEntry label="Fecha de publicación" iso={job.publishedAt} />
         <DateEntry label="Fecha de cierre" iso={job.closedAt} />

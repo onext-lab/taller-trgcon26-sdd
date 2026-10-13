@@ -10,6 +10,7 @@ import type { Job } from './types.ts';
 
 // Fields that the API names in the 400 of a publish with an incomplete draft (RF-01, EC-02).
 const PUBLISH_FIELDS: readonly string[] = ['title', 'description', 'location', 'workMode'];
+const DEADLINE_FIELD = 'enrollmentDeadline';
 
 /** What the container does with a failed action. */
 type Outcome =
@@ -33,6 +34,17 @@ function isMissingFieldsList(details: ApiErrorDetail[] | undefined): details is 
   );
 }
 
+// DD-06: a 400 that names the expired deadline reads «Para publicar falta: …» (if fields are missing) and the
+// API message of the deadline, separated by a space. Details with any other field fall back to `error.message`.
+function publishDeadlineText(details: ApiErrorDetail[] | undefined): string | null {
+  const deadline = details?.find(({ field }) => field === DEADLINE_FIELD);
+  if (!details || !deadline) return null;
+  const rest = details.filter((detail) => detail !== deadline);
+  if (rest.length > 0 && !isMissingFieldsList(rest)) return null;
+  const missing = rest.length > 0 ? `${missingFieldsText(rest.map(({ field }) => field))} ` : '';
+  return `${missing}${deadline.message}`;
+}
+
 // DD-05: 404 → gone; 409 (publish) → message + reload; 400 with the pending fields → their labels; any other
 // failure (other 400, network, timeout, 500) → its message, and the button comes back.
 function classify(error: unknown, action: PendingAction): Outcome {
@@ -44,7 +56,9 @@ function classify(error: unknown, action: PendingAction): Outcome {
   if (action === 'publish' && error.status === 400 && isMissingFieldsList(error.details)) {
     return { kind: 'alert', message: missingFieldsText(error.details.map(({ field }) => field)) };
   }
-  return { kind: 'alert', message: error.message };
+  const deadlineText =
+    action === 'publish' && error.status === 400 ? publishDeadlineText(error.details) : null;
+  return { kind: 'alert', message: deadlineText ?? error.message };
 }
 
 // The focus goes back to the pressed button once it is enabled again (DD-07). The effect only reads refs.

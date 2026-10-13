@@ -104,6 +104,27 @@ function WorkModeField({ required = false, values, errors, onChange }: ControlPr
   );
 }
 
+// A date has no `required`, `min` or `max` (DD-03: «not before today» is decided by the API) and no help text (DD-08).
+function DeadlineField({ values, errors, onChange }: ControlProps) {
+  return (
+    <FormField
+      id="enrollmentDeadline"
+      label="Fecha límite de inscripción"
+      error={errors.enrollmentDeadline}
+    >
+      {(control) => (
+        <input
+          {...control}
+          name="enrollmentDeadline"
+          type="date"
+          value={values.enrollmentDeadline}
+          onChange={(event) => onChange('enrollmentDeadline', event.target.value)}
+        />
+      )}
+    </FormField>
+  );
+}
+
 // Presentational job form (`noValidate`: validation runs on submit, in the container).
 export function JobForm({
   heading,
@@ -132,6 +153,7 @@ export function JobForm({
         <WorkModeField required={published} {...shared} />
         <TextInput name="salaryMin" label="Salario mínimo (€/año)" {...shared} />
         <TextInput name="salaryMax" label="Salario máximo (€/año)" {...shared} />
+        <DeadlineField {...shared} />
         {formError ? (
           <p role="alert" className="error-text">
             {formError}

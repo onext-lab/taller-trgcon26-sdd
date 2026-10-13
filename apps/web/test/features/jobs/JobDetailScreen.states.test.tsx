@@ -17,6 +17,7 @@ const DRAFT: Job = {
   createdAt: '2026-09-30T09:00:00.000Z',
   publishedAt: null,
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 const PUBLISHED: Job = { ...DRAFT, status: 'published', publishedAt: '2026-10-01T09:00:00.000Z' };

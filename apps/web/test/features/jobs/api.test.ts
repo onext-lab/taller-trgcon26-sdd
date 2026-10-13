@@ -28,6 +28,7 @@ const JOB: Job = {
   createdAt: '2026-10-06T22:30:00.000Z',
   publishedAt: null,
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 const PAGE: JobPage = {

@@ -20,6 +20,7 @@ const PUBLISHED: Job = {
   createdAt: '2026-09-30T09:00:00.000Z',
   publishedAt: '2026-10-01T09:00:00.000Z',
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 const CLOSED: Job = { ...PUBLISHED, status: 'closed', closedAt: '2026-10-06T22:30:00.000Z' };

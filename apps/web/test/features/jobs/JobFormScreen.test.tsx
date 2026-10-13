@@ -22,6 +22,7 @@ function createdJob(id: number, title: string): Record<string, unknown> {
     createdAt: CREATED_AT,
     publishedAt: null,
     closedAt: null,
+    enrollmentDeadline: null,
   };
 }
 

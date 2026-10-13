@@ -17,6 +17,7 @@ const JOB = {
   createdAt: '2026-10-06T09:30:00.000Z',
   publishedAt: null,
   closedAt: null,
+  enrollmentDeadline: null,
 };
 const GET_JOB: MockRoute = { status: 200, json: JOB };
 const HEALTH: MockRoute = { status: 200, json: { status: 'ok' } };

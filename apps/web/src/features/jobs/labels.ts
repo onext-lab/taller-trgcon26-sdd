@@ -28,6 +28,7 @@ const fieldLabels: Record<string, string> = {
   description: 'Descripción',
   location: 'Ubicación',
   workMode: 'Modalidad',
+  enrollmentDeadline: 'Fecha límite de inscripción',
 };
 
 /** Label of a job field named by the API in `details[i].field`; an unknown name is shown as received. */

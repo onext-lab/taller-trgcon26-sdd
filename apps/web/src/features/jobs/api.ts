@@ -1,3 +1,4 @@
+import { isCalendarDate } from '../../components/format.ts';
 import { badResponseError, isRecord, requestJson } from '../../components/http.ts';
 import { toSearch, type ListQuery } from './list-query.ts';
 import { parseJobId } from './paths.ts';
@@ -50,6 +51,10 @@ function isNullableWorkMode(value: unknown): boolean {
   return value === null || isWorkMode(value);
 }
 
+function isNullableCalendarDate(value: unknown): boolean {
+  return value === null || (typeof value === 'string' && isCalendarDate(value));
+}
+
 // One check per field of `Job`: the type forces every field to have its own.
 const JOB_CHECKS: Record<keyof Job, (value: unknown) => boolean> = {
   id: isId,
@@ -63,6 +68,7 @@ const JOB_CHECKS: Record<keyof Job, (value: unknown) => boolean> = {
   createdAt: isString,
   publishedAt: isNullableString,
   closedAt: isNullableString,
+  enrollmentDeadline: isNullableCalendarDate,
 };
 
 /** Minimal shape check of a full job. */

@@ -20,6 +20,17 @@ export function formatDate(iso: string): string {
 
 const CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+/** `AAAA-MM-DD` of a day that exists (`2028-02-29` yes, `2026-02-31` no). Pure text/UTC arithmetic: no «today». */
+export function isCalendarDate(text: string): boolean {
+  const match = CALENDAR_DATE_PATTERN.exec(text);
+  if (!match) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
 /**
  * `2027-04-06` → «06/04/2027». A calendar date has no time and no zone, so it is rearranged as text (no
  * `Date`, which would shift it with the zone); any other format → «Fecha no válida».

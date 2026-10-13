@@ -17,6 +17,7 @@ const PUBLISHED = {
   createdAt: '2026-10-06T09:30:00.000Z',
   publishedAt: '2026-10-06T10:00:00.000Z',
   closedAt: null,
+  enrollmentDeadline: null,
 };
 const CLOSED = { ...PUBLISHED, status: 'closed', closedAt: '2026-10-07T08:00:00.000Z' };
 const HEALTH: MockRoute = { status: 200, json: { status: 'ok' } };

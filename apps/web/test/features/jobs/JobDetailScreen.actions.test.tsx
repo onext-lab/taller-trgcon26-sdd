@@ -4,21 +4,10 @@ import { JobDetailScreen } from '../../../src/features/jobs/JobDetailScreen.tsx'
 import type { Job } from '../../../src/features/jobs/types.ts';
 import { expectFocusOn } from '../../helpers/focus.ts';
 import { mockFetch, type MockRoute } from '../../helpers/fetch.ts';
+import { makeJob } from './fixtures.ts';
 
 // Invented data only.
-const DRAFT: Job = {
-  id: 7,
-  title: 'Técnica/o de selección',
-  description: 'Gestión de procesos de selección.',
-  location: 'Valencia',
-  workMode: 'híbrida',
-  salaryMin: 30000,
-  salaryMax: 36000,
-  status: 'draft',
-  createdAt: '2026-09-30T09:00:00.000Z',
-  publishedAt: null,
-  closedAt: null,
-};
+const DRAFT: Job = makeJob();
 
 const PUBLISHED: Job = { ...DRAFT, status: 'published', publishedAt: '2026-10-06T09:00:00.000Z' };
 const PUBLISHED_CONTROLS = ['Ver pipeline', 'Editar', 'Cerrar', 'Duplicar'];

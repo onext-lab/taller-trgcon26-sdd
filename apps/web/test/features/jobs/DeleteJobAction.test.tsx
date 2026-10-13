@@ -173,6 +173,7 @@ describe('DeleteJobAction', () => {
       createdAt: '2026-09-30T09:00:00.000Z',
       publishedAt: null,
       closedAt: null,
+      enrollmentDeadline: null,
     };
     const message = 'Solo se puede borrar un borrador.';
     let loads = 0;

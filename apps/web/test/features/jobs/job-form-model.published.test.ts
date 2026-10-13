@@ -34,6 +34,7 @@ const JOB: Job = {
   createdAt: '2026-10-06T09:30:00.000Z',
   publishedAt: '2026-10-06T10:00:00.000Z',
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 describe('validateJobForm · oferta publicada (CA-11, EC-17, DD-08)', () => {

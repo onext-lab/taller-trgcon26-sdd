@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatCalendarDate, formatDate, formatInteger } from '../../src/components/format.ts';
+import {
+  formatCalendarDate,
+  formatDate,
+  formatInteger,
+  isCalendarDate,
+} from '../../src/components/format.ts';
 
 describe('formatDate', () => {
   it('pinta la fecha en Europe/Madrid como dd/mm/aaaa (EC-36)', () => {
@@ -33,6 +38,27 @@ describe('formatCalendarDate', () => {
   it('otro formato da «Fecha no válida»', () => {
     for (const text of ['2027-4-6', '', '06/04/2027', '2027-04-06T00:00:00Z', ' 2027-04-06', 'x']) {
       expect(formatCalendarDate(text)).toBe('Fecha no válida');
+    }
+  });
+});
+
+describe('isCalendarDate', () => {
+  it('acepta un día que existe, también el 29 de febrero bisiesto', () => {
+    expect(isCalendarDate('2026-10-13')).toBe(true);
+    expect(isCalendarDate('2028-02-29')).toBe(true);
+  });
+
+  it('rechaza un día que no existe, otro formato o un valor vacío', () => {
+    for (const text of [
+      '2026-02-31',
+      '2027-02-29',
+      '2026-13-01',
+      '2026-00-10',
+      '13/10/2026',
+      '2026-10-13T00:00:00Z',
+      '',
+    ]) {
+      expect(isCalendarDate(text)).toBe(false);
     }
   });
 });

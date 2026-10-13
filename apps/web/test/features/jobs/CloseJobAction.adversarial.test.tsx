@@ -21,6 +21,7 @@ const PUBLISHED: Job = {
   createdAt: '2026-09-30T09:00:00.000Z',
   publishedAt: '2026-10-01T09:00:00.000Z',
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 const GET_JOB = 'GET /api/jobs/7';

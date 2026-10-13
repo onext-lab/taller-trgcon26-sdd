@@ -164,6 +164,7 @@ const ORIGINAL: Job = {
   createdAt: '2026-10-06T09:30:00.000Z',
   publishedAt: null,
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 describe('jobToForm', () => {
@@ -175,6 +176,7 @@ describe('jobToForm', () => {
       workMode: 'híbrida',
       salaryMin: '32000',
       salaryMax: '',
+      enrollmentDeadline: '',
     });
     expect(
       jobToForm({ ...ORIGINAL, description: null, location: null, workMode: null }),
@@ -241,6 +243,7 @@ describe('toPatch (CA-09, CA-10, EC-21, EC-25)', () => {
       workMode: 'remota',
       salaryMin: '1',
       salaryMax: '2',
+      enrollmentDeadline: '',
     };
     const keys = Object.keys(toPatch(ORIGINAL, everything)).sort();
     expect(keys).toEqual([

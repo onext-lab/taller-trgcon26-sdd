@@ -17,6 +17,7 @@ const JOB = {
   createdAt: '2026-10-06T09:30:00.000Z',
   publishedAt: null,
   closedAt: null,
+  enrollmentDeadline: null,
 };
 
 function type(label: string, value: string): void {

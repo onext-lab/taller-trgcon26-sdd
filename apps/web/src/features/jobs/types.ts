@@ -25,6 +25,8 @@ export interface Job {
   createdAt: string;
   publishedAt: string | null;
   closedAt: string | null;
+  /** Last day to enrol, `AAAA-MM-DD` (a calendar date, no time or zone), or `null` when there is none. */
+  enrollmentDeadline: string | null;
 }
 
 /** Item of `GET /api/jobs`; `referenceDate = publishedAt ?? createdAt`. */
@@ -55,6 +57,7 @@ export interface JobInput {
   workMode?: WorkMode | null;
   salaryMin?: number | null;
   salaryMax?: number | null;
+  enrollmentDeadline?: string | null;
 }
 
 /** Body of `PATCH /api/jobs/:id`: only the changed fields; `null` empties an optional. */
