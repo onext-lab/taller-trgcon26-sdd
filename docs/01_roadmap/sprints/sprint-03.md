@@ -4,7 +4,7 @@ objetivo: "Fecha límite de inscripción en una oferta (práctica del taller): d
 inicio: 2026-10-13
 fin: 2026-10-14            # por defecto, inicio + 1 (2 días)
 estado: planificado        # planificado | en curso | completado | cerrado
-base: 2b12ab0              # sha de la rama de la práctica al abrir el sprint (hace de main); /audit-sprint audita base..rama
+base: 8eefd9f              # sha de la rama de la práctica al abrir el sprint (hace de main); /audit-sprint audita base..rama
 cerrado_en: null
 audit-override: null       # solo con razón ≥ 20 caracteres
 ---
@@ -18,7 +18,7 @@ candidato» cuando el plazo ha vencido (FEAT-04).
 
 ## Resumen de estado
 - HU: hechas 0 / 1 · bloqueadas 0
-- Última actualización: 2026-10-13 11:59
+- Última actualización: 2026-10-13 13:01
 
 ## Historias de usuario
 
@@ -27,7 +27,7 @@ candidato» cuando el plazo ha vencido (FEAT-04).
 - [x] prd-writer
 - [x] tech-design
 - [x] task-planner
-- [ ] implementar-hu
+- [x] implementar-hu
 - [ ] reviewer
 - [ ] merge a main
 - [ ] module-sync
