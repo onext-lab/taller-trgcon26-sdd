@@ -172,7 +172,13 @@ describe('seed de inscripciones — estados (EC-54)', () => {
       const empty = await app.inject({ method: 'GET', url: `/api/jobs/${emptyJob}/applications` });
       expect(empty.statusCode).toBe(200);
       expect(empty.json<Pipeline>()).toEqual({
-        job: { id: emptyJob, status: 'published' },
+        // Plazo del seed: día de Madrid de NOW (2026-10-06) menos 3 días, ya vencido (DD-11).
+        job: {
+          id: emptyJob,
+          status: 'published',
+          enrollmentDeadline: '2026-10-03',
+          enrollmentDeadlinePassed: true,
+        },
         items: [],
       });
       const fullJob = jobIds(appDb)[4]!;

@@ -1,4 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { addCalendarDays, madridCalendarDate } from '../calendar.ts';
 import { createJobsRepository } from '../modules/jobs/repository.ts';
 import type { JobInput } from '../modules/jobs/schemas.ts';
 import { seedApplications } from './seed-applications.ts';
@@ -12,12 +13,15 @@ interface SeedJob {
   publishedAt?: string;
   /** Si viene, la oferta se cierra en esa fecha (`published` → `closed`); exige `publishedAt`. */
   closedAt?: string;
+  /** Si viene, el plazo de inscripción es el día de Madrid de `now` más (o menos, si es negativo) esos días (DD-11). */
+  enrollmentDeadlineInDays?: number;
 }
 
 /**
  * Datos de ejemplo de data/ats.db (RF-07). Regla del taller: datos inventados siempre; nunca CVs, personas ni empresas
  * reales. 10 ofertas completas y válidas (RN-02 a RN-04) con fechas fijas en UTC: orden determinista. Las 4 primeras
- * son borradores; las 4 siguientes están publicadas y las 2 últimas, cerradas.
+ * son borradores; las 4 siguientes están publicadas y las 2 últimas, cerradas. Dos publicadas llevan plazo de inscripción
+ * relativo al reset: la de backend, futuro (+14 días) y la contable, vencido (−3 días).
  */
 const SEED_JOBS: readonly SeedJob[] = [
   {
@@ -76,6 +80,7 @@ const SEED_JOBS: readonly SeedJob[] = [
     },
     createdAt: '2026-09-29T09:00:00.000Z',
     publishedAt: '2026-10-02T08:00:00.000Z',
+    enrollmentDeadlineInDays: 14,
   },
   {
     input: {
@@ -87,6 +92,8 @@ const SEED_JOBS: readonly SeedJob[] = [
     },
     createdAt: '2026-09-22T07:45:00.000Z',
     publishedAt: '2026-09-25T10:15:00.000Z',
+    // Plazo vencido y sin inscripciones: con ellas habría alguna creada después del plazo (INV-01 de FEAT-04).
+    enrollmentDeadlineInDays: -3,
   },
   {
     input: {
@@ -154,8 +161,11 @@ export const SEED_TITLES_IN_LIST_ORDER: readonly string[] = [...SEED_JOBS]
 export function seed(db: DatabaseSync, now: Date = new Date()): void {
   const repository = createJobsRepository(db);
   withTransaction(db, () => {
-    const jobIds = SEED_JOBS.map(({ input, createdAt, publishedAt, closedAt }) => {
-      const { id } = repository.insert(input, createdAt);
+    const today = madridCalendarDate(now.toISOString());
+    const jobIds = SEED_JOBS.map((job) => {
+      const { input, createdAt, publishedAt, closedAt, enrollmentDeadlineInDays: offset } = job;
+      const enrollmentDeadline = offset === undefined ? null : addCalendarDays(today, offset);
+      const { id } = repository.insert({ ...input, enrollmentDeadline }, createdAt);
       if (publishedAt) repository.markPublished(id, publishedAt);
       if (closedAt) repository.markClosed(id, closedAt);
       return id;

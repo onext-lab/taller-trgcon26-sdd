@@ -96,7 +96,7 @@ export const pipelineQuerySchema = {
   properties: {},
 } as const;
 
-/** Respuesta 200: exactamente los 5 campos de `PipelineItem` y el estado de la oferta; nada más puede salir (RNF-04). */
+/** Respuesta 200: los 5 campos de `PipelineItem` y el estado y el plazo de la oferta; nada más puede salir (RNF-04). */
 export const pipelineSchema = {
   type: 'object',
   additionalProperties: false,
@@ -105,10 +105,12 @@ export const pipelineSchema = {
     job: {
       type: 'object',
       additionalProperties: false,
-      required: ['id', 'status'],
+      required: ['id', 'status', 'enrollmentDeadline', 'enrollmentDeadlinePassed'],
       properties: {
         id: { type: 'integer' },
         status: { type: 'string', enum: ['draft', 'published', 'closed'] },
+        enrollmentDeadline: { type: ['string', 'null'] },
+        enrollmentDeadlinePassed: { type: 'boolean' },
       },
     },
     items: {
@@ -225,6 +227,13 @@ export interface PipelineItem {
 
 /** Pipeline de una oferta: lista plana, `lastChangeAt` y `id` descendentes; la web agrupa por etapa (DD-07). */
 export interface Pipeline {
-  job: { id: number; status: JobStatus };
+  job: {
+    id: number;
+    status: JobStatus;
+    /** 'AAAA-MM-DD' o `null` si la oferta no tiene plazo (HU-07). */
+    enrollmentDeadline: string | null;
+    /** Hay plazo y el día de Madrid del servidor es posterior; independiente del estado de la oferta (DD-08). */
+    enrollmentDeadlinePassed: boolean;
+  };
   items: PipelineItem[];
 }

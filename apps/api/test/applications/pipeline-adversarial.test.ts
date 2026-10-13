@@ -120,7 +120,15 @@ describe('EC-29 error de la base al leer', () => {
 
     const response = await get(String(job.id));
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ job: { id: job.id, status: 'published' }, items: [] });
+    expect(response.json()).toEqual({
+      job: {
+        id: job.id,
+        status: 'published',
+        enrollmentDeadline: null,
+        enrollmentDeadlinePassed: false,
+      },
+      items: [],
+    });
   });
 });
 

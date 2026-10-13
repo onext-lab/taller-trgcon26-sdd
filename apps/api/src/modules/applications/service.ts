@@ -216,15 +216,26 @@ function reject(deps: ApplicationsServiceDeps, id: number, input: RejectInput): 
   });
 }
 
+/** El booleano del plazo lo calcula el servidor con su reloj, sea cual sea el estado de la oferta (DD-08, EC-28). */
 function getPipeline(
-  { jobStatus, repository, candidates }: ApplicationsServiceDeps,
+  { jobStatus, repository, candidates, now }: ApplicationsServiceDeps,
   jobId: number,
 ): Pipeline {
   const status = jobStatus.getJobStatus(jobId);
   if (status === null) throw notFound(JOB_NOT_FOUND_MESSAGE);
+  const enrollmentDeadline = jobStatus.getEnrollmentDeadline(jobId);
   const rows = repository.listByJob(jobId);
   const names = candidates.findNames(rows.map((row) => row.candidateId));
-  return { job: { id: jobId, status }, items: toPipelineItems(rows, names) };
+  const today = madridCalendarDate(now().toISOString());
+  return {
+    job: {
+      id: jobId,
+      status,
+      enrollmentDeadline,
+      enrollmentDeadlinePassed: isDeadlinePassed(enrollmentDeadline, today),
+    },
+    items: toPipelineItems(rows, names),
+  };
 }
 
 /**

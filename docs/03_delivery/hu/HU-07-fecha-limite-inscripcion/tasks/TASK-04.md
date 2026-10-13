@@ -4,7 +4,7 @@
 - **HU:** HU-07 · **Feature:** FEAT-04
 - **Scope:** backend
 - **Capa:** api
-- **Estado:** Pendiente
+- **Estado:** Completada
 - **Prioridad:** Must (RF-04, parte API) · Should (RF-05)
 - **Complejidad:** L (2–4 h; estimada 2,5 h)
 

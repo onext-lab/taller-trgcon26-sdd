@@ -87,7 +87,12 @@ describe('GET /api/jobs/:jobId/applications — pipeline', () => {
 
     expect(response.statusCode).toBe(200);
     const body = response.json<Pipeline>();
-    expect(body.job).toEqual({ id: job.id, status: 'published' });
+    expect(body.job).toEqual({
+      id: job.id,
+      status: 'published',
+      enrollmentDeadline: null,
+      enrollmentDeadlinePassed: false,
+    });
     expect(
       body.items.map(({ id, stage, lastChangeAt, rejectionReason }) => [
         id,
@@ -140,7 +145,15 @@ describe('GET /api/jobs/:jobId/applications — pipeline', () => {
     const response = await getPipeline(job.id);
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ job: { id: job.id, status: 'published' }, items: [] });
+    expect(response.json()).toEqual({
+      job: {
+        id: job.id,
+        status: 'published',
+        enrollmentDeadline: null,
+        enrollmentDeadlinePassed: false,
+      },
+      items: [],
+    });
   });
 
   it('CA-15 inexistente → 404 «La oferta no existe.» sin datos', async () => {
@@ -184,7 +197,15 @@ describe('GET /api/jobs/:jobId/applications — pipeline', () => {
     const response = await getPipeline(draft.id);
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ job: { id: draft.id, status: 'draft' }, items: [] });
+    expect(response.json()).toEqual({
+      job: {
+        id: draft.id,
+        status: 'draft',
+        enrollmentDeadline: null,
+        enrollmentDeadlinePassed: false,
+      },
+      items: [],
+    });
   });
 
   it('EC-28 closed con inscripciones → 200 con sus items', async () => {
@@ -200,7 +221,12 @@ describe('GET /api/jobs/:jobId/applications — pipeline', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
-      job: { id: job.id, status: 'closed' },
+      job: {
+        id: job.id,
+        status: 'closed',
+        enrollmentDeadline: null,
+        enrollmentDeadlinePassed: false,
+      },
       items: [
         {
           id: rejected.id,
