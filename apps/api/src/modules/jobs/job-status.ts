@@ -6,7 +6,10 @@ import type { JobStatus } from './schemas.ts';
  * tipado estructural. `null` si la oferta no existe.
  */
 export function createJobStatusReader(
-  repo: Pick<JobsRepository, 'findStatusById' | 'findSummaryById'>,
+  repo: Pick<
+    JobsRepository,
+    'findStatusById' | 'findSummaryById' | 'findEnrollmentDeadlineById'
+  >,
 ) {
   return {
     getJobStatus(jobId: number): JobStatus | null {
@@ -14,6 +17,10 @@ export function createJobStatusReader(
     },
     getJobSummary(jobId: number): { status: JobStatus; title: string } | null {
       return repo.findSummaryById(jobId) ?? null;
+    },
+    /** 'AAAA-MM-DD' o `null` (sin plazo u oferta inexistente). */
+    getEnrollmentDeadline(jobId: number): string | null {
+      return repo.findEnrollmentDeadlineById(jobId) ?? null;
     },
   };
 }

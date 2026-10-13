@@ -17,11 +17,15 @@ interface JobStatusStubOptions {
   fail?: boolean;
   /** `getJobSummary` lanza un error real sin datos personales (EC-21). */
   failSummary?: boolean;
+  /** Fecha límite 'AAAA-MM-DD' que devuelve `getEnrollmentDeadline`; `null` = sin plazo. */
+  enrollmentDeadline?: string | null;
+  /** `getEnrollmentDeadline` lanza un error real sin datos personales. */
+  failDeadline?: boolean;
 }
 
 /**
  * Doble del puerto «estado de la oferta», sin mocks de módulo: devuelve `status` y `title` (`status: null` = la oferta
- * no existe) o, con `fail` o `failSummary`, lanza un error real sin datos personales para probar el 500 y la
+ * no existe) o, con `fail`, `failSummary` o `failDeadline`, lanza un error real sin datos personales para probar el 500 y la
  * reversión.
  */
 export function createJobStatusStub({
@@ -29,6 +33,8 @@ export function createJobStatusStub({
   title = 'Oferta de prueba',
   fail = false,
   failSummary = false,
+  enrollmentDeadline = null,
+  failDeadline = false,
 }: JobStatusStubOptions = {}): JobStatusPort {
   return {
     getJobStatus() {
@@ -38,6 +44,10 @@ export function createJobStatusStub({
     getJobSummary(): JobSummary | null {
       if (failSummary) throw new Error('fallo simulado del resumen de la oferta');
       return status === null ? null : { status, title };
+    },
+    getEnrollmentDeadline() {
+      if (failDeadline) throw new Error('fallo simulado de la fecha límite de la oferta');
+      return enrollmentDeadline;
     },
   };
 }
@@ -126,11 +136,14 @@ export interface JobStatusSpy {
   port: JobStatusPort;
   /** `db.isTransaction` en cada llamada a `getJobStatus`, en orden (EC-19: la lectura va dentro del `BEGIN IMMEDIATE`). */
   insideTransaction: boolean[];
+  /** `db.isTransaction` en cada llamada a `getEnrollmentDeadline`, en orden (HU-07, DEC-08). */
+  deadlineInsideTransaction: boolean[];
 }
 
 /** Envuelve un puerto (el real o un doble) y registra si cada lectura de estado ocurre dentro de una transacción. */
 export function createJobStatusSpy(db: DatabaseSync, inner: JobStatusPort): JobStatusSpy {
   const insideTransaction: boolean[] = [];
+  const deadlineInsideTransaction: boolean[] = [];
   const port: JobStatusPort = {
     getJobStatus(jobId) {
       insideTransaction.push(db.isTransaction);
@@ -139,6 +152,10 @@ export function createJobStatusSpy(db: DatabaseSync, inner: JobStatusPort): JobS
     getJobSummary(jobId) {
       return inner.getJobSummary(jobId);
     },
+    getEnrollmentDeadline(jobId) {
+      deadlineInsideTransaction.push(db.isTransaction);
+      return inner.getEnrollmentDeadline(jobId);
+    },
   };
-  return { port, insideTransaction };
+  return { port, insideTransaction, deadlineInsideTransaction };
 }

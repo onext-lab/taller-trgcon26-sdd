@@ -37,6 +37,11 @@ export function stageMismatch(message: string): AppError {
   return new AppError('STAGE_MISMATCH', 409, message);
 }
 
+/** 409 de plazo (DEC-07, DD-09): la fecha límite de la oferta ya pasó. Sin `details`; el `message` solo lleva la fecha. */
+export function enrollmentDeadlinePassed(message: string): AppError {
+  return new AppError('ENROLLMENT_DEADLINE_PASSED', 409, message);
+}
+
 export function validationError(details: ErrorDetail[]): AppError {
   return new AppError('VALIDATION_ERROR', 400, 'Hay campos con errores.', details);
 }

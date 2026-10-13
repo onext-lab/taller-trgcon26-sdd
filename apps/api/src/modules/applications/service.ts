@@ -1,5 +1,12 @@
+import { formatCalendarDate, isDeadlinePassed, madridCalendarDate } from '../../calendar.ts';
 import type { Clock } from '../../clock.ts';
-import { duplicate, invalidTransition, notFound, stageMismatch } from '../../errors.ts';
+import {
+  duplicate,
+  enrollmentDeadlinePassed,
+  invalidTransition,
+  notFound,
+  stageMismatch,
+} from '../../errors.ts';
 import { countActiveApplications, rejectActiveApplications } from './job-closing.ts';
 import type { CandidateLookupPort, JobStatusPort } from './ports.ts';
 import type { ApplicationsRepository, PipelineRow } from './repository.ts';
@@ -23,7 +30,8 @@ import { decideAdvance, decideReject, isFinal, STAGE_MISMATCH_MESSAGE } from './
 export interface ApplicationsService {
   /**
    * Inscribe un candidato en una oferta publicada, en una sola transacción (DEC-06, DD-02): 404 de la oferta o del
-   * candidato, 409 `INVALID_TRANSITION` si la oferta no está publicada y 409 `DUPLICATE` si ya estaba inscrito.
+   * candidato, 409 `INVALID_TRANSITION` si la oferta no está publicada, 409 `ENROLLMENT_DEADLINE_PASSED` si su plazo
+   * terminó antes de hoy en Madrid (HU-07, RN-07) y 409 `DUPLICATE` si ya estaba inscrito.
    */
   enroll(input: EnrollInput): Application;
   /**
@@ -85,7 +93,7 @@ function toPipelineItems(rows: PipelineRow[], names: Map<number, string>): Pipel
   });
 }
 
-/** Las tres guardas, en el orden del diseño: oferta (404) → candidato (404) → estado (409). */
+/** Las tres guardas de existencia y estado, en el orden del diseño: oferta (404) → candidato (404) → estado (409). */
 function assertCanEnroll(
   { jobStatus, candidates }: ApplicationsServiceDeps,
   input: EnrollInput,
@@ -119,9 +127,24 @@ function insertReceived(
   }
 }
 
+/** 409 si el plazo terminó antes del día de Madrid de `instant`; se lee en la transacción, antes de escribir (DD-07). */
+function assertDeadlineNotPassed(
+  { jobStatus }: ApplicationsServiceDeps,
+  jobId: number,
+  instant: string,
+): void {
+  const deadline = jobStatus.getEnrollmentDeadline(jobId);
+  if (deadline === null || !isDeadlinePassed(deadline, madridCalendarDate(instant))) return;
+  throw enrollmentDeadlinePassed(
+    `El plazo de inscripción de esta oferta terminó el ${formatCalendarDate(deadline)}.`,
+  );
+}
+
 function enroll(deps: ApplicationsServiceDeps, input: EnrollInput): Application {
   assertCanEnroll(deps, input);
+  // Un solo instante: el día del plazo (Madrid), `createdAt` y el `StageChange` (DEC-09).
   const instant = deps.now().toISOString();
+  assertDeadlineNotPassed(deps, input.jobId, instant);
   const application = insertReceived(deps, input, instant);
   deps.repository.insertStageChange({
     applicationId: application.id,

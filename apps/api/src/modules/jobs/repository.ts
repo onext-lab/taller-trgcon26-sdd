@@ -114,6 +114,13 @@ function createJobQueries(db: DatabaseSync) {
       const row = db.prepare('SELECT status, title FROM job_openings WHERE id = ?').get(id);
       return row ? { status: row.status as JobStatus, title: String(row.title) } : undefined;
     },
+    /** Solo la fecha límite (la lee el puerto de `applications`); `undefined` si no existe, `null` si no tiene plazo. */
+    findEnrollmentDeadlineById(id: number): string | null | undefined {
+      const row = db
+        .prepare('SELECT enrollment_deadline FROM job_openings WHERE id = ?')
+        .get(id);
+      return row ? (row.enrollment_deadline as string | null) : undefined;
+    },
     listPage(filter: JobListFilter, limit: number, offset: number): JobListItem[] {
       const rows = db
         .prepare(LIST_PAGE_SQL)

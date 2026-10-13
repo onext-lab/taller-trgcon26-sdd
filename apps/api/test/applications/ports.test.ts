@@ -224,6 +224,19 @@ describe('lectura del estado de la oferta', () => {
     });
     expect(reader.getJobSummary(9999)).toBeNull();
   });
+
+  it('HU-07 lector real: getEnrollmentDeadline → fecha, null sin plazo, null si no existe', async () => {
+    const reader = createJobStatusReader(createJobsRepository(db));
+    const withDeadline = await createJob(app, {
+      title: 'Con plazo inventado',
+      enrollmentDeadline: '2026-10-20',
+    });
+    const withoutDeadline = await createJob(app, { title: 'Sin plazo inventado' });
+
+    expect(reader.getEnrollmentDeadline(withDeadline.id)).toBe('2026-10-20');
+    expect(reader.getEnrollmentDeadline(withoutDeadline.id)).toBeNull();
+    expect(reader.getEnrollmentDeadline(9999)).toBeNull();
+  });
 });
 
 describe('lecturas de candidates para applications', () => {

@@ -16,6 +16,8 @@ export interface JobStatusPort {
   getJobStatus(jobId: number): JobStatus | null;
   /** Estado y título de la oferta (DT-07); `null` si la oferta no existe. */
   getJobSummary(jobId: number): JobSummary | null;
+  /** 'AAAA-MM-DD' o null (sin plazo u oferta inexistente). Se llama tras getJobStatus, en la misma transacción. */
+  getEnrollmentDeadline(jobId: number): string | null;
 }
 
 /** Puerto de lectura de candidatos (DEC-06), lo define `applications` y lo implementa `candidates`. Solo `id` y `full_name`. */

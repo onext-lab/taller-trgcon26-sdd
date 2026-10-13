@@ -53,6 +53,11 @@ const statusPort: JobStatusPort = {
       ? { status: row.status as 'draft' | 'published' | 'closed', title: String(row.title) }
       : null;
   },
+  getEnrollmentDeadline(jobId) {
+    if (failStatus) throw new Error('fallo simulado del puerto de estado');
+    const row = db.prepare('SELECT enrollment_deadline FROM job_openings WHERE id = ?').get(jobId);
+    return row ? (row.enrollment_deadline as string | null) : null;
+  },
 };
 
 /** Funciona en el alta del candidato y falla después, cuando `failProcesses` está activo (EC-22). */
