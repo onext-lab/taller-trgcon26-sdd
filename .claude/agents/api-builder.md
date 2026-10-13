@@ -1,6 +1,7 @@
 ---
 name: api-builder
 description: Implementa una task de capa api (apps/api, Fastify 5 + node:sqlite) a partir de su brief TASK-NN-BRIEF.md, con tests acotados. Lo lanza /implementar-hu; no hace commit.
+model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
