@@ -2,8 +2,7 @@
 
 Catálogo de casos de uso del módulo: un fichero por caso, `UC-NN-slug.md`, desde
 [UC.template.md](../../../_templates/UC.template.md). Los crea `/feature-shaping`; la HU, el PRD y la revisión los
-citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso. La columna «Feature» lista la de origen y
-las que lo modificaron; el frontmatter del UC guarda la última.
+citan por su ID; `/module-sync` mantiene esta tabla y el estado de cada caso.
 
 | UC | Título | Actor | Estado | Feature | HU |
 |---|---|---|---|---|---|

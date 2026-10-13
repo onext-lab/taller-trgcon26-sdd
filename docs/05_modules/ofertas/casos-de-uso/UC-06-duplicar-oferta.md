@@ -15,9 +15,6 @@ hus: [HU-02, HU-07]
 > Cada flujo tiene un identificador estable (**P**, **A1…**, **E1…**): el PRD convierte cada uno en, al menos, un
 > criterio de aceptación, y la revisión exige un test por flujo.
 
-**Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de HU-07.
-
 ## Objetivo
 El reclutador crea un borrador nuevo a partir de una oferta existente; es la forma de «reabrir» una oferta cerrada
 (RV-03).
@@ -32,9 +29,8 @@ El reclutador crea un borrador nuevo a partir de una oferta existente; es la for
 ## Flujo principal (P)
 1. El reclutador pulsa «Duplicar».
 2. El sistema crea una oferta nueva en `draft` con los campos editables de la original (título, descripción, ubicación,
-   modalidad y banda salarial), sin fechas de publicación ni de cierre, sin inscripciones y sin enlace a la original;
-   su fecha de creación es la del momento (S-11, RN-10). (FEAT-04) Tampoco copia la fecha límite de inscripción: el
-   borrador nuevo nace sin plazo (FEAT-04 · RN-09; R4).
+   modalidad y banda salarial), sin fechas de publicación ni de cierre, sin fecha límite de inscripción, sin
+   inscripciones y sin enlace a la original; su fecha de creación es la del momento (S-11, RN-10; FEAT-04 · RN-08).
 3. El sistema muestra la ficha del borrador nuevo, listo para editar (UC-02).
 
 ## Flujos alternativos
@@ -46,7 +42,7 @@ El reclutador crea un borrador nuevo a partir de una oferta existente; es la for
 ## Reglas de negocio
 - RN-06: `closed` es final; para reabrir, se duplica.
 - RN-10: duplicar copia los campos editables, sin fechas, sin inscripciones y sin enlace.
-- FEAT-04 · RN-09: duplicar no copia la fecha límite de inscripción.
+- FEAT-04 · RN-08: duplicar no copia la fecha límite de inscripción; el borrador nuevo nace sin plazo.
 
 ## Postcondiciones
 - **Éxito:** existe un borrador nuevo; la oferta original y sus inscripciones quedan intactas.

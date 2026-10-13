@@ -1,10 +1,10 @@
 ---
 sprint: 03
-objetivo: "El reclutador puede fijar una fecha límite de inscripción en una oferta y el ATS no inscribe a nadie más pasado ese día."
+objetivo: "Fecha límite de inscripción en una oferta (práctica del taller): de la idea al código revisado en una sola HU."
 inicio: 2026-10-13
 fin: 2026-10-14            # por defecto, inicio + 1 (2 días)
 estado: planificado        # planificado | en curso | completado | cerrado
-base: 8fe07ec              # sha de main al abrir el sprint; /audit-sprint audita base..main
+base: 2b12ab0              # sha de la rama de la práctica al abrir el sprint (hace de main); /audit-sprint audita base..rama
 cerrado_en: null
 audit-override: null       # solo con razón ≥ 20 caracteres
 ---
@@ -12,13 +12,13 @@ audit-override: null       # solo con razón ≥ 20 caracteres
 # sprint-03 (2026-10-13 - 2026-10-14)
 
 ## Objetivo
-Al final del sprint, el reclutador puede fijar, al crear o editar una oferta, una fecha límite de inscripción opcional
-que se ve en la lista de ofertas y en el pipeline; pasado ese día (Europe/Madrid, inclusivo) el ATS no inscribe a nadie
-más en ella, sin cerrar la oferta ni tocar las inscripciones que ya existen (FEAT-04).
+Al final del sprint, el reclutador puede fijar una fecha límite de inscripción opcional al crear o editar una oferta,
+la API rechaza inscribir pasada esa fecha con 409 `ENROLLMENT_DEADLINE_PASSED` y el pipeline no ofrece «Inscribir
+candidato» cuando el plazo ha vencido (FEAT-04).
 
 ## Resumen de estado
-- HU: hechas 0 / total 1 · bloqueadas 0
-- Última actualización: 2026-10-13 11:45
+- HU: hechas 0 / 1 · bloqueadas 0
+- Última actualización: 2026-10-13 11:59
 
 ## Historias de usuario
 
@@ -36,7 +36,7 @@ más en ella, sin cerrar la oferta ni tocar las inscripciones que ya existen (FE
 _Ninguna._
 
 ## Orden de ejecución
-1. HU-07 (sin dependencias: se apoya en FEAT-01 y FEAT-03, ya entregadas)
+1. HU-07 (sin dependencias)
 
 ## Recordatorio de reglas de oro
 - Cero asunciones; ninguna etapa SDD se salta; brief obligatorio; integración ejecutada.
@@ -44,8 +44,6 @@ _Ninguna._
 - Ningún sprint se cierra sin `/audit-sprint` aprobado.
 
 ## Notas
-- Sprint de práctica del taller, abierto en la rama `practica/fecha-limite-inscripcion` (sale de
-  `paso-3-punto-de-partida`), que hace las veces de `main` en esta práctica: `base` es su commit al abrir el sprint.
-- HU-07 es la única HU de FEAT-04 por decisión de la persona (R7, 2026-10-13): fullstack y sin RGPD.
-- Riesgo anotado en el handoff de FEAT-04: ocho UC modificados en una sola HU pueden acercarse al techo de 15 tareas
-  de `/task-planner`; si lo pasa, se para y se escala.
+- 2026-10-13 · **Rama de la práctica:** este sprint vive en la rama `practica/fecha-limite-inscripcion`, que sale de
+  `paso-3-punto-de-partida` y no se integra en `main`. Donde el flujo dice «`main`» o «`hu/HU-07-…`», en la práctica
+  es esa rama. Sus puntos de control son las etiquetas `taller-1-feature` a `taller-5-hecho`.
