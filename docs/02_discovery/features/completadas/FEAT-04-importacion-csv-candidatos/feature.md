@@ -16,8 +16,8 @@ owner: "persona responsable del taller"
 
 **Fuentes de esta feature.** `RV-NN` y `S-NN`: `docs/02_discovery/reglas-validadas.md`. «RT (Qn)»: respuesta del
 responsable técnico del 2026-10-12 a la pregunta n del análisis (R confirmadas con su fuente y P de detalle aprobadas
-con la recomendación). «† PA-0N»: **PENDIENTE DE RATIFICAR (persona responsable)**; el contenido ya aplica la
-recomendación y la pregunta sigue en «Preguntas abiertas».
+con la recomendación). «† PA-0N»: respuesta de producto que se aplicó con la recomendación y que el responsable técnico
+**ratificó el 2026-10-13** (ver «Preguntas abiertas»).
 
 ## Qué
 El reclutador sube un fichero CSV con una lista de candidatos y el sistema da de alta las filas válidas, descarta los
@@ -178,13 +178,13 @@ UC-09 (alta por formulario) **no se modifica**: UC-20 reutiliza sus reglas por c
   - Excel en español exporta con `;`: con RN-02, ese fichero se rechaza. El mensaje debe mostrar la cabecera esperada
     para que no parezca un fallo (PA-03).
   - La inyección de fórmulas se guarda tal cual y reaparecerá si algún día hay exportación (RN-16).
-  - Las 5 respuestas pendientes de ratificar pueden cambiar el alcance de la HU (ver Preguntas abiertas).
+  - Las 5 respuestas de producto (PA-01 a PA-05) se ratificaron el 2026-10-13 tal como estaban: el alcance no cambia.
 - **Nota para `/tech-design`** (no es una decisión de producto): hoy la API responde 415 a `multipart/form-data` y a
   `application/x-www-form-urlencoded` (DEC-11.5, DEC-12), y 413 por encima del límite de cuerpo. Cómo viaja el fichero
   de la web a la API (y cómo casa el límite de 1 MiB con ese transporte) lo decide el diseño técnico, con un `DEC-NN`
   nuevo si cambia la convención.
 - **Supuestos confirmados:** todas las preguntas R con su fuente y todas las P de detalle con la recomendación (RT,
-  2026-10-12). El resto están en Preguntas abiertas como pendientes de ratificar.
+  2026-10-12). PA-01 a PA-05, ratificadas el 2026-10-13 (Preguntas abiertas).
 
 ## Criterios de aceptación
 - [ ] Dado un CSV válido con 3 filas de candidatos nuevos, cuando el reclutador lo importa, entonces se crean 3
@@ -210,18 +210,18 @@ UC-09 (alta por formulario) **no se modifica**: UC-20 reutiliza sus reglas por c
 ## Preguntas abiertas
 - **PA-01 (Q13) · Importación parcial.** ¿Entran las filas buenas y se informa del resto, o el fichero falla entero
   ante una fila mala? Recomendación aplicada: parcial (RN-06), porque la idea pide saber «qué filas entraron, cuáles no»
-  y RV-27 habla de «informe». — _Estado: PENDIENTE DE RATIFICAR (persona responsable)_
+  y RV-27 habla de «informe». — _Estado: ratificada por el responsable técnico el 2026-10-13_
 - **PA-02 (Q5 + Q6) · Columnas y cabecera.** ¿Qué columnas y con qué cabecera? Recomendación aplicada: `nombre`,
   `email` y `telefono` (teléfono opcional por fila), cabecera obligatoria y exacta en ese orden (RN-02); resumen y
-  skills, fuera. — _Estado: PENDIENTE DE RATIFICAR (persona responsable)_
+  skills, fuera. — _Estado: ratificada por el responsable técnico el 2026-10-13_
 - **PA-03 (Q8) · Separador y codificación.** Recomendación aplicada: solo coma, comillas RFC 4180 y UTF-8 con BOM
   aceptado (RN-01); un fichero con `;` se rechaza con la cabecera esperada. Es la pregunta más probable en la demo,
-  porque Excel en español exporta con `;`. — _Estado: PENDIENTE DE RATIFICAR (persona responsable)_
+  porque Excel en español exporta con `;`. — _Estado: ratificada por el responsable técnico el 2026-10-13_
 - **PA-04 (Q9) · Límites.** Recomendación aplicada: 500 filas de datos y 1 MiB como máximo; si se pasa, se rechaza el
-  fichero entero (RN-03). — _Estado: PENDIENTE DE RATIFICAR (persona responsable)_
+  fichero entero (RN-03). — _Estado: ratificada por el responsable técnico el 2026-10-13_
 - **PA-05 (Q16 + Q18) · Consentimiento y origen.** Recomendación aplicada: los importados entran sin consentimiento
   (RN-09; RV-11, S-07, RGPD §2); no se guarda el origen del dato y el art. 14 RGPD queda fuera como supuesto didáctico
-  declarado (RN-14). — _Estado: PENDIENTE DE RATIFICAR (persona responsable)_
+  declarado (RN-14). — _Estado: ratificada por el responsable técnico el 2026-10-13_
 
 ## Handoff a delivery
 **Una sola HU fullstack** (decisión de la persona responsable del 2026-10-09, IDEA-004): «Importar candidatos desde
@@ -246,5 +246,5 @@ el informe persistido o descargable y el campo de origen con migración.
 ## Cierre
 Entregada en sprint-03 el 2026-10-12, en la rama `vivo/C` (solución de referencia de la feature en vivo C): HU-07
 (merge `0bd38ac`, module-sync `ef730fc`). Review «Aprobado con observaciones» y auditoría del sprint «Aprobado con
-observaciones» (`docs/10_audits/sprints/sprint-03-AUDIT.md`). PA-01 a PA-05, pendientes de ratificar por la persona
-responsable.
+observaciones» (`docs/10_audits/sprints/sprint-03-AUDIT.md`). PA-01 a PA-05, ratificadas por el responsable
+técnico el 2026-10-13.

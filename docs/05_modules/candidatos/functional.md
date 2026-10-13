@@ -79,8 +79,8 @@ Las de FEAT-02, con su estado real en `main`.
   distinguir mayúsculas) es «duplicado» y no modifica al existente, y uno repetido en el fichero entra la primera vez; los
   importados no llevan consentimiento y su retención es alta + 6 meses; los valores se guardan tal cual, también los que
   empiezan por `=`, `+`, `-` o `@` (RN-16); el fichero y el informe solo viven en pantalla.
-  Las marcadas † en UC-20 (formato, cabecera, límites, parcial, sin consentimiento y sin origen) están aplicadas con la
-  recomendación y pendientes de ratificar (PA-01 a PA-05).
+  Las marcadas † en UC-20 (formato, cabecera, límites, parcial, sin consentimiento y sin origen) son las respuestas de
+  producto PA-01 a PA-05, ratificadas el 2026-10-13.
 
 INV-01, INV-02 (email), INV-04 y el rango de longitudes se defienden también en la base desde la migración 002 (ver
 [technical.md](technical.md)); INV-07 se cumple con una sola transacción para candidato, consentimiento y retención.

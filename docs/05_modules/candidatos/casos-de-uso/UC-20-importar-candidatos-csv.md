@@ -18,7 +18,7 @@ hus: [HU-07]
 Las reglas `RN-NN` son las de FEAT-04 (`docs/02_discovery/features/completadas/FEAT-04-importacion-csv-candidatos/feature.md`),
 RN-01 a RN-16; RN-16 (los valores se guardan tal cual) no cambia ningún paso y la cubre el test EC-26
 (`apps/api/test/candidates/import-adversarial.test.ts`).
-Las marcadas con † están **pendientes de ratificar** por la persona responsable, con la recomendación ya aplicada.
+Las marcadas con † son respuestas de producto (PA-01 a PA-05) que el responsable técnico ratificó el 2026-10-13.
 
 ## Objetivo
 El reclutador da de alta de una vez a los candidatos de una lista (de una feria de empleo o de otra herramienta)

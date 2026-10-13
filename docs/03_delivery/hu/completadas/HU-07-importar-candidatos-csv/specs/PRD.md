@@ -5,7 +5,7 @@
 - **Scope:** fullstack
 - **Módulos:** `candidatos` (código `candidates`)
 - **Fecha:** 2026-10-12
-- **Estado:** Ready (OQ-01 a OQ-05 pendientes de ratificar; no bloquean el diseño, decisión del responsable técnico del 2026-10-12)
+- **Estado:** Ready (0 Open Questions: OQ-01 a OQ-05 ratificadas por el responsable técnico el 2026-10-13)
 
 ## Contexto
 
@@ -136,7 +136,7 @@ de la API y la forma del JSON del informe los puede ajustar `/tech-design` sin c
   consentimiento** (RN-09, INV-04; el CSV no prueba qué versión del texto vio el candidato, RGPD §2) y se conservan
   **6 meses desde el alta** (RV-13, RGPD §3), salvo que después se inscriban o den el consentimiento (UC-13). El deber
   de informar del art. 14 RGPD (datos no obtenidos del interesado) queda fuera del ATS como supuesto didáctico
-  declarado (RN-14; pendiente de ratificar, OQ-05).
+  declarado (RN-14; ratificado en OQ-05).
 - **Qué devuelve la respuesta:** solo recuentos y, por fila no importada, número de fila, campo, motivo y, si es
   duplicado, el ID del existente (RNF-04). Ningún valor del fichero ni dato del existente.
 - **Qué no aparece nunca:** nombres, emails ni teléfonos del fichero en logs (los logs no registran cuerpos,
@@ -247,20 +247,21 @@ De FEAT-04 «Alcance · Fuera»:
 
 ## Open Questions
 
-OQ-01 a OQ-05 son las PA de FEAT-04: el PRD ya está escrito con su recomendación y, **por decisión del responsable
-técnico del 2026-10-12, no bloquean el paso a diseño**; siguen abiertas hasta que la persona responsable las ratifique,
-y si alguna cambia se ajusta el PRD en una sola vuelta. Las antiguas OQ-06 a OQ-11 están cerradas en «Decisiones
-tomadas» (DT-01 a DT-06).
+OQ-01 a OQ-05 son las PA de FEAT-04: el PRD se escribió con su recomendación y, **por decisión del responsable
+técnico del 2026-10-12, no bloquearon el paso a diseño**. El responsable técnico las ratificó tal como estaban
+aplicadas el 2026-10-13, así que el PRD no cambia. Las antiguas OQ-06 a OQ-11 están cerradas en «Decisiones tomadas»
+(DT-01 a DT-06).
 
 | ID | Pregunta | Contexto | Recomendación | Decisión | Estado |
 |----|----------|----------|---------------|----------|--------|
-| OQ-01 | [Producto · PA-01] ¿Importación parcial o todo o nada ante una fila mala? | FEAT-04 RN-06; afecta a RF-05, RF-06, CA-08, CA-09 | Parcial: entran las válidas y el resto va al informe; 0 válidas no es un error del fichero | Recomendación aplicada, PENDIENTE DE RATIFICAR | Abierta |
-| OQ-02 | [Producto · PA-02] ¿Qué columnas y con qué cabecera? | FEAT-04 RN-02; afecta a RF-02, RF-03, CA-11 | `nombre,email,telefono` exacta y en ese orden (recortada, sin distinguir mayúsculas), teléfono opcional por fila; resumen y skills fuera | Recomendación aplicada, PENDIENTE DE RATIFICAR | Abierta |
-| OQ-03 | [Producto · PA-03] ¿Separador y codificación? | FEAT-04 RN-01; Excel en español exporta con `;`; afecta a RF-02, EC-08, CA-11, CA-12 | Solo coma, comillas RFC 4180, UTF-8 con BOM aceptado; un `;` se rechaza con el mensaje específico del separador (DT-08, que afina esta recomendación) | Recomendación aplicada, PENDIENTE DE RATIFICAR | Abierta |
-| OQ-04 | [Producto · PA-04] ¿Límites del fichero? | FEAT-04 RN-03; afecta a RF-02, RNF-05, CA-14 | 500 filas de datos y 1 MiB; si se pasa cualquiera, se rechaza entero | Recomendación aplicada, PENDIENTE DE RATIFICAR | Abierta |
-| OQ-05 | [Producto · PA-05] ¿Consentimiento y origen de los importados? | FEAT-04 RN-09, RN-14; afecta a RF-05, Datos personales | Sin consentimiento (se registra después con UC-13); sin campo de origen; art. 14 RGPD fuera como supuesto didáctico declarado | Recomendación aplicada, PENDIENTE DE RATIFICAR | Abierta |
+| OQ-01 | [Producto · PA-01] ¿Importación parcial o todo o nada ante una fila mala? | FEAT-04 RN-06; afecta a RF-05, RF-06, CA-08, CA-09 | Parcial: entran las válidas y el resto va al informe; 0 válidas no es un error del fichero | Ratificada por el responsable técnico el 2026-10-13 | Cerrada |
+| OQ-02 | [Producto · PA-02] ¿Qué columnas y con qué cabecera? | FEAT-04 RN-02; afecta a RF-02, RF-03, CA-11 | `nombre,email,telefono` exacta y en ese orden (recortada, sin distinguir mayúsculas), teléfono opcional por fila; resumen y skills fuera | Ratificada por el responsable técnico el 2026-10-13 | Cerrada |
+| OQ-03 | [Producto · PA-03] ¿Separador y codificación? | FEAT-04 RN-01; Excel en español exporta con `;`; afecta a RF-02, EC-08, CA-11, CA-12 | Solo coma, comillas RFC 4180, UTF-8 con BOM aceptado; un `;` se rechaza con el mensaje específico del separador (DT-08, que afina esta recomendación) | Ratificada por el responsable técnico el 2026-10-13 | Cerrada |
+| OQ-04 | [Producto · PA-04] ¿Límites del fichero? | FEAT-04 RN-03; afecta a RF-02, RNF-05, CA-14 | 500 filas de datos y 1 MiB; si se pasa cualquiera, se rechaza entero | Ratificada por el responsable técnico el 2026-10-13 | Cerrada |
+| OQ-05 | [Producto · PA-05] ¿Consentimiento y origen de los importados? | FEAT-04 RN-09, RN-14; afecta a RF-05, Datos personales | Sin consentimiento (se registra después con UC-13); sin campo de origen; art. 14 RGPD fuera como supuesto didáctico declarado | Ratificada por el responsable técnico el 2026-10-13 | Cerrada |
 
-> Un PRD con Open Questions abiertas **no pasa** a diseño. Excepción de este PRD: OQ-01 a OQ-05 (ver arriba).
+> Un PRD con Open Questions abiertas **no pasa** a diseño. Este pasó con OQ-01 a OQ-05 abiertas por la excepción de
+> arriba; hoy está en 0.
 
 ## Decisiones tomadas
 
@@ -308,7 +309,7 @@ HTTP según DT-05.
 - [ ] Cada flujo de UC cubierto tiene al menos un CA, y cada CA su test.
 - [ ] Cada edge case Must tiene su test.
 - [ ] Review aprobada.
-- [ ] 0 Open Questions.
+- [x] 0 Open Questions.
 
 ---
 _v1 (2026-10-12): borrador de `/prd-writer` con 11 Open Questions (OQ-01 a OQ-05, PA de FEAT-04 con la recomendación
@@ -322,3 +323,5 @@ _v1.2 (2026-10-12): DT-07 (líneas solo con espacios o tabuladores se ignoran co
 responsable técnico al revisar el diseño. El resto no cambia._
 _v1.3 (2026-10-12): DT-08 (mensaje específico para un fichero separado por «;»), CA-19 y EC-50, decididos por el
 responsable técnico; CA-11 cambia. El resto no cambia._
+_v1.4 (2026-10-13): OQ-01 a OQ-05 ratificadas por el responsable técnico tal como estaban aplicadas y cerradas; 0 Open
+Questions. El resto no cambia._
