@@ -60,6 +60,7 @@ El repo se sigue saltando entre etiquetas git, una por fase:
 | `paso-3-punto-de-partida` | Este README y `SETUP.md`: el punto de partida del taller |
 | `vivo-A-1-feature`, `vivo-A-2-prd` | Feature en vivo A (supresión y retención RGPD): el shaping y el PRD de su primera HU; sin código |
 | `vivo-C-{1-feature,2-prd,3-tareas,4-hecho}` | Feature en vivo C (importación CSV), fase a fase y hasta el código integrado |
+| `taller-{1-feature,2-prd,3-tareas,4-implementada,5-hecho}` | La práctica del taller: «Fecha límite de inscripción en una oferta», paso a paso; cada etiqueta es un punto de control para reengancharse |
 
 ```bash
 git switch --detach paso-1-discovery && npm ci && npm run db:reset

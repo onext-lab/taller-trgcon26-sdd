@@ -123,6 +123,7 @@ con `git tag -l`.
 | `paso-3-punto-de-partida` | README y este `SETUP.md`: el punto de partida del taller | El ATS completo |
 | `vivo-A-1-feature`, `vivo-A-2-prd` | La feature en vivo A (supresión y retención RGPD): el shaping y el PRD de su primera HU | El de `paso-3-punto-de-partida`: A no llega al código |
 | `vivo-C-{1-feature,2-prd,3-tareas,4-hecho}` | La feature en vivo C (importación CSV), fase a fase | Con la importación solo en `vivo-C-4-hecho` |
+| `taller-1-feature` … `taller-5-hecho` | La práctica del taller (fecha límite de inscripción): feature y HU, PRD, diseño y tareas, la TASK-01 y la HU completa con su review | La fecha límite en la API desde `taller-4-implementada`; en la web, solo en `taller-5-hecho` |
 
 Para saltar a una etiqueta y volver:
 
