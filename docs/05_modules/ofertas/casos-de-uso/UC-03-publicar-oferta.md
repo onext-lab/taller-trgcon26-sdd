@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-02]
+hus: [HU-02, HU-07]
 ---
 
 # UC-03 — Publicar una oferta
@@ -16,7 +16,7 @@ hus: [HU-02]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador publica un borrador completo para que admita inscripciones (RV-17).
@@ -69,7 +69,7 @@ Ninguno.
 | A1 | HU-02 | CA-02 | `apps/api/test/jobs/publish.test.ts:65` |
 | E1 | HU-02 | CA-03 | `apps/api/test/jobs/publish.test.ts:165` |
 | E2 | HU-02 | CA-04 | `apps/api/test/jobs/publish.test.ts:197` |
-| P (FEAT-04) | — (pendiente) | | |
-| E3 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| E3 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-01, HU-02]
+hus: [HU-01, HU-02, HU-07]
 ---
 
 # UC-08 — Consultar una oferta
@@ -16,7 +16,7 @@ hus: [HU-01, HU-02]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador ve todos los datos de una oferta y las acciones que permite su estado.
@@ -71,8 +71,8 @@ Ninguno.
 | P | HU-01 | CA-19 | `apps/web/test/features/jobs/JobDetailScreen.test.tsx:69` |
 | A1 | HU-02 | CA-22 | `apps/web/test/features/jobs/JobDetailScreen.states.test.tsx:92` |
 | E1 | HU-01 | CA-20 | `apps/api/test/jobs/get.test.ts:80` |
-| P (FEAT-04) | — (pendiente) | | |
-| A1 (FEAT-04) | — (pendiente) | | |
-| A2 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| A1 (FEAT-04) | HU-07 | | |
+| A2 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

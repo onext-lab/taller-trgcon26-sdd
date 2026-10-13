@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-04, HU-05]
+hus: [HU-04, HU-05, HU-07]
 ---
 
 # UC-17 — Ver el pipeline de una oferta
@@ -16,7 +16,7 @@ hus: [HU-04, HU-05]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-03. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador ve de un vistazo en qué etapa está cada candidato inscrito en una oferta y actúa sobre ellos.
@@ -82,9 +82,9 @@ un valor de lista cerrada, no texto libre.
 | A3 | — (feature A) | | |
 | E1 | HU-04 | CA-15 | `apps/api/test/applications/pipeline.test.ts:146`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:87` |
 | E2 | HU-04 | CA-16 | `apps/web/test/features/applications/PipelineScreen.states.test.tsx:105` |
-| P (FEAT-04) | — (pendiente) | | |
-| A1 (FEAT-04) | — (pendiente) | | |
-| A2 (FEAT-04) | — (pendiente) | | |
-| A4 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| A1 (FEAT-04) | HU-07 | | |
+| A2 (FEAT-04) | HU-07 | | |
+| A4 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

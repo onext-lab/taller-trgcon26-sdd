@@ -5,7 +5,7 @@ modulo: inscripciones
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-04]
+hus: [HU-04, HU-07]
 ---
 
 # UC-14 — Inscribir un candidato en una oferta
@@ -16,7 +16,7 @@ hus: [HU-04]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-03. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador mete a un candidato en el proceso de selección de una oferta publicada, que empieza en la etapa
@@ -98,9 +98,9 @@ fecha de la oferta.
 | E3 | HU-04 | CA-09 | `apps/api/test/applications/enroll.test.ts:174` |
 | E4 | HU-04 | CA-10 | `apps/api/test/applications/enroll-adversarial.test.ts:90` |
 | E5 | HU-04 | CA-11 | `apps/api/test/applications/enroll-failures-adversarial.test.ts:86` |
-| P (FEAT-04) | — (pendiente) | | |
-| E1 (FEAT-04) | — (pendiente) | | |
-| E2 (FEAT-04) | — (pendiente) | | |
-| E6 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| E1 (FEAT-04) | HU-07 | | |
+| E2 (FEAT-04) | HU-07 | | |
+| E6 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

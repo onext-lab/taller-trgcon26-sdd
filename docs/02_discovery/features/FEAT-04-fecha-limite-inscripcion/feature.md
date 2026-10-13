@@ -1,7 +1,7 @@
 ---
 id: FEAT-04
 titulo: "Fecha límite de inscripción en una oferta"
-estado: shaping          # shaping | priorizada | en delivery | entregada
+estado: priorizada       # shaping | priorizada | en delivery | entregada
 prioridad: null          # alta | media | baja (la fija la persona)
 idea_origen: IDEA-004
 modulos_afectados: [ofertas, inscripciones]
@@ -270,3 +270,6 @@ análisis, que se transcribe.
      `/reviewer` solo tiene que confirmar que el error de plazo vencido no expone datos del candidato.
    - **Nota para el `product-owner`:** si `/task-planner` supera el techo de 15 tareas, se para y se escala antes de
      partirla.
+
+**HU creadas (2026-10-13):** HU-07 (`docs/03_delivery/hu/HU-07-fecha-limite-inscripcion/hu.md`), con todos los flujos
+del punto 1.

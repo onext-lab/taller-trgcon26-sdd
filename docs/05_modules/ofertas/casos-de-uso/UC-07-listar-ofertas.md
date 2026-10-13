@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-01, HU-02]
+hus: [HU-01, HU-02, HU-07]
 ---
 
 # UC-07 — Listar y buscar ofertas
@@ -16,7 +16,7 @@ hus: [HU-01, HU-02]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador encuentra sus ofertas en un listado paginado, filtrado por estado y por texto del título.
@@ -77,6 +77,6 @@ Ninguno.
 | E2 | HU-02 | CA-20 | `apps/api/test/jobs/list-filters-adversarial.test.ts:89` |
 | E3 | HU-02 | CA-21 | `apps/api/test/jobs/list-filters-adversarial.test.ts:80` |
 | E4 | HU-01 | CA-18 | `apps/web/test/features/jobs/JobListScreen.test.tsx:66` |
-| P (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-02]
+hus: [HU-02, HU-07]
 ---
 
 # UC-06 — Duplicar una oferta como borrador
@@ -16,7 +16,7 @@ hus: [HU-02]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador crea un borrador nuevo a partir de una oferta existente; es la forma de «reabrir» una oferta cerrada
@@ -58,6 +58,6 @@ Ninguno. No se copian inscripciones (S-11).
 | Flujo | HU | Criterio de aceptación (PRD) | Test |
 |---|---|---|---|
 | P | HU-02 | CA-14, CA-15 | `apps/api/test/jobs/duplicate.test.ts:46` |
-| P (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

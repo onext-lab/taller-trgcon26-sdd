@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-01, HU-02]
+hus: [HU-01, HU-02, HU-07]
 ---
 
 # UC-02 — Editar una oferta
@@ -16,7 +16,7 @@ hus: [HU-01, HU-02]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador corrige o completa los datos de una oferta en `draft` o `published`.
@@ -90,9 +90,9 @@ Ninguno.
 | E2 | HU-01 | CA-12 | `apps/api/test/jobs/update.test.ts:144` |
 | E3 | HU-02 | CA-11 | `apps/api/test/jobs/status-rules.test.ts:74` |
 | E4 | HU-02 | CA-12 | `apps/api/test/jobs/status-rules.test.ts:117` |
-| P (FEAT-04) | — (pendiente) | | |
-| A2 (FEAT-04) | — (pendiente) | | |
-| A3 (FEAT-04) | — (pendiente) | | |
-| E5 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| A2 (FEAT-04) | HU-07 | | |
+| A3 (FEAT-04) | HU-07 | | |
+| E5 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

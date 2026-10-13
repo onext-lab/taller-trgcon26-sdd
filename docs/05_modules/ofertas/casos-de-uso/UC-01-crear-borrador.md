@@ -5,7 +5,7 @@ modulo: ofertas
 actor: reclutador
 estado: aprobado
 feature: FEAT-04
-hus: [HU-01]
+hus: [HU-01, HU-07]
 ---
 
 # UC-01 — Crear una oferta como borrador
@@ -16,7 +16,7 @@ hus: [HU-01]
 > criterio de aceptación, y la revisión exige un test por flujo.
 
 **Origen:** FEAT-01. **Modificado por:** FEAT-04 (fecha límite de inscripción); lo marcado «(FEAT-04)» está pendiente
-de su HU.
+de HU-07.
 
 ## Objetivo
 El reclutador da de alta una oferta en `draft` para completarla y publicarla más adelante.
@@ -82,7 +82,7 @@ Ninguno.
 | E4 | HU-01 | CA-06 | `apps/api/test/jobs/create.test.ts:169` |
 | E5 | HU-01 | CA-07 | `apps/api/test/jobs/create.test.ts:220` |
 | E6 | HU-01 | CA-08 | `apps/api/test/jobs/create-adversarial.test.ts:92` |
-| P (FEAT-04) | — (pendiente) | | |
-| E7 (FEAT-04) | — (pendiente) | | |
+| P (FEAT-04) | HU-07 | | |
+| E7 (FEAT-04) | HU-07 | | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
