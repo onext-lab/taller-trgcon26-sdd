@@ -95,25 +95,25 @@ HU-04).
 - **Factorías cortas.** Un repositorio o un servicio se compone de piezas pequeñas: los casos de uso son funciones del
   módulo que reciben sus dependencias, y los grupos de métodos afines son funciones `createXOperations` /
   `createXQueries` que la factoría exportada compone con *spread*. La frontera transaccional queda a la vista en el
-  objeto que devuelve la factoría. Ejemplos: `apps/api/src/modules/applications/service.ts:232` (servicio) y
-  `apps/api/src/modules/jobs/repository.ts:97` y `:183` (repositorio). Lo vigila `npm run lint`
+  objeto que devuelve la factoría. Ejemplos: `apps/api/src/modules/applications/service.ts:266` (servicio) y
+  `apps/api/src/modules/jobs/repository.ts:101` y `:196` (repositorio). Lo vigila `npm run lint`
   (`max-lines-per-function`, 50 líneas; [QUALITY-GATES.md](07_architecture_principles/QUALITY-GATES.md) §2).
 - **Mensajes en constantes `*_MESSAGE`.** Cada texto de error del servicio se declara una vez, como constante, y se
-  reutiliza en cada `throw`. Ejemplo: `apps/api/src/modules/applications/service.ts:72-74`.
+  reutiliza en cada `throw`. Ejemplo: `apps/api/src/modules/applications/service.ts:80-84`.
 - **`requireX` para «existe o 404».** Un helper por entidad que lee la fila o lanza `notFound` con su mensaje, en lugar
-  de repetir la comprobación en cada caso de uso. Ejemplos: `apps/api/src/modules/jobs/service.ts:67` y
+  de repetir la comprobación en cada caso de uso. Ejemplos: `apps/api/src/modules/jobs/service.ts:71` y
   `apps/api/src/modules/candidates/service.ts:84`.
 
 **Datos y consistencia**
 
 - **Una sola `withTransaction` por operación que cruza módulos.** La guarda del puerto, las escrituras, el
   `StageChange` y el recálculo de la retención van juntos: si falla uno, no queda nada. Ejemplo: inscribir,
-  `apps/api/src/modules/applications/service.ts:234` (`deps.transaction(() => enroll(deps, input))`, con
+  `apps/api/src/modules/applications/service.ts:268` (`deps.transaction(() => enroll(deps, input))`, con
   `withTransaction` de `apps/api/src/db/transaction.ts:8`).
 - **El índice único decide el duplicado**, sin `SELECT` previo: se inserta y se traduce el choque del índice en 409
   `DUPLICATE` con el ID existente. Así dos peticiones a la vez no pueden colarse entre la comprobación y el `INSERT`.
   Ejemplo: `apps/api/src/db/migrations/003-create-applications.sql:12` (índice) y
-  `apps/api/src/modules/applications/service.ts:99-120` (traducción).
+  `apps/api/src/modules/applications/service.ts:108-128` (traducción).
 - **Los puertos leen con columnas explícitas.** Lo que un módulo lee de otro pasa por un puerto con las columnas que
   necesita, nunca `SELECT *` ni SQL sobre tablas ajenas. Ejemplo: `findNamesByIds`,
   `apps/api/src/modules/candidates/repository.ts:97` (`SELECT id, full_name`).
@@ -121,19 +121,19 @@ HU-04).
   (`createdAt`, `changedAt`, `lastChangeAt`) y el `StageChange` inicial los pone el servidor; el esquema de la petición
   ni siquiera los admite. Ejemplo: el cuerpo de inscribir solo acepta `jobId` y `candidateId`, con
   `additionalProperties: false` (`apps/api/src/modules/applications/schemas.ts:28-30`), y la fecha sale de `deps.now()`
-  (`apps/api/src/modules/applications/service.ts:124`).
+  (`apps/api/src/modules/applications/service.ts:146`).
 - **La guarda de estado va en el `WHERE`, y 0 filas es un 409.** El `UPDATE` solo toca la fila si sigue en el estado
   esperado; si no actualiza ninguna, alguien llegó antes y se responde 409, sin leer y escribir por separado. Ejemplo:
   `apps/api/src/modules/applications/repository.ts:101-102` (`WHERE id = ? AND stage = ?`) y
-  `apps/api/src/modules/applications/service.ts:163` (`undefined` → `STAGE_MISMATCH`).
+  `apps/api/src/modules/applications/service.ts:186` (`undefined` → `STAGE_MISMATCH`).
 
 **Web**
 
 - **Guardas `isX(value): value is X` en cada `api.ts`.** La web no se fía de la forma de la respuesta: cada cliente
-  comprueba lo que recibe antes de usarlo. Ejemplo: `apps/web/src/features/applications/api.ts:48` (`isPipeline`).
+  comprueba lo que recibe antes de usarlo. Ejemplo: `apps/web/src/features/applications/api.ts:57` (`isPipeline`).
 - **Un hook `use-*-actions.ts` por pantalla con escrituras.** Las acciones (publicar, cerrar, borrar…) con su estado de
   envío, sus errores y el foco viven en un hook, y la pantalla solo los pinta. Ejemplo:
-  `apps/web/src/features/jobs/use-job-actions.ts:77`.
+  `apps/web/src/features/jobs/use-job-actions.ts:91`.
 
 **Tests**
 

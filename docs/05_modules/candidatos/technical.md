@@ -19,7 +19,7 @@ fecha más tardía de la fórmula). No queda nada latente.
 |---|---|---|
 | Rutas | `apps/api/src/modules/candidates/routes.ts` | Plugin `candidatesRoutes` (prefijo `/api/candidates`), JSON Schema por ruta, `preValidation` con `normalizeBody` (alta y edición), `trimSearchText` (`q` y `skill`) y `rejectBody` en las dos acciones de consentimiento, sin `try/catch` |
 | Servicio | `apps/api/src/modules/candidates/service.ts` | `createCandidatesService({ repository, now, transaction, processes })`: `list`, `create`, `get`, `update`, `giveConsent`, `withdrawConsent`, `recalculateRetention` y, para el puerto `CandidateLookupPort` de `applications`, `exists` y `findNames` |
-| Retención | `apps/api/src/modules/candidates/retention.ts` | Fórmula pura, sin reloj ni SQL: `computeRetentionEndsAt`, `madridCalendarDate`, `addMonthsClamped` |
+| Retención | `apps/api/src/modules/candidates/retention.ts` | Fórmula pura, sin reloj ni SQL: `computeRetentionEndsAt`, `addMonthsClamped`; el día natural de Madrid lo importa de `apps/api/src/calendar.ts` (`madridCalendarDate`, transversal desde HU-07 de la práctica) |
 | Puerto | `apps/api/src/modules/candidates/processes-port.ts` | `CandidateProcessesPort` (`getProcesses`), `CandidateProcesses` y el stub `noCandidateProcesses`, **solo para tests y para el seed de candidatos**; la implementación real es de `inscripciones` y se conecta en `app.ts` |
 | Normalización | `apps/api/src/modules/candidates/normalize.ts` | `normalizeCandidateBody(body)`: pura e idempotente; recorta, email en minúsculas, skills recortadas, en minúsculas, sin vacías y deduplicadas (antes de que el esquema cuente `maxItems`) |
 | Repositorio | `apps/api/src/modules/candidates/repository.ts` | `createCandidatesRepository(db)`: SQL preparado (`findById`, `existsById`, `findNamesByIds`, `findIdByEmail`, `insert`, `updateFields`, `setConsent`, `setRetention`, `listPage`, `count`, `isDuplicateEmailError`), `toCandidate(row)`; registra `fold_search` en su conexión. `existsById` (`SELECT 1`) y `findNamesByIds` (solo `id` y `full_name`, con `json_each(?)`) son las lecturas que `applications` usa por puerto |
@@ -150,10 +150,10 @@ posiciones 1-20 y 25-29). Los teléfonos de ficción son de la serie `+34 600 00
 - **Fórmula** (`retention.ts`, RN-07, RGPD §3): con `hasOpenApplication` → `null` («mientras dure el proceso»); si no, la más
   tardía de consentimiento vigente + 24 meses, `lastProcessClosedAt` + 6 meses y alta + 6 meses (solo si
   `!hadAnyApplication`). Las fechas de partida son el día natural de Europe/Madrid del instante UTC guardado
-  (`madridCalendarDate`); `addMonthsClamped` toma el último día del mes si el día no existe (31/08 + 6 meses →
+  (`madridCalendarDate`, de `apps/api/src/calendar.ts`); `addMonthsClamped` toma el último día del mes si el día no existe (31/08 + 6 meses →
   28/02). Retirar aplica la fórmula aunque el resultado ya haya pasado.
 - **Contrato del puerto:** `lastProcessClosedAt` no es `null` si `hadAnyApplication && !hasOpenApplication`.
-  `computeRetentionEndsAt` lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:69-77`); con
+  `computeRetentionEndsAt` lanza `Error` **solo si no aplica ningún plazo** (`apps/api/src/modules/candidates/retention.ts:60-62`); con
   otro plazo vigente, un puerto incoherente no se detecta.
 - **`recalculateRetention(id)`** (en el servicio, se une a la transacción en curso) es el único escritor de
   `retention_ends_at` en el código de la API (`setRetention`); lo llaman `create`, `giveConsent`, `withdrawConsent` y

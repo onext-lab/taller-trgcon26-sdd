@@ -215,6 +215,16 @@ Ninguna bloquea. **Observaciones** (se curan o se aceptan antes de cerrar):
    al límite de 300 líneas: el próximo test que entre en ellos va en un fichero hermano. `hu.md` sigue con
    `sprint: null` (como en sprint-01) y los criterios de done de las tasks sin marcar.
 
+## 10. Curación de las observaciones (2026-10-13, tras la review)
+- **O-1 curada:** las once anclas de `docs/ARCHITECTURE.md` apuntan a las líneas actuales, comprobadas una a una con
+  `grep` (`applications/service.ts:266`, `:80-84`, `:268`, `:108-128`, `:146`, `:186`; `jobs/repository.ts:101` y
+  `:196`; `jobs/service.ts:71`; `applications/api.ts:57`; `jobs/use-job-actions.ts:91`).
+- **O-2 curada:** `docs/05_modules/candidatos/technical.md` dice que `madridCalendarDate` vive en
+  `apps/api/src/calendar.ts` y el `throw` de «no aplica ningún plazo» está en `retention.ts:60-62`.
+- **O-3 aceptada, sin editar:** un TECHNICAL_DOC solo lo edita su arquitecto (`/tech-design`), y `tasks/ROADMAP.md`
+  (H-2) ya deja constancia de que la dependencia con el backend está resuelta y los contratos coinciden.
+- **O-4, O-5, O-6 y O-7:** pendientes de que la persona las acepte o pida su arreglo.
+
 ---
 Ronda: 1 · «Requiere cambios» previos: 0 (máximo 2; al tercero se para y se escala a la persona)
 
