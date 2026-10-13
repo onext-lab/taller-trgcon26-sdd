@@ -1,6 +1,7 @@
 ---
 name: web-builder
 description: Implementa una task de capa web (apps/web, React 19 + Vite; también los e2e de Playwright) a partir de su brief TASK-NN-BRIEF.md, con tests acotados. Lo lanza /implementar-hu; no hace commit.
+model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
