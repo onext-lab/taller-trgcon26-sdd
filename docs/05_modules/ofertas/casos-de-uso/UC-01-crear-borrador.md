@@ -78,7 +78,7 @@ Ninguno.
 | E4 | HU-01 | CA-06 | `apps/api/test/jobs/create.test.ts:169` |
 | E5 | HU-01 | CA-07 | `apps/api/test/jobs/create.test.ts:220` |
 | E6 | HU-01 | CA-08 | `apps/api/test/jobs/create-adversarial.test.ts:92` |
-| P (FEAT-04) | HU-07 | CA-01 | |
-| E7 | HU-07 | CA-02 | |
+| P (FEAT-04) | HU-07 | CA-01 | `apps/api/test/jobs/deadline.test.ts:62`, `apps/web/test/features/jobs/JobFormScreen.deadline.test.tsx:72`, `e2e/jobs-deadline.spec.ts:63` |
+| E7 | HU-07 | CA-02 | `apps/api/test/jobs/deadline.test.ts:106`, `apps/web/test/features/jobs/JobFormScreen.deadline.test.tsx:107`, `e2e/jobs-deadline.spec.ts:87` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

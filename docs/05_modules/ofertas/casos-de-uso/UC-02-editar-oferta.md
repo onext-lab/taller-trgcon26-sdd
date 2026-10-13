@@ -83,9 +83,9 @@ Ninguno.
 | E2 | HU-01 | CA-12 | `apps/api/test/jobs/update.test.ts:144` |
 | E3 | HU-02 | CA-11 | `apps/api/test/jobs/status-rules.test.ts:74` |
 | E4 | HU-02 | CA-12 | `apps/api/test/jobs/status-rules.test.ts:117` |
-| P (FEAT-04) | HU-07 | CA-03 | |
-| A2 | HU-07 | CA-05 | |
-| A3 | HU-07 | CA-06 | |
-| E5 | HU-07 | CA-04 | |
+| P (FEAT-04) | HU-07 | CA-03 | `apps/api/test/jobs/deadline.test.ts:142`, `apps/web/test/features/jobs/JobFormScreen.deadline.test.tsx:141` |
+| A2 | HU-07 | CA-05 | `apps/api/test/jobs/deadline.test.ts:237`, `apps/web/test/features/jobs/JobFormScreen.deadline.test.tsx:187` |
+| A3 | HU-07 | CA-06 | `apps/api/test/applications/enroll-deadline.test.ts:139`, `apps/api/test/applications/pipeline-deadline.test.ts:102`, `apps/web/test/features/applications/PipelineScreen.deadline.test.tsx:57` |
+| E5 | HU-07 | CA-04 | `apps/api/test/jobs/deadline.test.ts:206`, `apps/web/test/features/jobs/JobFormScreen.deadline.test.tsx:171` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

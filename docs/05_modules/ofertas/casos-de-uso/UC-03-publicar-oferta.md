@@ -64,6 +64,6 @@ Ninguno.
 | A1 | HU-02 | CA-02 | `apps/api/test/jobs/publish.test.ts:65` |
 | E1 | HU-02 | CA-03 | `apps/api/test/jobs/publish.test.ts:165` |
 | E2 | HU-02 | CA-04 | `apps/api/test/jobs/publish.test.ts:197` |
-| E3 | HU-07 | CA-07 | |
+| E3 | HU-07 | CA-07 | `apps/api/test/jobs/deadline-publish-duplicate.test.ts:57`, `apps/web/test/features/jobs/JobDetailScreen.deadline.test.tsx:77` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

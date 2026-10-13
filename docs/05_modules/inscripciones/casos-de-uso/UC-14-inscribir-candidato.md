@@ -90,7 +90,7 @@ más datos de los necesarios (RGPD §6).
 | E3 | HU-04 | CA-09 | `apps/api/test/applications/enroll.test.ts:174` |
 | E4 | HU-04 | CA-10 | `apps/api/test/applications/enroll-adversarial.test.ts:90` |
 | E5 | HU-04 | CA-11 | `apps/api/test/applications/enroll-failures-adversarial.test.ts:86` |
-| P (FEAT-04) | HU-07 | CA-09 | |
-| E6 | HU-07 | CA-10, CA-11 | |
+| P (FEAT-04) | HU-07 | CA-09 | `apps/api/test/applications/enroll-deadline.test.ts:83`, `apps/api/test/applications/enroll-deadline.test.ts:174` |
+| E6 | HU-07 | CA-10, CA-11 | `apps/api/test/applications/enroll-deadline.test.ts:97`, `apps/api/test/applications/enroll-deadline.test.ts:119`, `apps/web/test/features/applications/PipelineScreen.deadline.test.tsx:157` |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._
