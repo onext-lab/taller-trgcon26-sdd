@@ -2,7 +2,7 @@
 id: HU-07
 feature: FEAT-04
 titulo: "Fecha límite de inscripción en una oferta"
-estado: pendiente        # pendiente | en curso | bloqueada | hecha | descartada
+estado: en curso         # pendiente | en curso | bloqueada | hecha | descartada
 rol: "reclutador"
 modulos_afectados: [ofertas, inscripciones]
 sprint: null             # sprint-NN
@@ -113,7 +113,7 @@ Flujos de esos UC que **no** cubre esta HU:
   (`docs/07_architecture_principles/QUALITY-GATES.md`), se para y se escala antes de dividirla.
 
 ## Progreso SDD
-- [ ] PRD (`specs/PRD.md`) — `/prd-writer`
+- [x] PRD (`specs/PRD.md`) — `/prd-writer`
 - [ ] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `plans/TECHNICAL_DOC-frontend.md`) — `/tech-design`
 - [ ] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [ ] Implementación + integración — `/implementar-hu`

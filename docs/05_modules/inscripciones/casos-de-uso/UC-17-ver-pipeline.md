@@ -75,7 +75,7 @@ un valor de lista cerrada, no texto libre.
 | A1 | HU-05 | CA-23 | `apps/web/test/features/applications/PipelineScreen.links.test.tsx:99`, `e2e/pipeline-closed.spec.ts:31` |
 | A2 | HU-04 | CA-14 | `apps/api/test/applications/pipeline.test.ts:137`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:41` |
 | A3 | — (feature A) | | |
-| A4 | HU-07 | | |
+| A4 | HU-07 | CA-12 | |
 | E1 | HU-04 | CA-15 | `apps/api/test/applications/pipeline.test.ts:146`, `apps/web/test/features/applications/PipelineScreen.states.test.tsx:87` |
 | E2 | HU-04 | CA-16 | `apps/web/test/features/applications/PipelineScreen.states.test.tsx:105` |
 

@@ -83,9 +83,9 @@ Ninguno.
 | E2 | HU-01 | CA-12 | `apps/api/test/jobs/update.test.ts:144` |
 | E3 | HU-02 | CA-11 | `apps/api/test/jobs/status-rules.test.ts:74` |
 | E4 | HU-02 | CA-12 | `apps/api/test/jobs/status-rules.test.ts:117` |
-| P (FEAT-04) | HU-07 | | |
-| A2 | HU-07 | | |
-| A3 | HU-07 | | |
-| E5 | HU-07 | | |
+| P (FEAT-04) | HU-07 | CA-03 | |
+| A2 | HU-07 | CA-05 | |
+| A3 | HU-07 | CA-06 | |
+| E5 | HU-07 | CA-04 | |
 
 _La rellenan `/prd-writer` (CA), `/reviewer` (test) y `/module-sync` (al cerrar). Un flujo sin test es un hallazgo._

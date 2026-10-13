@@ -22,9 +22,9 @@ candidato» cuando el plazo ha vencido (FEAT-04).
 
 ## Historias de usuario
 
-### HU-07 · Fecha límite de inscripción en una oferta · estado: pendiente
+### HU-07 · Fecha límite de inscripción en una oferta · estado: en curso
 - **Origen:** FEAT-04 · **Depende de:** nada · **Rama:** `hu/HU-07-fecha-limite-inscripcion`
-- [ ] prd-writer
+- [x] prd-writer
 - [ ] tech-design
 - [ ] task-planner
 - [ ] implementar-hu
