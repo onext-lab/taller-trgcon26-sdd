@@ -1,3 +1,4 @@
+import { madridCalendarDate } from '../../calendar.ts';
 import type { Clock } from '../../clock.ts';
 import { foldSearchText } from '../../db/text-search.ts';
 import { invalidTransition, notFound } from '../../errors.ts';
@@ -6,6 +7,8 @@ import type { JobEditableFields, JobsRepository } from './repository.ts';
 import {
   assertNoDetails,
   checkAction,
+  enrollmentDeadlineDetails,
+  expiredDeadlineDetails,
   missingRequiredDetails,
   salaryRangeDetails,
 } from './rules.ts';
@@ -71,11 +74,22 @@ function requireJob(repository: JobsRepository, id: number): Job {
   return job;
 }
 
+/** Día natural de Madrid del instante dado (DEC-09): «hoy» sale siempre del reloj inyectado. */
+function todayAt(instant: Date): string {
+  return madridCalendarDate(instant.toISOString());
+}
+
+/** DD-04: «no anterior a hoy» solo si la fecha cambia; `null` o la misma fecha guardada nunca se validan. */
+function deadlineChange(patch: JobPatch, current: Job): string | null {
+  const next = patch.enrollmentDeadline;
+  return next === undefined || next === null || next === current.enrollmentDeadline ? null : next;
+}
+
 /**
  * Lectura-fusión-escritura (DD-05), ya dentro de la transacción. Orden DT-04: 404 → estado (409) → reglas de campos
  * (400) (DEC-08).
  */
-function updateJob({ repository }: JobsServiceDeps, id: number, patch: JobPatch): Job {
+function updateJob({ repository, now }: JobsServiceDeps, id: number, patch: JobPatch): Job {
   const current = requireJob(repository, id);
   checkAction('update', current.status);
   // Gana la última escritura, campo a campo (DEC-08); las reglas se aplican a lo fusionado (DD-04).
@@ -84,8 +98,15 @@ function updateJob({ repository }: JobsServiceDeps, id: number, patch: JobPatch)
     current.status === 'published'
       ? missingRequiredDetails(merged, 'Obligatorio en una oferta publicada.')
       : [];
-  // Un único 400 con los obligatorios y, detrás, la banda (DD-07).
-  assertNoDetails([...missing, ...salaryRangeDetails(merged.salaryMin, merged.salaryMax)]);
+  const changed = deadlineChange(patch, current);
+  // `now()` solo si la fecha cambia: un PATCH de otro campo no pide el instante.
+  const deadline = changed === null ? [] : enrollmentDeadlineDetails(changed, todayAt(now()));
+  // Un único 400 con los obligatorios y, detrás, la banda y la fecha (DD-07).
+  assertNoDetails([
+    ...missing,
+    ...salaryRangeDetails(merged.salaryMin, merged.salaryMax),
+    ...deadline,
+  ]);
   const updated = repository.update(id, merged);
   // DD-09: tras `requireJob` y `checkAction`, bajo BEGIN IMMEDIATE, sin fila solo puede ser un estado no permitido.
   if (!updated) throw invalidTransition(STATE_CHANGED_MESSAGE);
@@ -103,8 +124,12 @@ function removeJob({ repository }: JobsServiceDeps, id: number): void {
 function publishJob({ repository, now }: JobsServiceDeps, id: number): Job {
   const job = requireJob(repository, id);
   if (checkAction('publish', job.status) === 'noop') return job;
-  assertNoDetails(missingRequiredDetails(editableFields(job), 'Obligatorio para publicar.'));
-  const published = repository.markPublished(id, now().toISOString());
+  const instant = now(); // un solo instante: el día de «hoy» y `publishedAt` (DD-10)
+  assertNoDetails([
+    ...missingRequiredDetails(editableFields(job), 'Obligatorio para publicar.'),
+    ...expiredDeadlineDetails(job.enrollmentDeadline, todayAt(instant)),
+  ]);
+  const published = repository.markPublished(id, instant.toISOString());
   // Imposible bajo BEGIN IMMEDIATE (DD-08): si ocurre, es un 500.
   if (!published) throw new Error('markPublished no devolvió la fila');
   return published;
@@ -126,9 +151,14 @@ export function createJobsService(deps: JobsServiceDeps): JobsService {
   const { repository, now, transaction, applications } = deps;
   return {
     create(input) {
-      assertNoDetails(salaryRangeDetails(input.salaryMin, input.salaryMax));
+      // Un solo instante: «hoy» para la fecha límite y `created_at` (DEC-09).
+      const instant = now();
+      assertNoDetails([
+        ...salaryRangeDetails(input.salaryMin, input.salaryMax),
+        ...enrollmentDeadlineDetails(input.enrollmentDeadline ?? null, todayAt(instant)),
+      ]);
       // `status` ('draft') y `created_at` solo los fija el sistema.
-      const createdAt = now().toISOString();
+      const createdAt = instant.toISOString();
       return transaction(() => repository.insert(input, createdAt));
     },
     get(id) {

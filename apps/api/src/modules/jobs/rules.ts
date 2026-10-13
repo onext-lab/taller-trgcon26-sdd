@@ -1,3 +1,4 @@
+import { isCalendarDate, isDeadlinePassed } from '../../calendar.ts';
 import { invalidTransition, validationError, type ErrorDetail } from '../../errors.ts';
 import type { JobEditableFields } from './repository.ts';
 import type { JobStatus } from './schemas.ts';
@@ -32,6 +33,10 @@ const RULES: Record<JobAction, Record<JobStatus, Outcome>> = {
 };
 
 const SALARY_RANGE_MESSAGE = 'El salario mínimo no puede ser mayor que el máximo.';
+// DT-01 del PRD: textos exactos, sin repetir el valor recibido (DEC-11.4).
+const INVALID_DATE_MESSAGE = 'Introduce una fecha válida.';
+const PAST_DEADLINE_MESSAGE = 'La fecha límite no puede ser anterior a hoy.';
+const EXPIRED_DEADLINE_MESSAGE = 'La fecha límite de inscripción ya ha pasado.';
 
 /** `'apply'` o `'noop'`; un conflicto lanza `INVALID_TRANSITION` (409) sin `details`. */
 export function checkAction(action: JobAction, status: JobStatus): 'apply' | 'noop' {
@@ -64,6 +69,21 @@ export function salaryRangeDetails(
     return [{ field: 'salaryMin', message: SALARY_RANGE_MESSAGE }];
   }
   return [];
+}
+
+/** RF-01: un día real y no anterior a `today`. `[]` si es `null`; quien llama decide si la fecha cambia (DD-04). */
+export function enrollmentDeadlineDetails(value: string | null, today: string): ErrorDetail[] {
+  if (value === null) return [];
+  if (!isCalendarDate(value))
+    return [{ field: 'enrollmentDeadline', message: INVALID_DATE_MESSAGE }];
+  if (value < today) return [{ field: 'enrollmentDeadline', message: PAST_DEADLINE_MESSAGE }];
+  return [];
+}
+
+/** Al publicar (RN-04, DD-10): un borrador con el plazo ya vencido no se publica. */
+export function expiredDeadlineDetails(deadline: string | null, today: string): ErrorDetail[] {
+  if (!isDeadlinePassed(deadline, today)) return [];
+  return [{ field: 'enrollmentDeadline', message: EXPIRED_DEADLINE_MESSAGE }];
 }
 
 export function assertNoDetails(details: ErrorDetail[]): void {

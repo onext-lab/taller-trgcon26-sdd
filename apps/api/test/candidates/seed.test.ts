@@ -6,10 +6,8 @@ import { migrate } from '../../src/db/migrate.ts';
 import { seed } from '../../src/db/seed.ts';
 import { createCandidateProcessesReader } from '../../src/modules/applications/candidate-processes.ts';
 import { createApplicationsRepository } from '../../src/modules/applications/repository.ts';
-import {
-  computeRetentionEndsAt,
-  madridCalendarDate,
-} from '../../src/modules/candidates/retention.ts';
+import { madridCalendarDate } from '../../src/calendar.ts';
+import { computeRetentionEndsAt } from '../../src/modules/candidates/retention.ts';
 import {
   candidateFieldsSchema,
   type Candidate,

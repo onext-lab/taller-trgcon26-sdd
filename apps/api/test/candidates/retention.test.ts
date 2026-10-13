@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { madridCalendarDate } from '../../src/calendar.ts';
 import {
   noCandidateProcesses,
   type CandidateProcesses,
@@ -6,7 +7,6 @@ import {
 import {
   addMonthsClamped,
   computeRetentionEndsAt,
-  madridCalendarDate,
   type RetentionFacts,
 } from '../../src/modules/candidates/retention.ts';
 

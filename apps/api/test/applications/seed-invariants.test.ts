@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { madridCalendarDate } from '../../src/calendar.ts';
 import { openDatabase } from '../../src/db/connection.ts';
 import { migrate } from '../../src/db/migrate.ts';
 import { seed } from '../../src/db/seed.ts';
@@ -8,7 +9,6 @@ import { createApplicationsRepository } from '../../src/modules/applications/rep
 import {
   addMonthsClamped,
   computeRetentionEndsAt,
-  madridCalendarDate,
 } from '../../src/modules/candidates/retention.ts';
 
 // Datos inventados. `now` fijo: las inscripciones de las publicadas son relativas al reset (DD-10).

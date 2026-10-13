@@ -15,7 +15,7 @@ tres módulos tienen ya su código desde HU-04.
 
 **Transversal** (no es módulo de negocio): `apps/api/src/app.ts`, `apps/api/src/server.ts`,
 `apps/api/src/listen-options.ts`, `apps/api/src/logger.ts`, `apps/api/src/http/`, `apps/api/src/errors.ts`,
-`apps/api/src/clock.ts`, `apps/api/src/db/` (incluido `apps/api/src/db/transaction.ts`), `apps/web/src/components/`,
+`apps/api/src/clock.ts`, `apps/api/src/calendar.ts`, `apps/api/src/db/` (incluido `apps/api/src/db/transaction.ts`), `apps/web/src/components/`,
 `e2e/` y `scripts/`. Una HU que solo toca lo transversal declara `modulos_afectados: []`.
 
 ## Documentos de cada módulo

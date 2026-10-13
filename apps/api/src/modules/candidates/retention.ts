@@ -1,16 +1,10 @@
+import { madridCalendarDate } from '../../calendar.ts';
 import type { CandidateProcesses } from './processes-port.ts';
 
 /**
  * Fórmula única de retención (RN-07, `docs/RGPD.md` §3). Pura: sin reloj ni base de datos; quien la invoca aporta
  * los hechos. Las fechas de partida son el día natural en Europe/Madrid del instante UTC guardado (DEC-09).
  */
-
-const MADRID_DAY = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Europe/Madrid',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 
 const CONSENT_MONTHS = 24;
 const PROCESS_MONTHS = 6;
@@ -20,13 +14,6 @@ export interface RetentionFacts {
   consentGivenAt: string | null;
   consentWithdrawnAt: string | null;
   processes: CandidateProcesses;
-}
-
-/** Día natural 'AAAA-MM-DD' en Europe/Madrid de un instante ISO UTC. Lanza `RangeError` si el instante no es válido. */
-export function madridCalendarDate(instant: string): string {
-  const parts = MADRID_DAY.formatToParts(new Date(instant));
-  const part = (type: string): string => parts.find((p) => p.type === type)?.value ?? '';
-  return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
 /** Suma meses a 'AAAA-MM-DD'; si el día no existe en el mes de destino, toma el último día de ese mes. */
