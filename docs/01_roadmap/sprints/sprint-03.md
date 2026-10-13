@@ -18,7 +18,7 @@ candidato» cuando el plazo ha vencido (FEAT-04).
 
 ## Resumen de estado
 - HU: hechas 0 / 1 · bloqueadas 0
-- Última actualización: 2026-10-13 13:01
+- Última actualización: 2026-10-13 13:20
 
 ## Historias de usuario
 
@@ -28,8 +28,8 @@ candidato» cuando el plazo ha vencido (FEAT-04).
 - [x] tech-design
 - [x] task-planner
 - [x] implementar-hu
-- [ ] reviewer
-- [ ] merge a main
+- [x] reviewer (Aprobado con observaciones, ronda 1)
+- [ ] merge a main (no aplica en la práctica: la rama es el entregable y sus etiquetas `taller-*`)
 - [ ] module-sync
 
 ## Tareas sin HU

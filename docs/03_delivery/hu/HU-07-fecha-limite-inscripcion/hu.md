@@ -117,5 +117,5 @@ Flujos de esos UC que **no** cubre esta HU:
 - [x] Diseño técnico (`plans/TECHNICAL_DOC-backend.md` y `plans/TECHNICAL_DOC-frontend.md`) — `/tech-design`
 - [x] Tareas (`tasks/ROADMAP.md`) — `/task-planner`
 - [x] Implementación + integración — `/implementar-hu`
-- [ ] Review (`review/REVIEW.md`) — `/reviewer`
+- [x] Review (`review/REVIEW.md`) — `/reviewer`
 - [ ] Sync de módulos + merge local a `main` — `/module-sync`
