@@ -51,7 +51,9 @@ exige la salida del paso de integración y además la vuelve a ejecutar.
 - **R4.1 Como máximo 4 builders a la vez**, y **solo en paralelo si no comparten ficheros**. En el taller, lo normal
   es uno por task, en orden.
 - **R4.2 Briefs cortos.** Lo que ya está en la rama, la task como contrato y «lee solo lo que la task nombra».
-- **R4.3 Modelo heredado.** Los builders heredan el modelo de la sesión; nunca se fija uno más caro en el repo.
+- **R4.3 Modelos fijados.** La sesión usa Opus (`.claude/settings.json`) y los agentes que declaran `model: sonnet` (los
+  dos builders, los tres auditores y `qa-e2e-runner`) van en Sonnet; el resto hereda el de la sesión. Cambiar un modelo
+  fijado lo decide el responsable técnico, no el encargo.
 - **R4.4 Un commit por task**, *conventional* en inglés, con el ID (`feat(scope): … [HU-NN TASK-NN]`), nombrando los
   ficheros: `git add -- <paths>` y `git commit -m "…" -- <paths>`. **Nunca** `git add -A`, `git add .` ni `git stash`.
 - **R4.5 Nada externo.** Sin push, sin remotos, sin red y sin servicios de terceros: el builder deja la rama lista y la
