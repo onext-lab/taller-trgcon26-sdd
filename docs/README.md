@@ -4,7 +4,8 @@ Todo lo que el flujo SDD escribe o consulta vive aquí. Empieza por [WORKFLOW.md
 [00_methodology/README.md](00_methodology/README.md) (el flujo en una página).
 
 Roles en la prosa: «el responsable técnico», «la persona responsable» y «el responsable» son la misma persona (quien
-dirige el taller y decide en los gates); «el aprobador» es quien daba el visto bueno a los diseños.
+dirige el taller y decide en los gates); «el aprobador» es quien daba el visto bueno a los diseños y al cierre de los
+sprints.
 
 ## Raíz
 

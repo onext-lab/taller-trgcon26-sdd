@@ -180,8 +180,9 @@ borrados. Con `reuseExistingServer: false` y `workers: 1`, dos ejecuciones segui
 
 Lo hace el responsable técnico, en este orden:
 
-1. **Rellena los marcadores de publicación**: TITULAR, RAZON_SOCIAL, URL_MARKETPLACE y URL_REPO (entre ángulos en los
-   ficheros; la lista está en `scripts/publish-markers.mjs`). `npm run check:harness` avisa de cuántos quedan.
+1. **Rellena los marcadores de publicación**: TITULAR, RAZON_SOCIAL y URL_REPO (entre ángulos en los ficheros; la lista
+   está en `scripts/publish-markers.mjs`). URL_MARKETPLACE no se rellena: la copia de publicación quita la frase que lo
+   lleva (decisión del 2026-10-14). `npm run check:harness` avisa de cuántos quedan.
 2. **Crea el `.mailmap` fuera del repo**, con el nombre y el email canónicos (el titular) de cada autor, committer y
    tagger. No se versiona: publicaría los emails que mapea.
 3. **`node scripts/check-clean.mjs --denylist <ruta> --publish --mailmap <ruta> --publish-denylist <ruta>` en verde**:

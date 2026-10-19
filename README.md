@@ -4,8 +4,8 @@ Repo de ejemplo del taller de **Spec-Driven Development** (TRGCON 2026): un ATS 
 candidatos e inscripciones) construido con un flujo de agentes en Claude Code, de la idea al código integrado, con
 especificaciones, gates comprobables y verificación ejecutada. Todos los datos son inventados.
 
-> **Ejemplo archivado, sin soporte.** Este repo es material del taller: se archiva el **2026-12-31** y no recibe cambios,
-> incidencias ni pull requests. Este kit es un ejemplo didáctico derivado del flujo SDD de onext.
+> **Sin soporte.** Este repo es material del taller y no atiende incidencias ni pull requests.
+> Este kit es un ejemplo didáctico derivado del flujo SDD de onext.
 
 ## Qué hay dentro
 
